@@ -74,6 +74,7 @@ public class MVLauncher implements PlugIn {
 			settings.detectorSettings = provider.getDefaultSettings();
 
 			TrackMate_ tm = new TrackMate_(settings);
+			tm.initModules();
 			TrackMateModel model = tm.getModel();
 			model.setLogger(logger);
 

@@ -41,8 +41,9 @@ public class MVLoader implements PlugIn {
 		plugin.initModules();
 		
 		TmXmlReader reader = new TmXmlReader(file, plugin);
-		if (!reader.checkInput() && !reader.process()) {
+		if (!reader.checkInput() || !reader.process()) {
 			logger.error("Problem while reading file "+file+".\n" + reader.getErrorMessage());
+			return;
 		}
 		
 		// Build model from xml file
@@ -53,7 +54,7 @@ public class MVLoader implements PlugIn {
 		
 		// Load image dataset
 		Settings settings = model.getSettings();
-		File imageFile = new File(settings .imageFolder, settings.imageFileName);
+		File imageFile = new File(settings.imageFolder, settings.imageFileName);
 		Map<ImagePlus, List<AffineTransform3D>> impMap;
 
 		try {
@@ -94,7 +95,8 @@ public class MVLoader implements PlugIn {
 	
 	public static void main(String[] args) {
 		ImageJ.main(args);
-		String rootFolder = "E:/Users/JeanYves/Documents/Projects/PTomancak/Data";
+//		String rootFolder = "E:/Users/JeanYves/Documents/Projects/PTomancak/Data";
+		String rootFolder = "/Users/tinevez/Projects/PTomancak/Data";
 		new MVLoader().run(rootFolder);
 	}
 }
