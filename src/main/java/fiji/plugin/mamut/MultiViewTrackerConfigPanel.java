@@ -411,6 +411,7 @@ public class MultiViewTrackerConfigPanel extends JFrame {
 						fireAction(TRACK_SCHEME_BUTTON_PRESSED);
 					}
 				});
+				jButtonShowTrackScheme.setEnabled(false); // FIXME we compute thumbnails at creation, which is not ok in MaMuT
 				mainPanel.add(jButtonShowTrackScheme);
 			}
 			{
