@@ -41,22 +41,19 @@ public class MVSpotEditTool extends AbstractTool implements ToolWithOptions, Mou
 	private static final double COARSE_STEP = 2;
 	private static final double FINE_STEP = 0.2f;
 	private static final String TOOL_NAME = "Spot edit tool";
-	// The MAMUT, as designed by Vincent Poujade-Leroy
-	private static final String TOOL_ICON = "CfbaD31Cfb9D41"
-			+ "CfeeD32Ceb9D42CfdcD52"
-			+ "CfddD33CfeeD43CfbaD63Cea9D73CfccD83CfedD93CffeDa3"
-			+ "C900D34CffeD44CfeeDa4CfbaDb4CebaDc4"
-			+ "CfedD35CfcbDd5"
-			+ "Cea9L0616CfddD26CfcbDd6"
-			+ "CfccD07CebbD17Cea9L2737Cc54D47Cd99D57CfeeD67De7"
-			+ "Cc00D18Cc54D28Cd65D38CfeeL4858CeccDe8"
-			+ "Cea9L0919Cd88D29Cc43D39CfeeD49CdaaD79CeddD89Cc98D99CfeeDa9Cd99Dd9Cc43De9CfeeDf9"
-			+ "Cea9L2a3aCfeeD5aCfddD6aCeccD8aCfddD9aCecdDaaCcaaDbaCea9DcaCfccDdaCd42Dfa"
-			+ "CeaaD2bCfeeD5bCebbD6bCfddD8bCfeeD9bCeddDabCeccDbbCffeDcbCea9DdbDfb"
-			+ "CfaaD2cCfeeD5cCfddD8cCeccDacCfddDbcCfcbDdc"
-			+ "Cea9D2dCfeeD5dD8dCfdcDadCfeeDbdCfcbDdd"
-			+ "CfbaD2eCd54D3eCea9D5eCfddD8eCfeeDaeCfdcDbeCfddDde"
-			+ "CfccD2fCe98D3fCd76Dbf";
+	// The MAMUT, as designed by a cousin of Anastasios Pavlopoulos
+	private static final String TOOL_ICON = "CfeeD32CeddL4262CdccD72CeddD82"
+			+ "CeedD23C963D33C941D43C841D53C642D63C631D73C742D83C854D93Ca97Da3CddcDb3"
+			+ "CdbaD24C731D34C830L4454C520D64C630D74C730L84a4C742Db4Ca97Dc4"
+			+ "CdcbD25C841D35C964D45C853D55C520D65C630D75C730L85b5C731Dc5C975Dd5CfeeDe5"
+			+ "Cca9D26C841D36C877D46C876D56C631D66C630D76C730L86c6C631Dd6Cba9De6"
+			+ "Cca8D27C840D37C853D47C742D57C520D67C630D77C730L87c7C731Dd7C865De7"
+			+ "CdcbD28C741L3848C520D58C630D68C730L78c8C854Dd8CcbaDe8"
+			+ "CcccD19CeedD29C852D39C643D49C630L59c9C976Dd9"
+			+ "CcccL0a1aCfeeD2aC865D3aC543D4aC631D5aC865D6aC632D7aC520L8aaaC630LbacaCba9Dda"
+			+ "CdddD0bC998D1bC999D2bC654L3b4bC754D5bCcbbD7bC631D8bC620D9bC520DabC630DbbC731DcbCdccDdb"
+			+ "CeeeD2cC864D3cC742D4cC986D5cCeedD7cC753D8cC854D9cC875DacC864DbcCa98Dcc"
+			+ "CeeeD3dCeddD4dCeeeD8d";
 
 	/** Fall back default radius when the settings does not give a default radius to use. */
 	private static final double FALL_BACK_RADIUS = 5;

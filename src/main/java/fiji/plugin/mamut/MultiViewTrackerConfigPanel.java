@@ -60,6 +60,8 @@ public class MultiViewTrackerConfigPanel extends JFrame {
 	public ActionEvent TRACK_SCHEME_BUTTON_PRESSED 	= new ActionEvent(this, 0, "TrackSchemeButtonPushed");
 	
 	private static final Icon SAVE_ICON = new ImageIcon(TrackMateWizard.class.getResource("images/page_save.png"));
+	private static final ImageIcon GUI_ICON = new ImageIcon(MultiViewTrackerConfigPanel.class.getResource("mammouth-256x256.png"));
+	
 	private JButton jButtonShowTrackScheme;
 	private JLabel jLabelTrackDisplayMode;
 	private JComboBox jComboBoxDisplayMode;
@@ -428,6 +430,7 @@ public class MultiViewTrackerConfigPanel extends JFrame {
 				setSize(300, 500);
 				setResizable(false);
 				setTitle(MaMuT_.PLUGIN_NAME + " " + MaMuT_.PLUGIN_VERSION);
+				setIconImage(GUI_ICON.getImage());
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

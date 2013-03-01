@@ -313,7 +313,8 @@ public class MVLauncher implements PlugIn {
 
 	public static void main(String[] args) {
 		ImageJ.main(args);
-		String rootFolder = "E:/Users/JeanYves/Documents/Projects/PTomancak/Data";
+		String rootFolder = "/Users/tinevez/Projects/PTomancak/Data";
+//		String rootFolder = "E:/Users/JeanYves/Documents/Projects/PTomancak/Data";
 		new MVLauncher().run(rootFolder);
 	}
 }
