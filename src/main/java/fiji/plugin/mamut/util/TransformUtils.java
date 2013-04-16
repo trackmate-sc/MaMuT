@@ -7,6 +7,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 
+import net.imglib2.img.ImgPlus;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.util.Util;
 
@@ -90,6 +91,17 @@ public class TransformUtils {
 		calibration[1] = imp.getCalibration().pixelHeight;
 		if (imp.getNSlices() > 1)
 			calibration[2] = imp.getCalibration().pixelDepth;
+		transform.set(
+				1/calibration[0], 	0, 			0, 			0,
+				0, 			1/calibration[1], 	0, 			0, 
+				0, 			0, 			1/calibration[2], 0);
+		return transform;
+	}
+	
+	public static final AffineTransform3D getTransformFromCalibration(final ImgPlus<?> img) {
+		AffineTransform3D transform = new AffineTransform3D();
+		final double[] calibration = Util.getArrayFromValue(1d, 3);
+		img.calibration(calibration);
 		transform.set(
 				1/calibration[0], 	0, 			0, 			0,
 				0, 			1/calibration[1], 	0, 			0, 
