@@ -2,18 +2,14 @@ package fiji.plugin.mamut.viewer;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
-import java.util.Arrays;
 
-import mpicbg.imglib.util.Util;
 import net.imglib2.realtransform.AffineTransform3D;
 import viewer.render.ViewerState;
 import fiji.plugin.trackmate.Spot;
 import fiji.plugin.trackmate.TrackMateModel;
-import fiji.plugin.trackmate.visualization.TrackMateModelView;
 
 public class MamutOverlay {
 
-	private static final boolean DEBUG = false;
 	private ViewerState state;
 	private final AffineTransform3D transform = new AffineTransform3D();
 	private final TrackMateModel model;
@@ -25,6 +21,14 @@ public class MamutOverlay {
 
 	public synchronized void paint( final Graphics2D g ) {
 		state.getViewerTransform(transform);
+		
+		/*
+		 * Compute scale
+		 */
+		final double vx = transform.get( 0, 0 );
+		final double vy = transform.get( 1, 0 );
+		final double vz = transform.get( 2, 0 );
+		final double transformScale = Math.sqrt( vx*vx + vy*vy + vz*vz );
 
 		g.setColor(Color.MAGENTA);
 
@@ -40,42 +44,23 @@ public class MamutOverlay {
 			double[] viewerCoords = new double[3];
 			transform.apply(globalCoords, viewerCoords);
 
-			double[] gCorner1 = new double[] { x-radius, y-radius, z-radius };
-			double[] vCorner1 = new double[3];
-			transform.apply(gCorner1, vCorner1);
-
-			double[] gCorner2 = new double[] { x+radius, y+radius, z+radius };
-			double[] vCorner2 = new double[3];
-			transform.apply(gCorner2, vCorner2);
-
-			double rad = Math.abs(vCorner1[0] - vCorner2[0]);
-			for (int i = 1; i < vCorner2.length; i++) {
-				double d = Math.abs(vCorner1[i] - vCorner2[i]);
-				if (rad <  d) {
-					rad = d;
-				}
-			}
-			double xs = Math.min(vCorner1[0], vCorner2[0]);
-			double ys = Math.min(vCorner1[1], vCorner2[1]);
-
+			double rad = radius * transformScale;
 			double zv = viewerCoords[2];
-			double dz2 = (zv-z)*(zv-z);
+			double dz2 = zv * zv;
 
 			if (dz2 < rad*rad ) {
 				
 				double arad = Math.sqrt(rad * rad - dz2);
-
-
 				g.drawOval(
-						(int) (xs - arad), 
-						(int) (ys - arad), 
+						(int) (viewerCoords[0] - arad), 
+						(int) (viewerCoords[1] - arad), 
 						(int) (2*arad),
 						(int) (2*arad)); 
 
 			} else {
 				g.fillOval(
-						(int) xs, 
-						(int) ys, 
+						(int) viewerCoords[0] - 2, 
+						(int) viewerCoords[1] - 2, 
 						4, 4);
 			}
 		}
