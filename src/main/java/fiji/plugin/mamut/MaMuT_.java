@@ -24,7 +24,6 @@ import net.imglib2.img.ImgPlus;
 import net.imglib2.io.ImgIOException;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
-import net.imglib2.util.Util;
 import viewer.BrightnessDialog;
 import viewer.HelpFrame;
 import viewer.render.Source;
@@ -117,6 +116,7 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 		 */
 		
 		viewer = new MamutViewer(800, 600, sources, (int) img.dimension(3), model);
+		viewer.render();
 		
 		/*
 		 * Install key & mouse commands
@@ -135,7 +135,7 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 	@Override
 	public void modelChanged(ModelChangeEvent event) {
 		// Just ask to repaint the TrackMate overlay
-		viewer.requestRepaint();
+		viewer.refresh();
 	}
 	
 
@@ -145,7 +145,7 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 			r.setMin( min );
 			r.setMax( max );
 		}
-		viewer.requestRepaint();
+		viewer.refresh();
 	}
 	
 
@@ -318,6 +318,30 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 			
 			@Override
 			public void mouseDragged(MouseEvent arg0) { }
+		});
+		
+		
+		viewer.addHandler(new MouseListener() {
+			
+			@Override
+			public void mouseReleased(MouseEvent arg0) { }
+			
+			@Override
+			public void mousePressed(MouseEvent arg0) { }
+			
+			@Override
+			public void mouseExited(MouseEvent arg0) {}
+			
+			@Override
+			public void mouseEntered(MouseEvent arg0) { }
+			
+			@Override
+			public void mouseClicked(MouseEvent arg0) {
+				Spot spot = getSpotWithinRadius();
+				if (null != spot) {
+					viewer.centerViewOn(spot);
+				}
+			}
 		});
 		
 	}
