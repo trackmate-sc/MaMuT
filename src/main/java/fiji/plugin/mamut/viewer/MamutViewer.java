@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 
 import javax.swing.JFrame;
@@ -17,6 +18,8 @@ import viewer.render.SourceAndConverter;
 import fiji.plugin.trackmate.Logger;
 import fiji.plugin.trackmate.Spot;
 import fiji.plugin.trackmate.TrackMateModel;
+import fiji.plugin.trackmate.features.track.TrackIndexAnalyzer;
+import fiji.plugin.trackmate.visualization.PerTrackFeatureColorGenerator;
 import fiji.plugin.trackmate.visualization.TrackMateModelView;
 
 public class MamutViewer extends SpimViewer implements TrackMateModelView {
@@ -28,7 +31,11 @@ public class MamutViewer extends SpimViewer implements TrackMateModelView {
 	private final Logger logger;
 	private final TrackMateModel model;
 	private TranslationAnimator currentAnimator = null;
-
+	/**
+	 * A map of String/Object that configures the look and feel of the display.
+	 */
+	protected Map<String, Object> displaySettings = new HashMap<String, Object>();
+	
 	/*
 	 * CONSTRUCTOR
 	 */
@@ -38,6 +45,7 @@ public class MamutViewer extends SpimViewer implements TrackMateModelView {
 		super(width, height, sources, numTimePoints);
 		this.model = model;
 		this.logger = new MamutViewerLogger(); 
+		initDisplaySettings(model);
 	}
 
 	/*
@@ -95,7 +103,7 @@ public class MamutViewer extends SpimViewer implements TrackMateModelView {
 
 	@Override
 	public void render() {
-		this.overlay = new MamutOverlay(model);
+		this.overlay = new MamutOverlay(model, this);
 	}
 
 	@Override
@@ -119,10 +127,12 @@ public class MamutViewer extends SpimViewer implements TrackMateModelView {
 				spot.getFeature(Spot.POSITION_Z)	
 		};
 
+		// Translate view so that the target spot is in the middle of the JFrame. 
 		double dx = frame.getWidth()/2 - ( t.get(0, 0) * spotCoords[0] + t.get(0, 1) * spotCoords[1] + t.get(0, 2) * spotCoords[2]);
 		double dy = frame.getHeight()/2 - ( t.get(1, 0) * spotCoords[0] + t.get(1, 1) * spotCoords[1] + t.get(1, 2) * spotCoords[2]);
 		double dz = - ( t.get(2, 0) * spotCoords[0] + t.get(2, 1) * spotCoords[1] + t.get(2, 2) * spotCoords[2]);
 		
+		// But use an animator to do this smoothly.
 		double[] target = new double[] { dx, dy, dz };
 		currentAnimator = new TranslationAnimator( t, target, 300 );
 		currentAnimator.setTime( System.currentTimeMillis() );
@@ -133,10 +143,8 @@ public class MamutViewer extends SpimViewer implements TrackMateModelView {
 	@Override
 	public void paint() {
 
-		synchronized( this )
-		{
-			if ( currentAnimator != null )
-			{
+		synchronized( this ) {
+			if ( currentAnimator != null ) {
 				final TransformEventHandler3D handler = display.getTransformEventHandler();
 				final AffineTransform3D transform = currentAnimator.getCurrent( System.currentTimeMillis() );
 				handler.setTransform( transform );
@@ -148,31 +156,52 @@ public class MamutViewer extends SpimViewer implements TrackMateModelView {
 		
 		super.paint();
 	}
+
 	
 	@Override
+	public void setDisplaySettings(final String key, final Object value) {
+		displaySettings.put(key, value);
+	}
+	
+	@Override 
+	public Object getDisplaySettings(final String key) {
+		return displaySettings.get(key);
+	}
+
+	@Override 
 	public Map<String, Object> getDisplaySettings() {
-		// TODO Auto-generated method stub
-		return null;
+		return displaySettings;
 	}
-
-	@Override
-	public void setDisplaySettings(String key, Object value) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public Object getDisplaySettings(String key) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
+	
 	@Override
 	public TrackMateModel getModel() {
 		return model;
 
 	}
+	
+	/*
+	 * PRIVATE METHODS
+	 */
+	
+	private void initDisplaySettings(TrackMateModel model) {
+		displaySettings.put(KEY_COLOR, DEFAULT_COLOR);
+		displaySettings.put(KEY_HIGHLIGHT_COLOR, DEFAULT_HIGHLIGHT_COLOR);
+		displaySettings.put(KEY_SPOTS_VISIBLE, true);
+		displaySettings.put(KEY_DISPLAY_SPOT_NAMES, false);
+		displaySettings.put(KEY_SPOT_COLOR_FEATURE, null);
+		displaySettings.put(KEY_SPOT_RADIUS_RATIO, 1.0f);
+		displaySettings.put(KEY_TRACKS_VISIBLE, true);
+		displaySettings.put(KEY_TRACK_DISPLAY_MODE, DEFAULT_TRACK_DISPLAY_MODE);
+		displaySettings.put(KEY_TRACK_DISPLAY_DEPTH, DEFAULT_TRACK_DISPLAY_DEPTH);
+		displaySettings.put(KEY_TRACK_COLORING, new PerTrackFeatureColorGenerator(model, TrackIndexAnalyzer.TRACK_INDEX));
+		displaySettings.put(KEY_COLORMAP, DEFAULT_COLOR_MAP);
+	}
 
+	
+	
+	/*
+	 * INNER CLASSRS
+	 */
 
 
 	private final class MamutViewerLogger extends Logger {
@@ -199,5 +228,7 @@ public class MamutViewer extends SpimViewer implements TrackMateModelView {
 
 	}
 
+	
+	
 
 }

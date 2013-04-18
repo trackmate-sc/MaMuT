@@ -7,19 +7,27 @@ import net.imglib2.realtransform.AffineTransform3D;
 import viewer.render.ViewerState;
 import fiji.plugin.trackmate.Spot;
 import fiji.plugin.trackmate.TrackMateModel;
+import static fiji.plugin.trackmate.visualization.TrackMateModelView.*;
 
 public class MamutOverlay {
 
 	private ViewerState state;
 	private final AffineTransform3D transform = new AffineTransform3D();
 	private final TrackMateModel model;
+	private final MamutViewer viewer;
 
 
-	public MamutOverlay(TrackMateModel model) {
+	public MamutOverlay(final TrackMateModel model, final MamutViewer viewer) {
 		this.model = model;
+		this.viewer = viewer;
 	}
 
 	public synchronized void paint( final Graphics2D g ) {
+		
+		if (! (Boolean) viewer.displaySettings.get(KEY_SPOTS_VISIBLE)) {
+			return;
+		}
+		
 		state.getViewerTransform(transform);
 		
 		/*
