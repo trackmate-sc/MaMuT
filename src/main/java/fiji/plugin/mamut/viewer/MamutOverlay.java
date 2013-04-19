@@ -1,5 +1,9 @@
 package fiji.plugin.mamut.viewer;
 
+import static fiji.plugin.trackmate.visualization.TrackMateModelView.KEY_DISPLAY_SPOT_NAMES;
+import static fiji.plugin.trackmate.visualization.TrackMateModelView.KEY_SPOTS_VISIBLE;
+import static fiji.plugin.trackmate.visualization.TrackMateModelView.KEY_SPOT_RADIUS_RATIO;
+
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
@@ -8,11 +12,11 @@ import net.imglib2.realtransform.AffineTransform3D;
 import viewer.render.ViewerState;
 import fiji.plugin.trackmate.Spot;
 import fiji.plugin.trackmate.TrackMateModel;
-import static fiji.plugin.trackmate.visualization.TrackMateModelView.*;
+import fiji.plugin.trackmate.visualization.AbstractTrackMateModelView;
 
 public class MamutOverlay {
 
-	private static final Font DEFAULT_FONT = new Font( "Monospaced", Font.PLAIN, 8 );
+	private static final Font DEFAULT_FONT = new Font( "Monospaced", Font.PLAIN, 10 );
 	/** The viewer state. */
 	private ViewerState state;
 	/** The transform for the viewer current viewpoint. */
@@ -60,6 +64,13 @@ public class MamutOverlay {
 		Iterable<Spot> spots = model.getFilteredSpots().get(state.getCurrentTimepoint());
 
 		for (Spot spot : spots) {
+			
+			Color color;
+			if (null == viewer.colorProvider || null == (color = viewer.colorProvider.get(spot))) {
+				color = AbstractTrackMateModelView.DEFAULT_COLOR;
+			}
+			g.setColor(color);
+			
 			double x = spot.getFeature(Spot.POSITION_X);
 			double y = spot.getFeature(Spot.POSITION_Y);
 			double z = spot.getFeature(Spot.POSITION_Z);

@@ -3,10 +3,12 @@ package fiji.plugin.mamut;
 import ij.IJ;
 import ij.ImagePlus;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.MouseInfo;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
@@ -17,7 +19,9 @@ import java.awt.event.WindowListener;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.AbstractAction;
 import javax.swing.KeyStroke;
@@ -31,16 +35,21 @@ import net.imglib2.img.ImgPlus;
 import net.imglib2.io.ImgIOException;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
+
+import org.jfree.chart.renderer.InterpolatePaintScale;
+
 import viewer.BrightnessDialog;
 import viewer.HelpFrame;
 import viewer.render.Source;
 import viewer.render.SourceAndConverter;
+import fiji.plugin.mamut.gui.MamutConfigPanel;
 import fiji.plugin.mamut.viewer.ImgPlusSource;
 import fiji.plugin.mamut.viewer.MamutViewer;
 import fiji.plugin.trackmate.ModelChangeEvent;
 import fiji.plugin.trackmate.ModelChangeListener;
 import fiji.plugin.trackmate.Spot;
 import fiji.plugin.trackmate.TrackMateModel;
+import fiji.plugin.trackmate.visualization.TrackMateModelView;
 
 public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements BrightnessDialog.MinMaxListener, ModelChangeListener {
 
@@ -84,6 +93,10 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 	private final List<SourceAndConverter<?>> sources;
 	/** The number of timepoints in the image sources. */
 	private final int nTimepoints;
+	/** The GUI that control the views. */
+	private final MamutConfigPanel controlPanel;
+
+	private final Map<Spot, Color> colorProvider;
 
 	public MaMuT_() throws ImgIOException, FormatException, IOException {
 
@@ -127,11 +140,38 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 		displayRanges.add( converter );
 		
 		/*
-		 * Create a first view
+		 * Color provider
+		 */
+		
+		colorProvider = new HashMap<Spot, Color>();
+		
+		/*
+		 * Create control panel
+		 */
+		
+		controlPanel = new MamutConfigPanel(model);
+		controlPanel.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent event) {
+				if (event == controlPanel.COLOR_FEATURE_CHANGED) {
+					computeSpotColors(controlPanel.getSpotColorFeature());
+					refresh();
+				} else {
+					System.out.println("Got event " + event);
+				}
+			}
+
+		});
+				
+		/*
+		 * Create views
 		 */
 		
 		newViewer();
 		newViewer();
+		
+		controlPanel.setVisible(true);
 	}		
 	
 	
@@ -140,12 +180,13 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 	 */
 	
 	public MamutViewer newViewer() {
-		final MamutViewer viewer = new MamutViewer(800, 600, sources, nTimepoints, model);
+		final MamutViewer viewer = new MamutViewer(800, 600, sources, nTimepoints, model, colorProvider);
 		installKeyBindings(viewer);
 		installMouseListeners(viewer);
 		viewer.addHandler(viewer);
 		viewer.render();
 		viewers.add(viewer);
+		controlPanel.register(viewer);
 		
 		viewer.getFrame().addWindowListener(new WindowListener() {
 			@Override
@@ -176,10 +217,7 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 
 	@Override
 	public void modelChanged(ModelChangeEvent event) {
-		// Just ask to repaint the TrackMate overlay
-		for (MamutViewer viewer : viewers) {
-			viewer.refresh();
-		}
+		refresh();
 	}
 	
 
@@ -189,10 +227,7 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 			r.setMin( min );
 			r.setMax( max );
 		}
-		// Just ask to repaint the TrackMate overlay
-		for (MamutViewer viewer : viewers) {
-			viewer.refresh();
-		}
+		refresh();
 	}
 	
 
@@ -399,6 +434,13 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 	}
 
 	
+	private void refresh() {
+		// Just ask to repaint the TrackMate overlay
+		for (MamutViewer viewer : viewers) {
+			viewer.refresh();
+		}
+	}
+
 	
 	
 	/**
@@ -532,6 +574,40 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 		
 	}
 	
+	
+	private void computeSpotColors(final String feature) {
+		colorProvider.clear();
+		// Check null
+		if (null == feature) {
+			for(Spot spot : model.getSpots()) {
+				colorProvider.put(spot, TrackMateModelView.DEFAULT_COLOR);
+			}
+			return;
+		}
+		
+		// Get min & max
+		double min = Float.POSITIVE_INFINITY;
+		double max = Float.NEGATIVE_INFINITY;
+		Double val;
+		for (int ikey : model.getSpots().keySet()) {
+			for (Spot spot : model.getSpots().get(ikey)) {
+				val = spot.getFeature(feature);
+				if (null == val)
+					continue;
+				if (val > max) max = val;
+				if (val < min) min = val;
+			}
+		}
+		
+		for(Spot spot : model.getSpots()) {
+			val = spot.getFeature(feature);
+			InterpolatePaintScale  colorMap = InterpolatePaintScale.Jet;
+			if (null == feature || null == val)
+				colorProvider.put(spot, TrackMateModelView.DEFAULT_COLOR);
+			else
+				colorProvider.put(spot, colorMap .getPaint((val-min)/(max-min)) );
+		}
+	}
 	
 	
 	

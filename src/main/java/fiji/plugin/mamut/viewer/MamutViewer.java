@@ -11,7 +11,6 @@ import javax.swing.JFrame;
 
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.ui.TransformEventHandler3D;
-
 import viewer.SpimViewer;
 import viewer.TextOverlayAnimator;
 import viewer.TranslationAnimator;
@@ -37,16 +36,19 @@ public class MamutViewer extends SpimViewer implements TrackMateModelView {
 
 	/**  A map of String/Object that configures the look and feel of the display. */
 	protected Map<String, Object> displaySettings = new HashMap<String, Object>();
-	
+	/** The mapping from spot to a color. */
+	final Map<Spot, Color> colorProvider;
+
 	/*
 	 * CONSTRUCTOR
 	 */
 
 
-	public MamutViewer(int width, int height, Collection<SourceAndConverter<?>> sources, int numTimePoints, TrackMateModel model) {
+	public MamutViewer(int width, int height, Collection<SourceAndConverter<?>> sources, int numTimePoints, TrackMateModel model, final Map<Spot, Color> colorProvider) {
 		super(width, height, sources, numTimePoints);
 		this.model = model;
 		this.logger = new MamutViewerLogger(); 
+		this.colorProvider = colorProvider;
 		initDisplaySettings(model);
 	}
 
@@ -120,7 +122,7 @@ public class MamutViewer extends SpimViewer implements TrackMateModelView {
 
 	@Override
 	public void centerViewOn(Spot spot) {
-		
+
 		AffineTransform3D t = new AffineTransform3D();
 		state.getViewerTransform(t);
 		double[] spotCoords = new double[] {
@@ -133,7 +135,7 @@ public class MamutViewer extends SpimViewer implements TrackMateModelView {
 		double dx = frame.getWidth()/2 - ( t.get(0, 0) * spotCoords[0] + t.get(0, 1) * spotCoords[1] + t.get(0, 2) * spotCoords[2]);
 		double dy = frame.getHeight()/2 - ( t.get(1, 0) * spotCoords[0] + t.get(1, 1) * spotCoords[1] + t.get(1, 2) * spotCoords[2]);
 		double dz = - ( t.get(2, 0) * spotCoords[0] + t.get(2, 1) * spotCoords[1] + t.get(2, 2) * spotCoords[2]);
-		
+
 		// But use an animator to do this smoothly.
 		double[] target = new double[] { dx, dy, dz };
 		currentAnimator = new TranslationAnimator( t, target, 300 );
@@ -141,7 +143,7 @@ public class MamutViewer extends SpimViewer implements TrackMateModelView {
 		transformChanged(t);
 	}
 
-	
+
 	@Override
 	public void paint() {
 
@@ -155,16 +157,16 @@ public class MamutViewer extends SpimViewer implements TrackMateModelView {
 					currentAnimator = null;
 			}
 		}
-		
+
 		super.paint();
 	}
 
-	
+
 	@Override
 	public void setDisplaySettings(final String key, final Object value) {
 		displaySettings.put(key, value);
 	}
-	
+
 	@Override 
 	public Object getDisplaySettings(final String key) {
 		return displaySettings.get(key);
@@ -174,17 +176,17 @@ public class MamutViewer extends SpimViewer implements TrackMateModelView {
 	public Map<String, Object> getDisplaySettings() {
 		return displaySettings;
 	}
-	
+
 	@Override
 	public TrackMateModel getModel() {
 		return model;
 
 	}
-	
+
 	/*
 	 * PRIVATE METHODS
 	 */
-	
+
 	private void initDisplaySettings(TrackMateModel model) {
 		displaySettings.put(KEY_COLOR, DEFAULT_COLOR);
 		displaySettings.put(KEY_HIGHLIGHT_COLOR, DEFAULT_HIGHLIGHT_COLOR);
@@ -199,8 +201,8 @@ public class MamutViewer extends SpimViewer implements TrackMateModelView {
 		displaySettings.put(KEY_COLORMAP, DEFAULT_COLOR_MAP);
 	}
 
-	
-	
+
+
 	/*
 	 * INNER CLASSRS
 	 */
@@ -230,7 +232,7 @@ public class MamutViewer extends SpimViewer implements TrackMateModelView {
 
 	}
 
-	
-	
+
+
 
 }

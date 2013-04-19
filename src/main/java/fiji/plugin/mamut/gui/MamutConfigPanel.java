@@ -5,7 +5,6 @@ import static fiji.plugin.trackmate.gui.TrackMateWizard.FONT;
 import static fiji.plugin.trackmate.gui.TrackMateWizard.SMALL_FONT;
 import static fiji.plugin.trackmate.visualization.TrackMateModelView.KEY_DISPLAY_SPOT_NAMES;
 import static fiji.plugin.trackmate.visualization.TrackMateModelView.KEY_SPOTS_VISIBLE;
-import static fiji.plugin.trackmate.visualization.TrackMateModelView.KEY_SPOT_COLOR_FEATURE;
 import static fiji.plugin.trackmate.visualization.TrackMateModelView.KEY_SPOT_RADIUS_RATIO;
 import static fiji.plugin.trackmate.visualization.TrackMateModelView.KEY_TRACKS_VISIBLE;
 import static fiji.plugin.trackmate.visualization.TrackMateModelView.KEY_TRACK_DISPLAY_DEPTH;
@@ -51,18 +50,19 @@ import fiji.plugin.trackmate.gui.TrackMateWizard;
 import fiji.plugin.trackmate.io.IOUtils;
 import fiji.plugin.trackmate.io.TmXmlWriter;
 import fiji.plugin.trackmate.visualization.TrackMateModelView;
-import fiji.plugin.trackmate.visualization.trackscheme.TrackScheme;
 
 public class MamutConfigPanel extends JFrame {
 
-	
+
 	private static final long serialVersionUID = 1L;
 
 	public ActionEvent TRACK_SCHEME_BUTTON_PRESSED 	= new ActionEvent(this, 0, "TrackSchemeButtonPushed");
-	
+	public ActionEvent COLOR_FEATURE_CHANGED;
+
 	private static final Icon SAVE_ICON = new ImageIcon(TrackMateWizard.class.getResource("images/page_save.png"));
-	private static final ImageIcon GUI_ICON = new ImageIcon(MamutConfigPanel.class.getResource("mammouth-256x256.png"));
-	
+	private static final ImageIcon GUI_ICON = new ImageIcon(MaMuT_.class.getResource("mammouth-256x256.png"));
+
+
 	private JButton jButtonShowTrackScheme;
 	private JLabel jLabelTrackDisplayMode;
 	private JComboBox jComboBoxDisplayMode;
@@ -85,6 +85,7 @@ public class MamutConfigPanel extends JFrame {
 	private TrackMateModel model;
 	private Logger logger;
 	private File file;
+	private Set<ActionListener> listeners = new HashSet<ActionListener>();
 
 	/*
 	 * CONSTRUCTOR
@@ -98,8 +99,16 @@ public class MamutConfigPanel extends JFrame {
 	/*
 	 * METHODS
 	 */
-	
-	
+
+	public boolean addActionListener(ActionListener listener) {
+		return listeners.add(listener);
+	}
+
+	public boolean removeActionListener(ActionListener listener) {
+		return listeners.remove(listener);
+	}
+
+
 	private void save() {
 		saveButton.setEnabled(false);
 		try {
@@ -143,33 +152,13 @@ public class MamutConfigPanel extends JFrame {
 			saveButton.setEnabled(true);
 		}
 	}
-	
+
 	protected void fireAction(final ActionEvent event) {
-		new Thread() {
-			@Override
-			public void run() {
-				// Intercept event coming from the JPanelSpotColorGUI, and translate it for views
-				if (event == jPanelSpotColor.COLOR_FEATURE_CHANGED) {
-					for (TrackMateModelView view : views) {
-						view.setDisplaySettings(KEY_SPOT_COLOR_FEATURE, jPanelSpotColor.getSelectedFeature());
-						view.refresh();
-					}
-				} else if (event == TRACK_SCHEME_BUTTON_PRESSED) {
-					
-					try {
-						TrackScheme trackScheme = new TrackScheme(model);
-						trackScheme.render();
-					} finally {
-						jButtonShowTrackScheme.setEnabled(true);
-					}
-					
-				} else {
-					System.out.println("Got unkown event: "+event);
-				}
-			}
-		}.start();
+		for (ActionListener listener : listeners) {
+			listener.actionPerformed(event);
+		}
 	}
-	
+
 	/**
 	 * Add the given {@link TrackMateModelView} to the list managed by this controller.
 	 */
@@ -179,13 +168,19 @@ public class MamutConfigPanel extends JFrame {
 		}
 	}
 	
+	public String getSpotColorFeature() {
+		return jPanelSpotColor.getSelectedFeature();
+	}
+
 	/*
 	 * PRIVATE METHODS
 	 */
-	
+
+
+
 	private void initGUI() {
 		try {
-			
+
 			mainPanel = new ActionListenablePanel();
 			mainPanel.addActionListener(new ActionListener() {
 				@Override
@@ -389,7 +384,14 @@ public class MamutConfigPanel extends JFrame {
 					Map<String, String> featureNames = model.getFeatureModel().getSpotFeatureNames();
 
 					jPanelSpotColor = new JPanelColorByFeatureGUI(features, featureNames, mainPanel);
+					COLOR_FEATURE_CHANGED = jPanelSpotColor.COLOR_FEATURE_CHANGED;
 					jPanelSpotColor.setFeatureValues(featureValues);
+					jPanelSpotColor.addActionListener(new ActionListener() {
+						@Override
+						public void actionPerformed(ActionEvent e) {
+							fireAction(COLOR_FEATURE_CHANGED);
+						}
+					});
 					jPanelSpotOptions.add(jPanelSpotColor);
 				}
 			}
@@ -413,7 +415,6 @@ public class MamutConfigPanel extends JFrame {
 						fireAction(TRACK_SCHEME_BUTTON_PRESSED);
 					}
 				});
-				jButtonShowTrackScheme.setEnabled(false); // FIXME we compute thumbnails at creation, which is not ok in MaMuT
 				mainPanel.add(jButtonShowTrackScheme);
 			}
 			{
@@ -426,7 +427,7 @@ public class MamutConfigPanel extends JFrame {
 					}
 				});
 				mainPanel.add(saveButton);
-				
+
 				setSize(300, 500);
 				setResizable(false);
 				setTitle(MaMuT_.PLUGIN_NAME + " " + MaMuT_.PLUGIN_VERSION);
@@ -435,8 +436,8 @@ public class MamutConfigPanel extends JFrame {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
+
 		getContentPane().add(mainPanel);
-		
+
 	}
 }
