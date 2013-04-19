@@ -9,8 +9,12 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 import javax.swing.AbstractAction;
 import javax.swing.KeyStroke;
@@ -64,12 +68,19 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 
 	private final ArrayList< AbstractLinearRange > displayRanges;
 	private BrightnessDialog brightnessDialog;
-	private MamutViewer viewer;
+	/** The {@link MamutViewer}s managed by this plugin. */
+	private Collection<MamutViewer> viewers = new ArrayList<MamutViewer>();
+	/** The model shown and edited by this plugin. */
 	private TrackMateModel model;
+	/** The next created spot will be set with this radius. */
 	private double radius = DEFAULT_RADIUS;
 	private final double minRadius;
 	/** The spot currently moved under the mouse. */
 	private Spot movedSpot = null;
+	/** The image data sources to be displayed in the views. */
+	private final List<SourceAndConverter<?>> sources;
+	/** The number of timepoints in the image sources. */
+	private final int nTimepoints;
 
 	public MaMuT_() throws ImgIOException, FormatException, IOException {
 
@@ -80,6 +91,7 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 		final String id = "/Users/tinevez/Desktop/Data/Celegans-XY.tif";
 		ImagePlus imp = IJ.openImage(id);
 		final ImgPlus<T> img = ImagePlusAdapter.wrapImgPlus(imp);
+		nTimepoints = (int) img.dimension(3);
 
 		/*
 		 * Find adequate rough scales
@@ -101,7 +113,7 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 
 		Source<T> source = new ImgPlusSource<T>(img);
 		final RealARGBConverter< T > converter = new RealARGBConverter< T >( 0, img.firstElement().getMaxValue() );
-		final ArrayList< SourceAndConverter< ? > > sources = new ArrayList< SourceAndConverter< ? > >(1);
+		sources = new ArrayList< SourceAndConverter< ? > >(1);
 		sources.add( new SourceAndConverter< T >(source, converter ));
 
 		/*
@@ -112,18 +124,11 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 		displayRanges.add( converter );
 		
 		/*
-		 * Create viewer
+		 * Create a first view
 		 */
 		
-		viewer = new MamutViewer(800, 600, sources, (int) img.dimension(3), model);
-		viewer.render();
-		
-		/*
-		 * Install key & mouse commands
-		 */
-		
-		installKeyBindings();
-		installMouseListeners();
+		newViewer();
+		newViewer();
 	}		
 	
 	
@@ -131,11 +136,47 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 	 * PUBLIC METHODS
 	 */
 	
+	public MamutViewer newViewer() {
+		final MamutViewer viewer = new MamutViewer(800, 600, sources, nTimepoints, model);
+		installKeyBindings(viewer);
+		installMouseListeners(viewer);
+		viewer.addHandler(viewer);
+		viewer.render();
+		viewers.add(viewer);
+		
+		viewer.getFrame().addWindowListener(new WindowListener() {
+			@Override
+			public void windowOpened(WindowEvent arg0) { }
+			@Override
+			public void windowIconified(WindowEvent arg0) { }
+			@Override
+			public void windowDeiconified(WindowEvent arg0) { }
+			
+			@Override
+			public void windowDeactivated(WindowEvent arg0) { }
+			
+			@Override
+			public void windowClosing(WindowEvent arg0) { }
+			
+			@Override
+			public void windowClosed(WindowEvent arg0) {
+				viewers.remove(viewer);
+			}
+			
+			@Override
+			public void windowActivated(WindowEvent arg0) { }
+		});
+		
+		return viewer;
+	}
+	
 
 	@Override
 	public void modelChanged(ModelChangeEvent event) {
 		// Just ask to repaint the TrackMate overlay
-		viewer.refresh();
+		for (MamutViewer viewer : viewers) {
+			viewer.refresh();
+		}
 	}
 	
 
@@ -145,7 +186,10 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 			r.setMin( min );
 			r.setMax( max );
 		}
-		viewer.refresh();
+		// Just ask to repaint the TrackMate overlay
+		for (MamutViewer viewer : viewers) {
+			viewer.refresh();
+		}
 	}
 	
 
@@ -154,15 +198,15 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 	}
 	
 	
-	
 	/*
 	 * PRIVATE METHODS
 	 */
 	
 	/**
-	 * Executed at instantiation: install the key bindings for the GUI.
+	 * Configures the specified {@link MamutViewer} with key bindings.
+	 * @param the {@link MamutViewer} to configure.
 	 */
-	private void installKeyBindings() {
+	private void installKeyBindings(final MamutViewer viewer) {
 		
 		/*
 		 *  Help window
@@ -198,7 +242,7 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 			
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				addSpot();
+				addSpot(viewer);
 			}
 			private static final long serialVersionUID = 1L;
 		});
@@ -210,7 +254,7 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				deleteSpot();
+				deleteSpot(viewer);
 			}
 			private static final long serialVersionUID = 1L;
 		});
@@ -221,37 +265,37 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 		
 		viewer.addKeyAction(increaseRadiusKeystroke, new AbstractAction( "increase spot radius" ) {
 			@Override
-			public void actionPerformed(ActionEvent arg0) { increaseSpotRadius(1d); }
+			public void actionPerformed(ActionEvent arg0) { increaseSpotRadius(viewer, 1d); }
 			private static final long serialVersionUID = 1L;
 		});
 		
 		viewer.addKeyAction(increaseRadiusALotKeystroke, new AbstractAction( "increase spot radius a lot" ) {
 			@Override
-			public void actionPerformed(ActionEvent arg0) { increaseSpotRadius(10d); }
+			public void actionPerformed(ActionEvent arg0) { increaseSpotRadius(viewer, 10d); }
 			private static final long serialVersionUID = 1L;
 		});
 		
 		viewer.addKeyAction(increaseRadiusABitKeystroke, new AbstractAction( "increase spot radius a bit" ) {
 			@Override
-			public void actionPerformed(ActionEvent arg0) { increaseSpotRadius(0.1d); }
+			public void actionPerformed(ActionEvent arg0) { increaseSpotRadius(viewer, 0.1d); }
 			private static final long serialVersionUID = 1L;
 		});
 		
 		viewer.addKeyAction(decreaseRadiusKeystroke, new AbstractAction( "decrease spot radius" ) {
 			@Override
-			public void actionPerformed(ActionEvent arg0) { increaseSpotRadius(-1d); }
+			public void actionPerformed(ActionEvent arg0) { increaseSpotRadius(viewer, -1d); }
 			private static final long serialVersionUID = 1L;
 		});
 		
 		viewer.addKeyAction(decreaseRadiusALotKeystroke, new AbstractAction( "decrease spot radius a lot" ) {
 			@Override
-			public void actionPerformed(ActionEvent arg0) { increaseSpotRadius(-5d); }
+			public void actionPerformed(ActionEvent arg0) { increaseSpotRadius(viewer, -5d); }
 			private static final long serialVersionUID = 1L;
 		});
 		
 		viewer.addKeyAction(decreaseRadiusABitKeystroke, new AbstractAction( "decrease spot radius a bit" ) {
 			@Override
-			public void actionPerformed(ActionEvent arg0) { increaseSpotRadius(-0.1d); }
+			public void actionPerformed(ActionEvent arg0) { increaseSpotRadius(viewer, -0.1d); }
 			private static final long serialVersionUID = 1L;
 		});
 		
@@ -287,7 +331,7 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 			@Override
 			public void keyPressed(KeyEvent event) {
 				if (event.getKeyCode() == moveSpotKeystroke.getKeyCode()) {
-					movedSpot = getSpotWithinRadius();
+					movedSpot = getSpotWithinRadius(viewer);
 				}
 				
 			}
@@ -298,8 +342,11 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 	
 	
 
-
-	private void installMouseListeners() {
+	/**
+	 * Configures the specfied {@link MamutViewer} with mouse listeners. 
+	 * @param viewer  the {@link MamutViewer} to configure.
+	 */
+	private void installMouseListeners(final MamutViewer viewer) {
 		viewer.addHandler(new MouseMotionListener() {
 			
 			@Override
@@ -337,9 +384,11 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 			
 			@Override
 			public void mouseClicked(MouseEvent arg0) {
-				Spot spot = getSpotWithinRadius();
+				Spot spot = getSpotWithinRadius(viewer);
 				if (null != spot) {
-					viewer.centerViewOn(spot);
+					for (MamutViewer otherView : viewers) {
+						otherView.centerViewOn(spot);
+					}
 				}
 			}
 		});
@@ -351,8 +400,9 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 	
 	/**
 	 * Adds a new spot at the mouse current location.
+	 * @param viewer  the viewer in which the add spot request was made.
 	 */
-	private void addSpot() {
+	private void addSpot(final MamutViewer viewer) {
 		final RealPoint gPos = new RealPoint( 3 );
 		viewer.getGlobalMouseCoordinates(gPos);
 		double[] coordinates = new double[3];
@@ -374,9 +424,10 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 	
 	/**
 	 * Adds a new spot at the mouse current location.
+	 * @param viewer  the viewer in which the delete spot request was made.
 	 */
-	private void deleteSpot() {
-		Spot spot = getSpotWithinRadius(); 
+	private void deleteSpot(final MamutViewer viewer) {
+		Spot spot = getSpotWithinRadius(viewer); 
 		if (null != spot) {
 			// We can delete it
 			model.beginUpdate();
@@ -392,8 +443,14 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 		
 	}
 	
-	private void increaseSpotRadius(double factor) {
-		Spot spot = getSpotWithinRadius();
+	/**
+	 * Increases (or decreases) the neighbor spot radius. 
+	 * @param viewer  the viewer in which the change radius was made. 
+	 * @param factor  the factor by which to change the radius. Negative value are used
+	 * to decrease the radius.
+	 */
+	private void increaseSpotRadius(final MamutViewer viewer, double factor) {
+		Spot spot = getSpotWithinRadius(viewer);
 		if (null != spot) {
 			// Change the spot radius
 			double rad = spot.getFeature(Spot.RADIUS);
@@ -428,10 +485,11 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 	/**
 	 * Returns the closest {@link Spot} with respect to the current mouse location, and
 	 * for which the current location is within its radius, or <code>null</code> if there is no such spot.
-	 * In other words: returns the spot in which the mouse pointer is. 
+	 * In other words: returns the spot in which the mouse pointer is.
+	 * @param viewer  the viewer to inspect. 
 	 * @return  the closest spot within radius.
 	 */
-	private Spot getSpotWithinRadius() {
+	private Spot getSpotWithinRadius(final MamutViewer viewer) {
 		/*
 		 * Get the closest spot
 		 */

@@ -1,6 +1,7 @@
 package fiji.plugin.mamut.viewer;
 
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics2D;
 
 import net.imglib2.realtransform.AffineTransform3D;
@@ -11,10 +12,17 @@ import static fiji.plugin.trackmate.visualization.TrackMateModelView.*;
 
 public class MamutOverlay {
 
+	private static final Font DEFAULT_FONT = new Font( "Monospaced", Font.PLAIN, 8 );
+	/** The viewer state. */
 	private ViewerState state;
+	/** The transform for the viewer current viewpoint. */
 	private final AffineTransform3D transform = new AffineTransform3D();
+	/** The model to point on this overlay. */
 	private final TrackMateModel model;
+	/** The viewer in which this overlay is painted. */
 	private final MamutViewer viewer;
+	/** The font use to paint spot name. */
+	private Font textFont = DEFAULT_FONT;
 
 
 	public MamutOverlay(final TrackMateModel model, final MamutViewer viewer) {
@@ -27,8 +35,19 @@ public class MamutOverlay {
 		if (! (Boolean) viewer.displaySettings.get(KEY_SPOTS_VISIBLE)) {
 			return;
 		}
+		final float radiusRatio = (Float) viewer.displaySettings.get(KEY_SPOT_RADIUS_RATIO);
+		final boolean doDisplayNames = (Boolean) viewer.displaySettings.get(KEY_DISPLAY_SPOT_NAMES);
 		
+		/*
+		 * Collect current view
+		 */
 		state.getViewerTransform(transform);
+
+		/*
+		 * Setup painter object
+		 */
+		g.setColor(Color.MAGENTA);
+		g.setFont(textFont );
 		
 		/*
 		 * Compute scale
@@ -37,8 +56,6 @@ public class MamutOverlay {
 		final double vy = transform.get( 1, 0 );
 		final double vz = transform.get( 2, 0 );
 		final double transformScale = Math.sqrt( vx*vx + vy*vy + vz*vz );
-
-		g.setColor(Color.MAGENTA);
 
 		Iterable<Spot> spots = model.getFilteredSpots().get(state.getCurrentTimepoint());
 
@@ -52,7 +69,7 @@ public class MamutOverlay {
 			double[] viewerCoords = new double[3];
 			transform.apply(globalCoords, viewerCoords);
 
-			double rad = radius * transformScale;
+			double rad = radius * transformScale * radiusRatio;
 			double zv = viewerCoords[2];
 			double dz2 = zv * zv;
 
@@ -63,7 +80,14 @@ public class MamutOverlay {
 						(int) (viewerCoords[0] - arad), 
 						(int) (viewerCoords[1] - arad), 
 						(int) (2*arad),
-						(int) (2*arad)); 
+						(int) (2*arad));
+				
+				if (doDisplayNames) {
+					int tx = (int) (viewerCoords[0] + arad + 5);
+					int ty = (int) viewerCoords[1];
+					g.drawString(spot.getName(), tx, ty);
+				}
+				
 
 			} else {
 				g.fillOval(

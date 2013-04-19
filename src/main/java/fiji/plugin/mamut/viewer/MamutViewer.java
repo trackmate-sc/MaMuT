@@ -14,6 +14,7 @@ import net.imglib2.ui.TransformEventHandler3D;
 
 import viewer.SpimViewer;
 import viewer.TextOverlayAnimator;
+import viewer.TranslationAnimator;
 import viewer.render.SourceAndConverter;
 import fiji.plugin.trackmate.Logger;
 import fiji.plugin.trackmate.Spot;
@@ -24,16 +25,17 @@ import fiji.plugin.trackmate.visualization.TrackMateModelView;
 
 public class MamutViewer extends SpimViewer implements TrackMateModelView {
 
-	protected static final long DEFAULT_TEXT_DISPLAY_DURATION = 3000;
+	private static final long DEFAULT_TEXT_DISPLAY_DURATION = 3000;
 	private static final String INFO_TEXT = "A viewer based on Tobias Pietsch SPIM Viewer";
+	/** The overlay on which the {@link TrackMateModel} will be painted. */
 	private MamutOverlay overlay;
-	private TextOverlayAnimator animatedOverlay = null;
+	/** The animated text overlay that will be used to log MaMuT messages. */ 
+	private TextOverlayAnimator loggerOverlay = null;
+	/** The logger instance that echoes message on this view. */
 	private final Logger logger;
 	private final TrackMateModel model;
-	private TranslationAnimator currentAnimator = null;
-	/**
-	 * A map of String/Object that configures the look and feel of the display.
-	 */
+
+	/**  A map of String/Object that configures the look and feel of the display. */
 	protected Map<String, Object> displaySettings = new HashMap<String, Object>();
 	
 	/*
@@ -71,10 +73,10 @@ public class MamutViewer extends SpimViewer implements TrackMateModelView {
 			overlay.paint((Graphics2D) g);
 		}
 
-		if ( animatedOverlay  != null ) {
-			animatedOverlay.paint( ( Graphics2D ) g, System.currentTimeMillis() );
-			if ( animatedOverlay.isComplete() )
-				animatedOverlay = null;
+		if ( loggerOverlay  != null ) {
+			loggerOverlay.paint( ( Graphics2D ) g, System.currentTimeMillis() );
+			if ( loggerOverlay.isComplete() )
+				loggerOverlay = null;
 			else
 				display.repaint();
 		}
@@ -208,22 +210,22 @@ public class MamutViewer extends SpimViewer implements TrackMateModelView {
 
 		@Override
 		public void setStatus(String status) {
-			animatedOverlay = new TextOverlayAnimator(status, DEFAULT_TEXT_DISPLAY_DURATION);
+			loggerOverlay = new TextOverlayAnimator(status, DEFAULT_TEXT_DISPLAY_DURATION);
 		}
 
 		@Override
 		public void setProgress(double val) {
-			animatedOverlay = new TextOverlayAnimator(String.format("%3d", Math.round(val)), DEFAULT_TEXT_DISPLAY_DURATION);
+			loggerOverlay = new TextOverlayAnimator(String.format("%3d", Math.round(val)), DEFAULT_TEXT_DISPLAY_DURATION);
 		}
 
 		@Override
 		public void log(String message, Color color) {
-			animatedOverlay = new TextOverlayAnimator(message, DEFAULT_TEXT_DISPLAY_DURATION);
+			loggerOverlay = new TextOverlayAnimator(message, DEFAULT_TEXT_DISPLAY_DURATION);
 		}
 
 		@Override
 		public void error(String message) {
-			animatedOverlay = new TextOverlayAnimator(message, DEFAULT_TEXT_DISPLAY_DURATION);
+			loggerOverlay = new TextOverlayAnimator(message, DEFAULT_TEXT_DISPLAY_DURATION);
 		}
 
 	}
