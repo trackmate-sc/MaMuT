@@ -3,6 +3,9 @@ package fiji.plugin.mamut;
 import ij.IJ;
 import ij.ImagePlus;
 
+import java.awt.Dimension;
+import java.awt.MouseInfo;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
@@ -403,6 +406,19 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 	 * @param viewer  the viewer in which the add spot request was made.
 	 */
 	private void addSpot(final MamutViewer viewer) {
+
+		// Check if the mouse is not off-screen
+		Point mouseScreenLocation = MouseInfo.getPointerInfo().getLocation();
+		Point viewerPosition = viewer.getFrame().getLocationOnScreen();
+		Dimension viewerSize = viewer.getFrame().getSize();
+		if (mouseScreenLocation.x < viewerPosition.x ||
+				mouseScreenLocation.y < viewerPosition.y ||
+				mouseScreenLocation.x > viewerPosition.x + viewerSize.width ||
+				mouseScreenLocation.y > viewerPosition.y + viewerSize.height ) {
+			return;
+		}
+		
+		// Ok, then create this spot, wherever it is.
 		final RealPoint gPos = new RealPoint( 3 );
 		viewer.getGlobalMouseCoordinates(gPos);
 		double[] coordinates = new double[3];
