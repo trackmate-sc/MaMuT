@@ -22,6 +22,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.swing.AbstractAction;
 import javax.swing.KeyStroke;
@@ -44,11 +45,17 @@ import viewer.render.Source;
 import viewer.render.SourceAndConverter;
 import fiji.plugin.mamut.gui.MamutConfigPanel;
 import fiji.plugin.mamut.viewer.ImgPlusSource;
+import fiji.plugin.mamut.viewer.MamutOverlay;
 import fiji.plugin.mamut.viewer.MamutViewer;
+import fiji.plugin.trackmate.EdgeAnalyzerProvider;
 import fiji.plugin.trackmate.ModelChangeEvent;
 import fiji.plugin.trackmate.ModelChangeListener;
 import fiji.plugin.trackmate.Spot;
+import fiji.plugin.trackmate.TrackAnalyzerProvider;
 import fiji.plugin.trackmate.TrackMateModel;
+import fiji.plugin.trackmate.features.track.TrackIndexAnalyzer;
+import fiji.plugin.trackmate.visualization.PerTrackFeatureColorGenerator;
+import fiji.plugin.trackmate.visualization.TrackColorGenerator;
 import fiji.plugin.trackmate.visualization.TrackMateModelView;
 
 public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements BrightnessDialog.MinMaxListener, ModelChangeListener {
@@ -77,6 +84,7 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 	private KeyStroke decreaseRadiusALotKeystroke = KeyStroke.getKeyStroke( decreaseRadiusKey, CHANGE_A_LOT_KEY );
 	private KeyStroke increaseRadiusABitKeystroke = KeyStroke.getKeyStroke( increaseRadiusKey, CHANGE_A_BIT_KEY );
 	private KeyStroke decreaseRadiusABitKeystroke = KeyStroke.getKeyStroke( decreaseRadiusKey, CHANGE_A_BIT_KEY );
+	private KeyStroke toggleLinkingModeKeystroke = KeyStroke.getKeyStroke( KeyEvent.VK_L, 0);
 
 	private final ArrayList< AbstractLinearRange > displayRanges;
 	private BrightnessDialog brightnessDialog;
@@ -86,6 +94,7 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 	private TrackMateModel model;
 	/** The next created spot will be set with this radius. */
 	private double radius = DEFAULT_RADIUS;
+	/** The radius below which a spot cannot go. */
 	private final double minRadius;
 	/** The spot currently moved under the mouse. */
 	private Spot movedSpot = null;
@@ -95,8 +104,13 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 	private final int nTimepoints;
 	/** The GUI that control the views. */
 	private final MamutConfigPanel controlPanel;
-
-	private final Map<Spot, Color> colorProvider;
+	/**  If true, the next added spot will be automatically linked to the previously created one, given that 
+	 * the new spot is created in a subsequent frame. */
+	private boolean isLinkingMode = false;
+	/** The color map for painting the spots. It is centralized here and is used in the 
+	 * {@link MamutOverlay}s.  */
+	private final Map<Spot, Color> spotColorProvider;
+	private TrackColorGenerator trackColorProvider;
 
 	public MaMuT_() throws ImgIOException, FormatException, IOException {
 
@@ -121,7 +135,8 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 		
 		model = new TrackMateModel();
 		model.addTrackMateModelChangeListener(this);
-		
+		model.getFeatureModel().setTrackAnalyzerProvider(new TrackAnalyzerProvider(model));
+		model.getFeatureModel().setEdgeAnalyzerProvider(new EdgeAnalyzerProvider(model));
 		
 		/*
 		 * Create image source
@@ -143,7 +158,8 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 		 * Color provider
 		 */
 		
-		colorProvider = new HashMap<Spot, Color>();
+		spotColorProvider = new HashMap<Spot, Color>();
+		trackColorProvider = new PerTrackFeatureColorGenerator(model, TrackIndexAnalyzer.TRACK_ID);
 		
 		/*
 		 * Create control panel
@@ -180,7 +196,8 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 	 */
 	
 	public MamutViewer newViewer() {
-		final MamutViewer viewer = new MamutViewer(800, 600, sources, nTimepoints, model, colorProvider);
+		final MamutViewer viewer = new MamutViewer(800, 600, sources, nTimepoints, model, 
+				spotColorProvider, trackColorProvider);
 		installKeyBindings(viewer);
 		installMouseListeners(viewer);
 //		viewer.addHandler(viewer);
@@ -337,6 +354,18 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 			private static final long serialVersionUID = 1L;
 		});
 		
+		viewer.addKeyAction(decreaseRadiusABitKeystroke, new AbstractAction( "decrease spot radius a bit" ) {
+			@Override
+			public void actionPerformed(ActionEvent arg0) { increaseSpotRadius(viewer, -0.1d); }
+			private static final long serialVersionUID = 1L;
+		});
+		
+		viewer.addKeyAction(toggleLinkingModeKeystroke, new AbstractAction( "toggle linking mode" ) {
+			@Override
+			public void actionPerformed(ActionEvent arg0) { toggleLinkingMode(viewer); }
+			private static final long serialVersionUID = 1L;
+		});
+		
 		
 		/*
 		 * Custom key presses
@@ -460,6 +489,8 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 			return;
 		}
 		
+		int frame = viewer.getCurrentTimepoint();
+		
 		// Ok, then create this spot, wherever it is.
 		final RealPoint gPos = new RealPoint( 3 );
 		viewer.getGlobalMouseCoordinates(gPos);
@@ -467,17 +498,53 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 		gPos.localize(coordinates);
 		Spot spot = new Spot(coordinates);
 		spot.putFeature(Spot.RADIUS, radius );
+		spot.putFeature(Spot.POSITION_T, frame );
 		model.beginUpdate();
 		try {
-			model.addSpotTo(spot, viewer.getCurrentTimepoint());
+			model.addSpotTo(spot, frame);
 		} finally {
 			model.endUpdate();
-			String str = String.format(
-					"Added spot " + spot + " at location X = %.1f, Y = %.1f, Z = %.1f, T = %.0f.", 
-					spot.getFeature(Spot.POSITION_X), spot.getFeature(Spot.POSITION_Y), 
-					spot.getFeature(Spot.POSITION_Z), spot.getFeature(Spot.FRAME));
-			viewer.getLogger().log(str);
 		}
+		
+		String message = String.format(
+				"Added spot " + spot + " at location X = %.1f, Y = %.1f, Z = %.1f, T = %.0f", 
+				spot.getFeature(Spot.POSITION_X), spot.getFeature(Spot.POSITION_Y), 
+				spot.getFeature(Spot.POSITION_Z), spot.getFeature(Spot.FRAME));
+		
+		// Then, possibly, the edge. We must do it in a subsequent update, otherwise the model gets confused.
+		final Set<Spot> spotSelection = model.getSelectionModel().getSpotSelection();
+		if (isLinkingMode && spotSelection.size() == 1) { // if we are in the right mode & if there is only one spot in selection
+			Spot targetSpot = spotSelection.iterator().next();
+			if (targetSpot.getFeature(Spot.FRAME).intValue() != spot.getFeature(Spot.FRAME).intValue()) { // & if they are on different frames
+				model.beginUpdate();
+				try {
+
+					// Put them right in order: since we use a oriented graph,
+					// we want the source spot to precede in time.
+					Spot earlySpot = targetSpot;
+					Spot lateSpot = spot;
+					if (Spot.frameComparator.compare(spot, targetSpot) < 0) {
+						earlySpot = spot;
+						lateSpot = targetSpot;
+					}
+
+					// Create link
+					model.addEdge(earlySpot, lateSpot, -1);
+				} finally {
+					model.endUpdate();
+				}
+				message += ", linked to spot " + targetSpot + ".";
+			} else {
+				message += ".";
+			}
+		} else {
+			message += ".";
+		}
+		viewer.getLogger().log(message);
+
+		// Store new spot as the sole selection for this model
+		model.getSelectionModel().clearSpotSelection();
+		model.getSelectionModel().addSpotToSelection(spot);
 	}
 	
 	/**
@@ -576,11 +643,11 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 	
 	
 	private void computeSpotColors(final String feature) {
-		colorProvider.clear();
+		spotColorProvider.clear();
 		// Check null
 		if (null == feature) {
 			for(Spot spot : model.getSpots()) {
-				colorProvider.put(spot, TrackMateModelView.DEFAULT_COLOR);
+				spotColorProvider.put(spot, TrackMateModelView.DEFAULT_COLOR);
 			}
 			return;
 		}
@@ -603,12 +670,17 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 			val = spot.getFeature(feature);
 			InterpolatePaintScale  colorMap = InterpolatePaintScale.Jet;
 			if (null == feature || null == val)
-				colorProvider.put(spot, TrackMateModelView.DEFAULT_COLOR);
+				spotColorProvider.put(spot, TrackMateModelView.DEFAULT_COLOR);
 			else
-				colorProvider.put(spot, colorMap .getPaint((val-min)/(max-min)) );
+				spotColorProvider.put(spot, colorMap .getPaint((val-min)/(max-min)) );
 		}
 	}
 	
+	private void toggleLinkingMode(MamutViewer viewer) {
+		this.isLinkingMode = !isLinkingMode;
+		String str = "Switched auto-linking mode " +  (isLinkingMode ? "on." : "off.");
+		viewer.getLogger().log(str);
+	}
 	
 	
 	/*
@@ -619,7 +691,4 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 		new MaMuT_<T>();
 	}
 	
-
-
-
 }
