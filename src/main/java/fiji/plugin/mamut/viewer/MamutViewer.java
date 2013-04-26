@@ -25,7 +25,7 @@ import fiji.plugin.trackmate.visualization.TrackMateModelView;
 public class MamutViewer extends SpimViewer implements TrackMateModelView {
 
 	private static final long DEFAULT_TEXT_DISPLAY_DURATION = 3000;
-	private static final String INFO_TEXT = "A viewer based on Tobias Pietsch SPIM Viewer";
+	private static final String INFO_TEXT = "A viewer based on Tobias Pietzsch SPIM Viewer";
 	/** The overlay on which the {@link TrackMateModel} will be painted. */
 	private MamutOverlay overlay;
 	/** The animated text overlay that will be used to log MaMuT messages. */ 

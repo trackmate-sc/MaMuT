@@ -536,7 +536,7 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 	
 	
 	private void showHelp() {
-		new HelpFrame();
+		new HelpFrame(MaMuT_.class.getResource("Help.html"));
 	}
 
 	
