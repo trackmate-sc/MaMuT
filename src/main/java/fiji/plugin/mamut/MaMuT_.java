@@ -183,7 +183,7 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 		final MamutViewer viewer = new MamutViewer(800, 600, sources, nTimepoints, model, colorProvider);
 		installKeyBindings(viewer);
 		installMouseListeners(viewer);
-		viewer.addHandler(viewer);
+//		viewer.addHandler(viewer);
 		viewer.render();
 		viewers.add(viewer);
 		controlPanel.register(viewer);

@@ -3,14 +3,19 @@ package fiji.plugin.mamut.viewer;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.event.KeyEvent;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.swing.Action;
 import javax.swing.JFrame;
+import javax.swing.KeyStroke;
 
+import net.imglib2.Pair;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.ui.TransformEventHandler3D;
+import net.imglib2.util.ValuePair;
 import viewer.SpimViewer;
 import viewer.TextOverlayAnimator;
 import viewer.TranslationAnimator;
@@ -181,6 +186,33 @@ public class MamutViewer extends SpimViewer implements TrackMateModelView {
 	public TrackMateModel getModel() {
 		return model;
 
+	}
+	
+	/**
+	 * Overriden so that we can remove and remap some key bindings.
+	 */
+	@Override
+	protected void createKeyActions() {
+		super.createKeyActions();
+		/*
+		 * Remove Shift+A to align XZ
+		 */
+		Pair<KeyStroke, Action> keyBinding = null;
+		KeyStroke shiftA = KeyStroke.getKeyStroke( KeyEvent.VK_A, KeyEvent.SHIFT_DOWN_MASK );
+		for (Pair<KeyStroke, Action> ka: keysActions	) {
+			if (ka.getA().equals(shiftA)) {
+				keyBinding = ka;
+				break;
+			}
+		}
+		if (null != keyBinding) {
+			keysActions.remove(keyBinding);
+			/*
+			 * And replace it with Shift+C
+			 */
+			KeyStroke key = KeyStroke.getKeyStroke( KeyEvent.VK_C, KeyEvent.SHIFT_DOWN_MASK );
+			keysActions.add(new ValuePair<KeyStroke, Action>(key, keyBinding.getB()));
+		}
 	}
 
 	/*
