@@ -1,6 +1,7 @@
 package fiji.plugin.mamut.viewer;
 
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.event.KeyEvent;
@@ -19,6 +20,7 @@ import net.imglib2.util.ValuePair;
 import viewer.SpimViewer;
 import viewer.TextOverlayAnimator;
 import viewer.TranslationAnimator;
+import viewer.TextOverlayAnimator.TextPosition;
 import viewer.render.SourceAndConverter;
 import fiji.plugin.trackmate.Logger;
 import fiji.plugin.trackmate.Spot;
@@ -30,7 +32,16 @@ import fiji.plugin.trackmate.visualization.TrackMateModelView;
 
 public class MamutViewer extends SpimViewer implements TrackMateModelView {
 
+	/*
+	 * LOGGER L&F PARAMS
+	 */
+	
 	private static final long DEFAULT_TEXT_DISPLAY_DURATION = 3000;
+	private static final TextPosition DEFAULT_POSITION = TextPosition.BOTTOM_RIGHT;
+	private static final double DEFAULT_FADEINTIME = 0;
+	private static final double DEFAULT_FADEOUTTIME = 0.5;
+	private static final Font DEFAULT_FONT = new Font( "SansSerif", Font.PLAIN, 14 ) ;
+	
 	private static final String INFO_TEXT = "A viewer based on Tobias Pietzsch SPIM Viewer";
 	/** The overlay on which the {@link TrackMateModel} will be painted. */
 	private MamutOverlay overlay;
@@ -130,6 +141,9 @@ public class MamutViewer extends SpimViewer implements TrackMateModelView {
 
 	@Override
 	public void centerViewOn(Spot spot) {
+		
+		int tp = spot.getFeature(Spot.FRAME).intValue();
+		state.setCurrentTimepoint(tp);
 
 		AffineTransform3D t = new AffineTransform3D();
 		state.getViewerTransform(t);
@@ -244,25 +258,32 @@ public class MamutViewer extends SpimViewer implements TrackMateModelView {
 
 
 	private final class MamutViewerLogger extends Logger {
+		
+		
+
 
 		@Override
 		public void setStatus(String status) {
-			loggerOverlay = new TextOverlayAnimator(status, DEFAULT_TEXT_DISPLAY_DURATION);
+			loggerOverlay = new TextOverlayAnimator( status, DEFAULT_TEXT_DISPLAY_DURATION, 
+					DEFAULT_POSITION, DEFAULT_FADEINTIME, DEFAULT_FADEOUTTIME, DEFAULT_FONT);
 		}
 
 		@Override
 		public void setProgress(double val) {
-			loggerOverlay = new TextOverlayAnimator(String.format("%3d", Math.round(val)), DEFAULT_TEXT_DISPLAY_DURATION);
+			loggerOverlay = new TextOverlayAnimator(String.format("%3d", Math.round(val)), DEFAULT_TEXT_DISPLAY_DURATION, 
+					DEFAULT_POSITION, DEFAULT_FADEINTIME, DEFAULT_FADEOUTTIME, DEFAULT_FONT);
 		}
 
 		@Override
 		public void log(String message, Color color) {
-			loggerOverlay = new TextOverlayAnimator(message, DEFAULT_TEXT_DISPLAY_DURATION);
+			loggerOverlay = new TextOverlayAnimator(message, DEFAULT_TEXT_DISPLAY_DURATION, 
+					DEFAULT_POSITION, DEFAULT_FADEINTIME, DEFAULT_FADEOUTTIME, DEFAULT_FONT);
 		}
 
 		@Override
 		public void error(String message) {
-			loggerOverlay = new TextOverlayAnimator(message, DEFAULT_TEXT_DISPLAY_DURATION);
+			loggerOverlay = new TextOverlayAnimator(message, DEFAULT_TEXT_DISPLAY_DURATION, 
+					DEFAULT_POSITION, DEFAULT_FADEINTIME, DEFAULT_FADEOUTTIME, DEFAULT_FONT.deriveFont(Font.BOLD));
 		}
 
 	}

@@ -44,6 +44,7 @@ import viewer.HelpFrame;
 import viewer.render.Source;
 import viewer.render.SourceAndConverter;
 import fiji.plugin.mamut.gui.MamutConfigPanel;
+import fiji.plugin.mamut.util.SourceSpotImageUpdater;
 import fiji.plugin.mamut.viewer.ImgPlusSource;
 import fiji.plugin.mamut.viewer.MamutOverlay;
 import fiji.plugin.mamut.viewer.MamutViewer;
@@ -57,6 +58,8 @@ import fiji.plugin.trackmate.features.track.TrackIndexAnalyzer;
 import fiji.plugin.trackmate.visualization.PerTrackFeatureColorGenerator;
 import fiji.plugin.trackmate.visualization.TrackColorGenerator;
 import fiji.plugin.trackmate.visualization.TrackMateModelView;
+import fiji.plugin.trackmate.visualization.trackscheme.SpotImageUpdater;
+import fiji.plugin.trackmate.visualization.trackscheme.TrackScheme;
 
 public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements BrightnessDialog.MinMaxListener, ModelChangeListener {
 
@@ -142,7 +145,7 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 		 * Create image source
 		 */
 
-		Source<T> source = new ImgPlusSource<T>(img);
+		final Source<T> source = new ImgPlusSource<T>(img);
 		final RealARGBConverter< T > converter = new RealARGBConverter< T >( 0, img.firstElement().getMaxValue() );
 		sources = new ArrayList< SourceAndConverter< ? > >(1);
 		sources.add( new SourceAndConverter< T >(source, converter ));
@@ -171,8 +174,28 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 			@Override
 			public void actionPerformed(ActionEvent event) {
 				if (event == controlPanel.COLOR_FEATURE_CHANGED) {
-					computeSpotColors(controlPanel.getSpotColorFeature());
-					refresh();
+					
+					new Thread() {
+						@Override
+						public void run() {
+							computeSpotColors(controlPanel.getSpotColorFeature());
+							refresh();
+						}
+					}.start();
+					
+				} else if (event == controlPanel.TRACK_SCHEME_BUTTON_PRESSED) {
+
+					new Thread() {
+						public void run() {
+							TrackScheme trackScheme = new TrackScheme(model) {
+								protected SpotImageUpdater createSpotImageUpdater() {
+									return new SourceSpotImageUpdater(model, source);
+								}
+							};
+							trackScheme.render();
+						};
+					}.start();
+					
 				} else {
 					System.out.println("Got event " + event);
 				}
@@ -234,6 +257,7 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 
 	@Override
 	public void modelChanged(ModelChangeEvent event) {
+		System.out.println(event); // DEBUG
 		refresh();
 	}
 	
@@ -391,6 +415,7 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 							viewer.getLogger().log(str);
 							movedSpot = null;
 						}
+						refresh();
 					}
 				}
 			}
@@ -452,16 +477,16 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 			@Override
 			public void mouseClicked(MouseEvent arg0) {
 				Spot spot = getSpotWithinRadius(viewer);
+				int currentTimePoint = viewer.getCurrentTimepoint();
 				if (null != spot) {
-					for (MamutViewer otherView : viewers) {
-						otherView.centerViewOn(spot);
-					}
+					centerOnSpot(spot, currentTimePoint);
 				}
 			}
 		});
 		
 	}
 
+	
 	
 	private void refresh() {
 		// Just ask to repaint the TrackMate overlay
@@ -470,7 +495,11 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 		}
 	}
 
-	
+	private void centerOnSpot(Spot spot, int currentTimePoint) {
+		for (MamutViewer otherView : viewers) {
+			otherView.centerViewOn(spot);
+		}
+	}
 	
 	/**
 	 * Adds a new spot at the mouse current location.
@@ -515,21 +544,12 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 		final Set<Spot> spotSelection = model.getSelectionModel().getSpotSelection();
 		if (isLinkingMode && spotSelection.size() == 1) { // if we are in the right mode & if there is only one spot in selection
 			Spot targetSpot = spotSelection.iterator().next();
-			if (targetSpot.getFeature(Spot.FRAME).intValue() != spot.getFeature(Spot.FRAME).intValue()) { // & if they are on different frames
+			if (targetSpot.getFeature(Spot.FRAME).intValue() < spot.getFeature(Spot.FRAME).intValue()) { // & if they are on different frames
 				model.beginUpdate();
 				try {
 
-					// Put them right in order: since we use a oriented graph,
-					// we want the source spot to precede in time.
-					Spot earlySpot = targetSpot;
-					Spot lateSpot = spot;
-					if (Spot.frameComparator.compare(spot, targetSpot) < 0) {
-						earlySpot = spot;
-						lateSpot = targetSpot;
-					}
-
 					// Create link
-					model.addEdge(earlySpot, lateSpot, -1);
+					model.addEdge(targetSpot, spot, -1);
 				} finally {
 					model.endUpdate();
 				}
@@ -598,6 +618,7 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 						spot.getFeature(Spot.RADIUS));
 				viewer.getLogger().log(str);
 			}
+			refresh();
 		}
 	}
 	
