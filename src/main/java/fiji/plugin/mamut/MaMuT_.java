@@ -51,6 +51,7 @@ import fiji.plugin.mamut.viewer.MamutViewer;
 import fiji.plugin.trackmate.EdgeAnalyzerProvider;
 import fiji.plugin.trackmate.ModelChangeEvent;
 import fiji.plugin.trackmate.ModelChangeListener;
+import fiji.plugin.trackmate.Settings;
 import fiji.plugin.trackmate.Spot;
 import fiji.plugin.trackmate.TrackAnalyzerProvider;
 import fiji.plugin.trackmate.TrackMateModel;
@@ -125,6 +126,7 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 		ImagePlus imp = IJ.openImage(id);
 		final ImgPlus<T> img = ImagePlusAdapter.wrapImgPlus(imp);
 		nTimepoints = (int) img.dimension(3);
+		Settings settings = new Settings(imp);
 
 		/*
 		 * Find adequate rough scales
@@ -140,6 +142,7 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 		model.addTrackMateModelChangeListener(this);
 		model.getFeatureModel().setTrackAnalyzerProvider(new TrackAnalyzerProvider(model));
 		model.getFeatureModel().setEdgeAnalyzerProvider(new EdgeAnalyzerProvider(model));
+		model.setSettings(settings);
 		
 		/*
 		 * Create image source
@@ -188,6 +191,7 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 					new Thread() {
 						public void run() {
 							TrackScheme trackScheme = new TrackScheme(model) {
+								@SuppressWarnings({ "unchecked", "rawtypes" })
 								protected SpotImageUpdater createSpotImageUpdater() {
 									return new SourceSpotImageUpdater(model, source);
 								}
