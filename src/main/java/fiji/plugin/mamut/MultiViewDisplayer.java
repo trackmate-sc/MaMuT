@@ -22,7 +22,7 @@ import org.jgrapht.graph.DefaultWeightedEdge;
 
 import fiji.plugin.trackmate.ModelChangeEvent;
 import fiji.plugin.trackmate.SelectionChangeEvent;
-import fiji.plugin.trackmate.Settings;
+import fiji.plugin.trackmate.SelectionModel;
 import fiji.plugin.trackmate.Spot;
 import fiji.plugin.trackmate.TrackMateModel;
 import fiji.plugin.trackmate.visualization.AbstractTrackMateModelView;
@@ -72,8 +72,8 @@ public class MultiViewDisplayer extends AbstractTrackMateModelView  {
 	 * CONSTRUCTORS
 	 */
 
-	public MultiViewDisplayer(final Collection<ImagePlus> imps, final Map<ImagePlus, List<AffineTransform3D>> impMap, final TrackMateModel model) {
-		super(model);
+	public MultiViewDisplayer(Collection<ImagePlus> imps, Map<ImagePlus, List<AffineTransform3D>> impMap, TrackMateModel model, SelectionModel selectionModel) {
+		super(model, selectionModel);
 		this.imps = imps;
 		this.transforms = impMap;
 		this.targetZMap = new HashMap<ImagePlus, Integer>(imps.size());
@@ -126,8 +126,8 @@ public class MultiViewDisplayer extends AbstractTrackMateModelView  {
 		};
 	}
 
-	public MultiViewDisplayer(final Map<ImagePlus, List<AffineTransform3D>> transforms, final TrackMateModel model) {
-		this(transforms.keySet(), transforms, model);
+	public MultiViewDisplayer(Map<ImagePlus, List<AffineTransform3D>> transforms, TrackMateModel model, SelectionModel selectionModel) {
+		this(transforms.keySet(), transforms, model, selectionModel);
 	}
 
 	/*
@@ -179,6 +179,10 @@ public class MultiViewDisplayer extends AbstractTrackMateModelView  {
 	/*
 	 * PUBLIC METHODS
 	 */
+	
+	public SelectionModel getSelectionModel() {
+		return selectionModel;
+	}
 
 	
 	@Override
@@ -259,7 +263,7 @@ public class MultiViewDisplayer extends AbstractTrackMateModelView  {
 		spotViewUpdater.quit();
 		targetTUpdater.quit();
 		targetZUpdater.quit();
-		model.removeTrackMateSelectionChangeListener(this);
+		selectionModel.removeTrackMateSelectionChangeListener(this);
 		model.removeTrackMateModelChangeListener(this);
 		for (ImagePlus imp : imps) {
 			// Remove listeners for the sliders
@@ -317,7 +321,7 @@ public class MultiViewDisplayer extends AbstractTrackMateModelView  {
 
 		}
 
-		model.addTrackMateSelectionChangeListener(this);
+		selectionModel.addTrackMateSelectionChangeListener(this);
 		registerEditTool();
 
 	}
@@ -408,10 +412,6 @@ public class MultiViewDisplayer extends AbstractTrackMateModelView  {
 		return transforms.get(imp).get(frame);
 	}
 
-	public Settings getSttings() {
-		return model.getSettings();
-	}
-
 	public void setT(final int targetT) {
 		this.targetT = targetT;
 		targetTUpdater.doUpdate();
@@ -496,6 +496,11 @@ public class MultiViewDisplayer extends AbstractTrackMateModelView  {
 
 	private interface Refreshable {
 		void refresh();
+	}
+
+	@Override
+	public String getKey() {
+		return NAME;
 	}
 
 }

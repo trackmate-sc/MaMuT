@@ -27,6 +27,7 @@ import net.imglib2.util.Util;
 
 import org.jgrapht.graph.DefaultWeightedEdge;
 
+import fiji.plugin.trackmate.SelectionModel;
 import fiji.plugin.trackmate.Spot;
 import fiji.plugin.trackmate.TrackMateModel;
 import fiji.plugin.trackmate.detection.DetectorKeys;
@@ -198,6 +199,7 @@ public class MVSpotEditTool extends AbstractTool implements ToolWithOptions, Mou
 
 		final ImagePlus imp = getImagePlus(e);
 		final MultiViewDisplayer displayer = displayers.get(imp);
+		final SelectionModel selectionModel = displayer.getSelectionModel();
 		if (DEBUG) {
 			System.out.println("[MVSpotEditTool] @mouseClicked");
 			System.out.println("[MVSpotEditTool] Got "+imp+ " as ImagePlus");
@@ -215,7 +217,7 @@ public class MVSpotEditTool extends AbstractTool implements ToolWithOptions, Mou
 		final Spot clickLocation = displayer.getCLickLocation(e.getPoint(), imp);
 		final int frame = imp.getFrame() - 1;
 		final TrackMateModel model = displayer.getModel();
-		Spot target = model.getFilteredSpots().getSpotAt(clickLocation, frame);
+		Spot target = model.getSpots().getSpotAt(clickLocation, frame, true);
 
 		// Check desired behavior
 		switch (e.getClickCount()) {
@@ -230,18 +232,18 @@ public class MVSpotEditTool extends AbstractTool implements ToolWithOptions, Mou
 			final int addToSelectionMask = MouseEvent.SHIFT_DOWN_MASK;
 			if ((e.getModifiersEx() & addToSelectionMask) == addToSelectionMask) { 
 				
-				if (model.getSelectionModel().getSpotSelection().contains(target)) {
-					model.getSelectionModel().removeSpotFromSelection(target);
+				if (selectionModel.getSpotSelection().contains(target)) {
+					selectionModel.removeSpotFromSelection(target);
 					IJ.showStatus("Removed spot " + target.getName() + "from selection.");
 				} else {
-					model.getSelectionModel().addSpotToSelection(target);
+					selectionModel.addSpotToSelection(target);
 					IJ.showStatus("Added spot " + target.getName() + " to selection.");
 				}
 				
 			} else {
 				
-				model.getSelectionModel().clearSpotSelection();
-				model.getSelectionModel().addSpotToSelection(target);
+				selectionModel.clearSpotSelection();
+				selectionModel.addSpotToSelection(target);
 				isEditedSpotMovedWithKeyboard = false;
 				storeLocalSpot(model, displayer, imp, e);
 				IJ.showStatus("Selected spot " + target.getName() + ".");
@@ -300,7 +302,7 @@ public class MVSpotEditTool extends AbstractTool implements ToolWithOptions, Mou
 		final int frame = imp.getFrame() - 1;
 		final TrackMateModel model = displayer.getModel();
 		
-		Spot target = model.getFilteredSpots().getSpotAt(clickLocation, frame);
+		Spot target = model.getSpots().getSpotAt(clickLocation, frame, true);
 		if (null == target)
 			return; // Return if we did not "wheel" inside an existing spot.
 		
@@ -361,6 +363,7 @@ public class MVSpotEditTool extends AbstractTool implements ToolWithOptions, Mou
 			return;
 
 		TrackMateModel model = displayer.getModel();
+		SelectionModel selectionModel = displayer.getSelectionModel();
 
 		int keycode = event.getKeyCode(); 
 
@@ -369,7 +372,7 @@ public class MVSpotEditTool extends AbstractTool implements ToolWithOptions, Mou
 		// Delete spot & edge selection
 		case KeyEvent.VK_DELETE: {
 
-			deleteSpotSelection(model);
+			deleteSpotSelection(model, selectionModel);
 			imp.updateAndDraw();
 			event.consume();
 			break;
@@ -558,23 +561,23 @@ public class MVSpotEditTool extends AbstractTool implements ToolWithOptions, Mou
 		IJ.showStatus(statusString);
 	}
 
-	private void deleteSpotSelection(final TrackMateModel model) {
+	private void deleteSpotSelection(TrackMateModel model, SelectionModel selectionModel) {
 
 		if (!isEdtingEnabled) {
 			return;
 		}
 
-		ArrayList<Spot> spotSelection = new ArrayList<Spot>(model.getSelectionModel().getSpotSelection());
-		ArrayList<DefaultWeightedEdge> edgeSelection = new ArrayList<DefaultWeightedEdge>(model.getSelectionModel().getEdgeSelection());
+		ArrayList<Spot> spotSelection = new ArrayList<Spot>(selectionModel.getSpotSelection());
+		ArrayList<DefaultWeightedEdge> edgeSelection = new ArrayList<DefaultWeightedEdge>(selectionModel.getEdgeSelection());
 		IJ.showStatus("Deleted selection (" + spotSelection.size() + " spots & " + edgeSelection.size() + " links).");
 		model.beginUpdate();
 		try {
-			model.getSelectionModel().clearSelection();
+			selectionModel.clearSelection();
 			for(DefaultWeightedEdge edge : edgeSelection) {
 				model.removeEdge(edge);
 			}
 			for(Spot spot : spotSelection) {
-				model.removeSpotFrom(spot, null);
+				model.removeSpot(spot);
 			}
 		} finally {
 			model.endUpdate();
@@ -592,21 +595,7 @@ public class MVSpotEditTool extends AbstractTool implements ToolWithOptions, Mou
 		if (null != previousRadius) {
 			radius = previousRadius; 
 		} else { 
-			Map<String, Object> ss = displayer.getSttings().detectorSettings;
-			if (null == ss) {
-				radius = FALL_BACK_RADIUS;
-			} else {
-				Object obj = ss.get(DetectorKeys.DEFAULT_RADIUS);
-				if (null == obj) {
-					radius = FALL_BACK_RADIUS;
-				} else {
-					if (Double.class.isInstance(obj)) {
-						radius = (Double) obj;
-					} else {
-						radius = FALL_BACK_RADIUS;
-					}
-				}
-			}
+			radius = FALL_BACK_RADIUS;
 		}
 
 		Point mouseLocation = MouseInfo.getPointerInfo().getLocation();
@@ -614,8 +603,8 @@ public class MVSpotEditTool extends AbstractTool implements ToolWithOptions, Mou
 		Spot newSpot = displayer.getCLickLocation(mouseLocation, imp);
 
 		int frame = imp.getFrame() - 1;
-		newSpot.putFeature(Spot.POSITION_T, frame * displayer.getSttings().dt);
-		newSpot.putFeature(Spot.FRAME, frame);
+		newSpot.putFeature(Spot.POSITION_T, frame * dt);
+		newSpot.putFeature(Spot.FRAME, Double.valueOf(frame));
 		newSpot.putFeature(Spot.RADIUS, radius);
 		// Update image
 		//		SpotImageUpdater<T> spotImageUpdater = new SpotImageUpdater<T>(model);
@@ -636,7 +625,8 @@ public class MVSpotEditTool extends AbstractTool implements ToolWithOptions, Mou
 
 
 		// Then, possibly, the edge. We must do it in a subsequent update, otherwise the model gets confused.
-		final Set<Spot> spotSelection = model.getSelectionModel().getSpotSelection();
+		SelectionModel selectionModel = displayer.getSelectionModel();
+		final Set<Spot> spotSelection = selectionModel.getSpotSelection();
 		if (isLinkingMode && spotSelection.size() == 1) { // if we are in the right mode & if there is only one spot in selection
 			Spot targetSpot = spotSelection.iterator().next();
 			if (targetSpot.getFeature(Spot.FRAME).intValue() != newSpot.getFeature(Spot.FRAME).intValue()) { // & if they are on different frames
@@ -666,8 +656,8 @@ public class MVSpotEditTool extends AbstractTool implements ToolWithOptions, Mou
 		}
 
 		// Store new spot as the sole selection for this model
-		model.getSelectionModel().clearSpotSelection();
-		model.getSelectionModel().addSpotToSelection(newSpot);
+		selectionModel.clearSpotSelection();
+		selectionModel.addSpotToSelection(newSpot);
 
 		IJ.showStatus(message);
 	}
@@ -682,14 +672,14 @@ public class MVSpotEditTool extends AbstractTool implements ToolWithOptions, Mou
 		SwingUtilities.convertPointFromScreen(mouseLocation, displayer.getCanvas(imp));
 		int frame = imp.getFrame() - 1;
 		Spot clickLocation = displayer.getCLickLocation(mouseLocation, imp);
-		Spot target = model.getFilteredSpots().getSpotAt(clickLocation, frame);
+		Spot target = model.getSpots().getSpotAt(clickLocation, frame, true);
 		if (null == target) {
 			return; 
 		}
 
 		model.beginUpdate();
 		try {
-			model.removeSpotFrom(target, frame);
+			model.removeSpot(target);
 		} finally {
 			model.endUpdate();
 		}
@@ -707,7 +697,7 @@ public class MVSpotEditTool extends AbstractTool implements ToolWithOptions, Mou
 		if (null == quickEditedSpot) {
 			int frame = imp.getFrame() - 1;
 			Spot clickLocation = displayer.getCLickLocation(mouseLocation, imp);
-			quickEditedSpot = model.getFilteredSpots().getSpotAt(clickLocation, frame);
+			quickEditedSpot = model.getSpots().getSpotAt(clickLocation, frame, true);
 			if (null == quickEditedSpot) {
 				return; // un-consumed event
 			}
@@ -758,7 +748,7 @@ public class MVSpotEditTool extends AbstractTool implements ToolWithOptions, Mou
 			model.endUpdate();
 		}
 
-		String spaceUnit = model.getSettings().spaceUnits;
+		String spaceUnit = model.getSpaceUnits();
 		IJ.showStatus(String.format("Moved spot %s to x=%.1f %s, y=%.1f %s, z=%.1f %s, frame = %d.", 
 				quickEditedSpot.getName(), 
 				quickEditedSpot.getFeature(Spot.POSITION_X), spaceUnit,
@@ -778,7 +768,7 @@ public class MVSpotEditTool extends AbstractTool implements ToolWithOptions, Mou
 		SwingUtilities.convertPointFromScreen(mouseLocation, displayer.getCanvas(imp));
 		int frame = imp.getFrame() - 1;
 		Spot clickLocation = displayer.getCLickLocation(mouseLocation, imp);
-		Spot target = model.getFilteredSpots().getSpotAt(clickLocation, frame);
+		Spot target = model.getSpots().getSpotAt(clickLocation, frame, true);
 		if (null == target) {
 			return; // un-consumed event
 		}
@@ -819,7 +809,7 @@ public class MVSpotEditTool extends AbstractTool implements ToolWithOptions, Mou
 			model.endUpdate();
 		}
 
-		String spaceUnits = model.getSettings().spaceUnits;
+		String spaceUnits = model.getSpaceUnits();
 		IJ.showStatus(String.format("Changed spot %s radius to %.1f %s.", 
 				target.getName(), radius, spaceUnits) );
 		imp.updateAndDraw();
@@ -835,19 +825,16 @@ public class MVSpotEditTool extends AbstractTool implements ToolWithOptions, Mou
 		int currentFrame = imp.getFrame() - 1;
 		if (currentFrame > 0) {
 
-			List<Spot> previousFrameSpots = model.getFilteredSpots().get(currentFrame-1);
-			if (previousFrameSpots.isEmpty()) {
+			Iterable<Spot> previousFrameSpots = model.getSpots().iterable(currentFrame-1, true);
+			int nPrevious = model.getSpots().getNSpots(currentFrame-1, true); 
+			if (nPrevious == 0) {
 				return;
 			}
-			ArrayList<Spot> copiedSpots = new ArrayList<Spot>(previousFrameSpots.size());
-			HashSet<String> featuresKey = new HashSet<String>(previousFrameSpots.get(0).getFeatures().keySet());
+			ArrayList<Spot> copiedSpots = new ArrayList<Spot>(nPrevious);
+			HashSet<String> featuresKey = new HashSet<String>(previousFrameSpots.iterator().next().getFeatures().keySet());
 			featuresKey.remove(Spot.POSITION_T); // Deal with time separately
 			featuresKey.remove(Spot.FRAME); // Deal with time separately
-			double dt = model.getSettings().dt;
-			if (dt == 0)
-				dt = 1;
-
-			IJ.showStatus("Copied " + previousFrameSpots.size() + " spots from frame " + (currentFrame-1) + " to frame " + currentFrame + ".");
+			IJ.showStatus("Copied " + model.getSpots().getNSpots(currentFrame-1, true) + " spots from frame " + (currentFrame-1) + " to frame " + currentFrame + ".");
 
 			for(Spot spot : previousFrameSpots) {
 				double[] newCoords = new double[] {
@@ -876,8 +863,9 @@ public class MVSpotEditTool extends AbstractTool implements ToolWithOptions, Mou
 			model.beginUpdate();
 			try {
 				// Remove old ones
-				for(Spot spot : new ArrayList<Spot>(model.getFilteredSpots().get(currentFrame))) {
-					model.removeSpotFrom(spot, currentFrame);
+				
+				for(Spot spot : previousFrameSpots) {
+					model.removeSpot(spot);
 				}
 				// Add new ones
 				for(Spot spot : copiedSpots) {

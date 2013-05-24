@@ -8,7 +8,6 @@ import java.awt.Dimension;
 import java.awt.MouseInfo;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
@@ -43,24 +42,19 @@ import viewer.BrightnessDialog;
 import viewer.HelpFrame;
 import viewer.render.Source;
 import viewer.render.SourceAndConverter;
-import fiji.plugin.mamut.gui.MamutConfigPanel;
-import fiji.plugin.mamut.util.SourceSpotImageUpdater;
 import fiji.plugin.mamut.viewer.ImgPlusSource;
 import fiji.plugin.mamut.viewer.MamutOverlay;
 import fiji.plugin.mamut.viewer.MamutViewer;
-import fiji.plugin.trackmate.EdgeAnalyzerProvider;
 import fiji.plugin.trackmate.ModelChangeEvent;
 import fiji.plugin.trackmate.ModelChangeListener;
+import fiji.plugin.trackmate.SelectionModel;
 import fiji.plugin.trackmate.Settings;
 import fiji.plugin.trackmate.Spot;
-import fiji.plugin.trackmate.TrackAnalyzerProvider;
 import fiji.plugin.trackmate.TrackMateModel;
 import fiji.plugin.trackmate.features.track.TrackIndexAnalyzer;
 import fiji.plugin.trackmate.visualization.PerTrackFeatureColorGenerator;
 import fiji.plugin.trackmate.visualization.TrackColorGenerator;
 import fiji.plugin.trackmate.visualization.TrackMateModelView;
-import fiji.plugin.trackmate.visualization.trackscheme.SpotImageUpdater;
-import fiji.plugin.trackmate.visualization.trackscheme.TrackScheme;
 
 public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements BrightnessDialog.MinMaxListener, ModelChangeListener {
 
@@ -106,8 +100,6 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 	private final List<SourceAndConverter<?>> sources;
 	/** The number of timepoints in the image sources. */
 	private final int nTimepoints;
-	/** The GUI that control the views. */
-	private final MamutConfigPanel controlPanel;
 	/**  If true, the next added spot will be automatically linked to the previously created one, given that 
 	 * the new spot is created in a subsequent frame. */
 	private boolean isLinkingMode = false;
@@ -115,6 +107,8 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 	 * {@link MamutOverlay}s.  */
 	private final Map<Spot, Color> spotColorProvider;
 	private TrackColorGenerator trackColorProvider;
+	private Settings settings;
+	private SelectionModel selectionModel;
 
 	public MaMuT_() throws ImgIOException, FormatException, IOException {
 
@@ -126,7 +120,8 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 		ImagePlus imp = IJ.openImage(id);
 		final ImgPlus<T> img = ImagePlusAdapter.wrapImgPlus(imp);
 		nTimepoints = (int) img.dimension(3);
-		Settings settings = new Settings(imp);
+		settings = new Settings();
+		settings.setFrom(imp);
 
 		/*
 		 * Find adequate rough scales
@@ -140,9 +135,12 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 		
 		model = new TrackMateModel();
 		model.addTrackMateModelChangeListener(this);
-		model.getFeatureModel().setTrackAnalyzerProvider(new TrackAnalyzerProvider(model));
-		model.getFeatureModel().setEdgeAnalyzerProvider(new EdgeAnalyzerProvider(model));
-		model.setSettings(settings);
+		
+		/*
+		 * Selection model
+		 */
+		
+		selectionModel = new SelectionModel(model);
 		
 		/*
 		 * Create image source
@@ -168,53 +166,12 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 		trackColorProvider = new PerTrackFeatureColorGenerator(model, TrackIndexAnalyzer.TRACK_ID);
 		
 		/*
-		 * Create control panel
-		 */
-		
-		controlPanel = new MamutConfigPanel(model);
-		controlPanel.addActionListener(new ActionListener() {
-			
-			@Override
-			public void actionPerformed(ActionEvent event) {
-				if (event == controlPanel.COLOR_FEATURE_CHANGED) {
-					
-					new Thread() {
-						@Override
-						public void run() {
-							computeSpotColors(controlPanel.getSpotColorFeature());
-							refresh();
-						}
-					}.start();
-					
-				} else if (event == controlPanel.TRACK_SCHEME_BUTTON_PRESSED) {
-
-					new Thread() {
-						public void run() {
-							TrackScheme trackScheme = new TrackScheme(model) {
-								@SuppressWarnings({ "unchecked", "rawtypes" })
-								protected SpotImageUpdater createSpotImageUpdater() {
-									return new SourceSpotImageUpdater(model, source);
-								}
-							};
-							trackScheme.render();
-						};
-					}.start();
-					
-				} else {
-					System.out.println("Got event " + event);
-				}
-			}
-
-		});
-				
-		/*
 		 * Create views
 		 */
 		
 		newViewer();
 		newViewer();
 		
-		controlPanel.setVisible(true);
 	}		
 	
 	
@@ -230,7 +187,6 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 //		viewer.addHandler(viewer);
 		viewer.render();
 		viewers.add(viewer);
-		controlPanel.register(viewer);
 		
 		viewer.getFrame().addWindowListener(new WindowListener() {
 			@Override
@@ -531,7 +487,7 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 		gPos.localize(coordinates);
 		Spot spot = new Spot(coordinates);
 		spot.putFeature(Spot.RADIUS, radius );
-		spot.putFeature(Spot.POSITION_T, frame );
+		spot.putFeature(Spot.POSITION_T, Double.valueOf(frame) );
 		model.beginUpdate();
 		try {
 			model.addSpotTo(spot, frame);
@@ -545,7 +501,7 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 				spot.getFeature(Spot.POSITION_Z), spot.getFeature(Spot.FRAME));
 		
 		// Then, possibly, the edge. We must do it in a subsequent update, otherwise the model gets confused.
-		final Set<Spot> spotSelection = model.getSelectionModel().getSpotSelection();
+		final Set<Spot> spotSelection = selectionModel.getSpotSelection();
 		if (isLinkingMode && spotSelection.size() == 1) { // if we are in the right mode & if there is only one spot in selection
 			Spot targetSpot = spotSelection.iterator().next();
 			if (targetSpot.getFeature(Spot.FRAME).intValue() < spot.getFeature(Spot.FRAME).intValue()) { // & if they are on different frames
@@ -567,8 +523,8 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 		viewer.getLogger().log(message);
 
 		// Store new spot as the sole selection for this model
-		model.getSelectionModel().clearSpotSelection();
-		model.getSelectionModel().addSpotToSelection(spot);
+		selectionModel.clearSpotSelection();
+		selectionModel.addSpotToSelection(spot);
 	}
 	
 	/**
@@ -581,8 +537,7 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 			// We can delete it
 			model.beginUpdate();
 			try {
-				int frame = viewer.getCurrentTimepoint();
-				model.removeSpotFrom(spot, frame);
+				model.removeSpot(spot);
 			} finally {
 				model.endUpdate();
 				String str = "Removed spot " + spot + "."; 
@@ -649,7 +604,7 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 		double[] coordinates = new double[3];
 		gPos.localize(coordinates);
 		Spot location = new Spot(coordinates);
-		Spot closestSpot = model.getFilteredSpots().getClosestSpot(location, frame);
+		Spot closestSpot = model.getSpots().getClosestSpot(location, frame, true);
 		if (null == closestSpot) {
 			return null;
 		}
@@ -671,7 +626,7 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 		spotColorProvider.clear();
 		// Check null
 		if (null == feature) {
-			for(Spot spot : model.getSpots()) {
+			for(Spot spot : model.getSpots().iterable(false)) {
 				spotColorProvider.put(spot, TrackMateModelView.DEFAULT_COLOR);
 			}
 			return;
@@ -682,7 +637,7 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 		double max = Float.NEGATIVE_INFINITY;
 		Double val;
 		for (int ikey : model.getSpots().keySet()) {
-			for (Spot spot : model.getSpots().get(ikey)) {
+			for (Spot spot : model.getSpots().iterable(ikey, false)) {
 				val = spot.getFeature(feature);
 				if (null == val)
 					continue;
@@ -691,7 +646,7 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 			}
 		}
 		
-		for(Spot spot : model.getSpots()) {
+		for(Spot spot : model.getSpots().iterable(false)) {
 			val = spot.getFeature(feature);
 			InterpolatePaintScale  colorMap = InterpolatePaintScale.Jet;
 			if (null == feature || null == val)
