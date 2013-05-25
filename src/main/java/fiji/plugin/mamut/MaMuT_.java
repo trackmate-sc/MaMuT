@@ -51,6 +51,7 @@ import fiji.plugin.trackmate.SelectionModel;
 import fiji.plugin.trackmate.Settings;
 import fiji.plugin.trackmate.Spot;
 import fiji.plugin.trackmate.TrackMateModel;
+import fiji.plugin.trackmate.features.ModelFeatureUpdater;
 import fiji.plugin.trackmate.features.track.TrackIndexAnalyzer;
 import fiji.plugin.trackmate.visualization.PerTrackFeatureColorGenerator;
 import fiji.plugin.trackmate.visualization.TrackColorGenerator;
@@ -116,12 +117,10 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 		 * Load image
 		 */
 		
-		final String id = "/Users/tinevez/Desktop/Data/Celegans-XY.tif";
+		final String id = "E:/Users/JeanYves/Desktop/Data/Celegans.tif";// "/Users/tinevez/Desktop/Data/Celegans-XY.tif";
 		ImagePlus imp = IJ.openImage(id);
 		final ImgPlus<T> img = ImagePlusAdapter.wrapImgPlus(imp);
 		nTimepoints = (int) img.dimension(3);
-		settings = new Settings();
-		settings.setFrom(imp);
 
 		/*
 		 * Find adequate rough scales
@@ -135,6 +134,20 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 		
 		model = new TrackMateModel();
 		model.addTrackMateModelChangeListener(this);
+		
+		/*
+		 * Settings
+		 */
+		
+		settings = new Settings();
+		settings.setFrom(imp);
+		settings.addTrackAnalyzer(new TrackIndexAnalyzer(model)); // we need at least this one
+		
+		/*
+		 * Autoupdate features
+		 */
+		
+		new ModelFeatureUpdater(model, settings);
 		
 		/*
 		 * Selection model
@@ -170,7 +183,7 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 		 */
 		
 		newViewer();
-		newViewer();
+//		newViewer();
 		
 	}		
 	
@@ -217,7 +230,6 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 
 	@Override
 	public void modelChanged(ModelChangeEvent event) {
-		System.out.println(event); // DEBUG
 		refresh();
 	}
 	
@@ -368,6 +380,7 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 						try {
 							model.updateFeatures(movedSpot);
 						} finally {
+							model.endUpdate();
 							String str = String.format(
 									"Moved spot " + movedSpot + " to location X = %.1f, Y = %.1f, Z = %.1f.", 
 									movedSpot.getFeature(Spot.POSITION_X), movedSpot.getFeature(Spot.POSITION_Y), 
@@ -395,7 +408,7 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 	
 
 	/**
-	 * Configures the specfied {@link MamutViewer} with mouse listeners. 
+	 * Configures the specified {@link MamutViewer} with mouse listeners. 
 	 * @param viewer  the {@link MamutViewer} to configure.
 	 */
 	private void installMouseListeners(final MamutViewer viewer) {

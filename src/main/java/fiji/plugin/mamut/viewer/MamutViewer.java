@@ -43,6 +43,7 @@ public class MamutViewer extends SpimViewer implements TrackMateModelView {
 	private static final Font DEFAULT_FONT = new Font( "SansSerif", Font.PLAIN, 14 ) ;
 	
 	private static final String INFO_TEXT = "A viewer based on Tobias Pietzsch SPIM Viewer";
+	private static final String KEY = "MaMuT Viewer";
 	/** The overlay on which the {@link TrackMateModel} will be painted. */
 	private MamutOverlay overlay;
 	/** The animated text overlay that will be used to log MaMuT messages. */ 
@@ -286,6 +287,13 @@ public class MamutViewer extends SpimViewer implements TrackMateModelView {
 					DEFAULT_POSITION, DEFAULT_FADEINTIME, DEFAULT_FADEOUTTIME, DEFAULT_FONT.deriveFont(Font.BOLD));
 		}
 
+	}
+
+
+
+	@Override
+	public String getKey() {
+		return KEY;
 	}
 
 

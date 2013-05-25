@@ -44,7 +44,9 @@ public class ImgPlusSource<T extends NumericType<T>> implements Source<T> {
 			factory = new NLinearInterpolatorFactory<T>();
 			break;
 		}
-		return Views.interpolate(Views.extendZero(getSource(t, level)), factory);
+		T zero = img.firstElement().createVariable();
+		zero.setZero();
+		return Views.interpolate(Views.extendValue(getSource(t, level), zero ), factory);
 	}
 
 	@Override

@@ -59,7 +59,7 @@ public class MamutOverlay {
 		/*
 		 * Draw spots
 		 */
-
+		
 		if ((Boolean) viewer.displaySettings.get(KEY_SPOTS_VISIBLE)) {
 
 
@@ -80,8 +80,8 @@ public class MamutOverlay {
 			final double vz = transform.get( 2, 0 );
 			final double transformScale = Math.sqrt( vx*vx + vy*vy + vz*vz );
 
-			Iterable<Spot> spots = model.getFilteredSpots().get(state.getCurrentTimepoint());
-
+			Iterable<Spot> spots = model.getSpots().iterable(state.getCurrentTimepoint(), true);
+			
 			for (Spot spot : spots) {
 
 				Color color;

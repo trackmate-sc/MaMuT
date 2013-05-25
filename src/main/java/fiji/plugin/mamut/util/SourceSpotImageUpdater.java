@@ -15,8 +15,8 @@ import viewer.render.Source;
 
 import com.mxgraph.util.mxBase64;
 
+import fiji.plugin.trackmate.Settings;
 import fiji.plugin.trackmate.Spot;
-import fiji.plugin.trackmate.TrackMateModel;
 import fiji.plugin.trackmate.visualization.trackscheme.SpotImageUpdater;
 
 public class SourceSpotImageUpdater <T extends RealType<T>> extends SpotImageUpdater {
@@ -28,10 +28,10 @@ public class SourceSpotImageUpdater <T extends RealType<T>> extends SpotImageUpd
 	private final double[] calibration;
 	private RandomAccessibleInterval<T> img;
 
-	public SourceSpotImageUpdater(TrackMateModel model, Source<T> source) {
-		super(model);
+	public SourceSpotImageUpdater(Settings settings, Source<T> source) {
+		super(settings);
 		this.source = source;
-		this.calibration = new double[] { model.getSettings().dx, model.getSettings().dy, model.getSettings().dz }; 
+		this.calibration = new double[] { settings.dx, settings.dy, settings.dz }; 
 	}
 
 	
