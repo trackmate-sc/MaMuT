@@ -23,6 +23,7 @@ import viewer.TranslationAnimator;
 import viewer.TextOverlayAnimator.TextPosition;
 import viewer.render.SourceAndConverter;
 import fiji.plugin.trackmate.Logger;
+import fiji.plugin.trackmate.SelectionModel;
 import fiji.plugin.trackmate.Spot;
 import fiji.plugin.trackmate.TrackMateModel;
 import fiji.plugin.trackmate.features.track.TrackIndexAnalyzer;
@@ -51,6 +52,7 @@ public class MamutViewer extends SpimViewer implements TrackMateModelView {
 	/** The logger instance that echoes message on this view. */
 	private final Logger logger;
 	private final TrackMateModel model;
+	private final SelectionModel selectionModel;
 
 	/**  A map of String/Object that configures the look and feel of the display. */
 	protected Map<String, Object> displaySettings = new HashMap<String, Object>();
@@ -63,9 +65,10 @@ public class MamutViewer extends SpimViewer implements TrackMateModelView {
 	 */
 
 
-	public MamutViewer(int width, int height, Collection<SourceAndConverter<?>> sources, int numTimePoints, TrackMateModel model, final Map<Spot, Color> spotColorProvider, final TrackColorGenerator trackColorProvider) {
+	public MamutViewer(int width, int height, Collection<SourceAndConverter<?>> sources, int numTimePoints, TrackMateModel model, SelectionModel selectionModel, final Map<Spot, Color> spotColorProvider, final TrackColorGenerator trackColorProvider) {
 		super(width, height, sources, numTimePoints);
 		this.model = model;
+		this.selectionModel = selectionModel;
 		this.logger = new MamutViewerLogger(); 
 		this.spotColorProvider = spotColorProvider;
 		this.trackColorProvider = trackColorProvider;
@@ -127,7 +130,7 @@ public class MamutViewer extends SpimViewer implements TrackMateModelView {
 
 	@Override
 	public void render() {
-		this.overlay = new MamutOverlay(model, this);
+		this.overlay = new MamutOverlay(model, selectionModel, this);
 	}
 
 	@Override
