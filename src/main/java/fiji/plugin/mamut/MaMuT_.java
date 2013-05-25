@@ -37,6 +37,7 @@ import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 
 import org.jfree.chart.renderer.InterpolatePaintScale;
+import org.jgrapht.graph.DefaultWeightedEdge;
 
 import viewer.BrightnessDialog;
 import viewer.HelpFrame;
@@ -476,6 +477,11 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 
 				} else {
 
+					Spot spot = getSpotWithinRadius(viewer);
+					if (null == spot) {
+						// Create a new spot
+						addSpot(viewer);
+					}
 					
 				}
 				refresh();
@@ -540,6 +546,9 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 
 		// Then, possibly, the edge. We must do it in a subsequent update, otherwise the model gets confused.
 		final Set<Spot> spotSelection = selectionModel.getSpotSelection();
+		
+		System.out.println(selectionModel);// DEBUG
+		
 		if (isLinkingMode && spotSelection.size() == 1) { // if we are in the right mode & if there is only one spot in selection
 			Spot targetSpot = spotSelection.iterator().next();
 			if (targetSpot.getFeature(Spot.FRAME).intValue() < spot.getFeature(Spot.FRAME).intValue()) { // & if they are on different frames
@@ -547,7 +556,9 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 				try {
 
 					// Create link
-					model.addEdge(targetSpot, spot, -1);
+					DefaultWeightedEdge newedge = model.addEdge(targetSpot, spot, -1);
+					selectionModel.clearEdgeSelection();
+					selectionModel.addEdgeToSelection(newedge);
 				} finally {
 					model.endUpdate();
 				}
