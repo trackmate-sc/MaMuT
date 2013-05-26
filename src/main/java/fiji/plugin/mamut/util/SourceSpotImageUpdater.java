@@ -66,7 +66,7 @@ public class SourceSpotImageUpdater <T extends RealType<T>> extends SpotImageUpd
 		long[] min = new long[] { x - r, y - r };
 		long[] max = new long[] { x + r, y + r };
 		IntervalView<T> crop = Views.interval(slice, min, max);
-			
+		
 		// Convert to string
 		byte[] bytes = create8BitImage(crop);
 		int width = (int) crop.dimension(0);
@@ -100,12 +100,16 @@ public class SourceSpotImageUpdater <T extends RealType<T>> extends SpotImageUpd
 		double min = Double.POSITIVE_INFINITY;
 		double max = Double.NEGATIVE_INFINITY;
 		for (T pixel : Views.iterable(rai)) {
-			double val = pixel.getRealDouble();
-			if (val > max) {
-				max = val;
-			}
-			if (val < min) {
-				min = val;
+			try {
+				double val = pixel.getRealDouble();
+				if (val > max) {
+					max = val;
+				}
+				if (val < min) {
+					min = val;
+				}
+			} catch (ArrayIndexOutOfBoundsException ai) {
+				continue;
 			}
 		}
 		double scale = 256.0/(max-min+1);
@@ -119,10 +123,14 @@ public class SourceSpotImageUpdater <T extends RealType<T>> extends SpotImageUpd
 		
 		int index = 0;
 		for (T pixel : Views.iterable(rai)) {
+			try {
 			double val = pixel.getRealDouble();
 			int value = (int) ( val * scale + 0.5);
 			if (value>255) value = 255;
 			pixels8[index++] = (byte)value;
+			} catch (ArrayIndexOutOfBoundsException ai) {
+				continue;
+			}
 		}
 		return pixels8;
 	}

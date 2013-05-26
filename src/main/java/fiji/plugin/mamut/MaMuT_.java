@@ -1,5 +1,21 @@
 package fiji.plugin.mamut;
 
+import static fiji.plugin.trackmate.visualization.TrackMateModelView.DEFAULT_COLOR;
+import static fiji.plugin.trackmate.visualization.TrackMateModelView.DEFAULT_COLOR_MAP;
+import static fiji.plugin.trackmate.visualization.TrackMateModelView.DEFAULT_HIGHLIGHT_COLOR;
+import static fiji.plugin.trackmate.visualization.TrackMateModelView.DEFAULT_TRACK_DISPLAY_DEPTH;
+import static fiji.plugin.trackmate.visualization.TrackMateModelView.DEFAULT_TRACK_DISPLAY_MODE;
+import static fiji.plugin.trackmate.visualization.TrackMateModelView.KEY_COLOR;
+import static fiji.plugin.trackmate.visualization.TrackMateModelView.KEY_COLORMAP;
+import static fiji.plugin.trackmate.visualization.TrackMateModelView.KEY_DISPLAY_SPOT_NAMES;
+import static fiji.plugin.trackmate.visualization.TrackMateModelView.KEY_HIGHLIGHT_COLOR;
+import static fiji.plugin.trackmate.visualization.TrackMateModelView.KEY_SPOTS_VISIBLE;
+import static fiji.plugin.trackmate.visualization.TrackMateModelView.KEY_SPOT_COLOR_FEATURE;
+import static fiji.plugin.trackmate.visualization.TrackMateModelView.KEY_SPOT_RADIUS_RATIO;
+import static fiji.plugin.trackmate.visualization.TrackMateModelView.KEY_TRACKS_VISIBLE;
+import static fiji.plugin.trackmate.visualization.TrackMateModelView.KEY_TRACK_COLORING;
+import static fiji.plugin.trackmate.visualization.TrackMateModelView.KEY_TRACK_DISPLAY_DEPTH;
+import static fiji.plugin.trackmate.visualization.TrackMateModelView.KEY_TRACK_DISPLAY_MODE;
 import ij.IJ;
 import ij.ImagePlus;
 
@@ -8,6 +24,7 @@ import java.awt.Dimension;
 import java.awt.MouseInfo;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
@@ -17,13 +34,14 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import javax.swing.AbstractAction;
+import javax.swing.JButton;
+import javax.swing.JFrame;
 import javax.swing.KeyStroke;
 
 import loci.formats.FormatException;
@@ -41,8 +59,8 @@ import org.jgrapht.graph.DefaultWeightedEdge;
 
 import viewer.BrightnessDialog;
 import viewer.HelpFrame;
-import viewer.render.Source;
 import viewer.render.SourceAndConverter;
+import fiji.plugin.mamut.util.SourceSpotImageUpdater;
 import fiji.plugin.mamut.viewer.ImgPlusSource;
 import fiji.plugin.mamut.viewer.MamutOverlay;
 import fiji.plugin.mamut.viewer.MamutViewer;
@@ -54,9 +72,15 @@ import fiji.plugin.trackmate.Spot;
 import fiji.plugin.trackmate.TrackMateModel;
 import fiji.plugin.trackmate.features.ModelFeatureUpdater;
 import fiji.plugin.trackmate.features.track.TrackIndexAnalyzer;
+import fiji.plugin.trackmate.gui.DisplaySettingsEvent;
+import fiji.plugin.trackmate.gui.DisplaySettingsListener;
+import fiji.plugin.trackmate.gui.TrackMateGUIModel;
+import fiji.plugin.trackmate.gui.panels.ConfigureViewsPanel;
 import fiji.plugin.trackmate.visualization.PerTrackFeatureColorGenerator;
 import fiji.plugin.trackmate.visualization.TrackColorGenerator;
 import fiji.plugin.trackmate.visualization.TrackMateModelView;
+import fiji.plugin.trackmate.visualization.trackscheme.SpotImageUpdater;
+import fiji.plugin.trackmate.visualization.trackscheme.TrackScheme;
 
 public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements BrightnessDialog.MinMaxListener, ModelChangeListener {
 
@@ -88,8 +112,6 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 
 	private final ArrayList< AbstractLinearRange > displayRanges;
 	private BrightnessDialog brightnessDialog;
-	/** The {@link MamutViewer}s managed by this plugin. */
-	private Collection<MamutViewer> viewers = new ArrayList<MamutViewer>();
 	/** The model shown and edited by this plugin. */
 	private TrackMateModel model;
 	/** The next created spot will be set with this radius. */
@@ -111,6 +133,9 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 	private TrackColorGenerator trackColorProvider;
 	private Settings settings;
 	private SelectionModel selectionModel;
+	private TrackMateGUIModel guimodel;
+	private ConfigureViewsPanel panel;
+	private ImgPlusSource<T> source;
 
 	public MaMuT_() throws ImgIOException, FormatException, IOException {
 
@@ -160,7 +185,7 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 		 * Create image source
 		 */
 
-		final Source<T> source = new ImgPlusSource<T>(img);
+		source = new ImgPlusSource<T>(img);
 		final RealARGBConverter< T > converter = new RealARGBConverter< T >( 0, img.firstElement().getMaxValue() );
 		sources = new ArrayList< SourceAndConverter< ? > >(1);
 		sources.add( new SourceAndConverter< T >(source, converter ));
@@ -180,12 +205,48 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 		trackColorProvider = new PerTrackFeatureColorGenerator(model, TrackIndexAnalyzer.TRACK_ID);
 
 		/*
+		 * GUI model
+		 */
+		
+		guimodel = new TrackMateGUIModel();
+		guimodel.setDisplaySettings(createDisplaySettings(model));
+		
+		/*
 		 * Create views
 		 */
 
 		newViewer();
-		//		newViewer();
+		
+		panel = new ConfigureViewsPanel(model);
+		panel.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent event) {
+				if (event == panel.TRACK_SCHEME_BUTTON_PRESSED) {
+					launchTrackScheme();
 
+				} else if (event == panel.DO_ANALYSIS_BUTTON_PRESSED) {
+					launchDoAnalysis();
+
+				} else {
+					System.out.println("[TrackMateGUIController] Caught unknown event: " + event);
+				}
+			}
+
+		});
+		panel.addDisplaySettingsChangeListener(new DisplaySettingsListener() {
+			@Override
+			public void displaySettingsChanged(DisplaySettingsEvent event) {
+				guimodel.getDisplaySettings().put(event.getKey(), event.getNewValue());
+				for (TrackMateModelView view : guimodel.getViews()) {
+					view.setDisplaySettings(event.getKey(), event.getNewValue());
+					view.refresh();
+				}
+			}
+		});
+		JFrame frame = new JFrame(PLUGIN_NAME + " v" + PLUGIN_VERSION);
+		frame.setSize(350, 600);
+		frame.getContentPane().add(panel);
+		frame.setVisible(true);
 	}		
 
 
@@ -200,7 +261,7 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 		installMouseListeners(viewer);
 		//		viewer.addHandler(viewer);
 		viewer.render();
-		viewers.add(viewer);
+		guimodel.addView(viewer);
 
 		viewer.getFrame().addWindowListener(new WindowListener() {
 			@Override
@@ -218,7 +279,7 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 
 			@Override
 			public void windowClosed(WindowEvent arg0) {
-				viewers.remove(viewer);
+				guimodel.getViews().remove(viewer);
 			}
 
 			@Override
@@ -490,17 +551,40 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 
 	}
 
-
+	private void launchTrackScheme() {
+		final JButton button = panel.getTrackSchemeButton();
+		button.setEnabled(false);
+		new Thread("Launching TrackScheme thread") {
+			public void run() {
+				TrackScheme trackscheme = new TrackScheme(model, selectionModel);
+				@SuppressWarnings({ "rawtypes", "unchecked" })
+				SpotImageUpdater thumbnailUpdater = new SourceSpotImageUpdater(settings, source);
+				trackscheme.setSpotImageUpdater(thumbnailUpdater);
+				for (String settingKey : guimodel.getDisplaySettings().keySet()) {
+					trackscheme.setDisplaySettings(settingKey, guimodel.getDisplaySettings().get(settingKey));
+				}
+				selectionModel.addTrackMateSelectionChangeListener(trackscheme);
+				trackscheme.render();
+				guimodel.addView(trackscheme);
+				button.setEnabled(true);
+			};
+		}.start();
+	}
+	
+	private void launchDoAnalysis() {
+		System.out.println("Hey guys, what do you want me to analyze?");// TODO
+		
+	}
 
 	private void refresh() {
 		// Just ask to repaint the TrackMate overlay
-		for (MamutViewer viewer : viewers) {
+		for (TrackMateModelView viewer : guimodel.getViews()) {
 			viewer.refresh();
 		}
 	}
 
 	private void centerOnSpot(Spot spot, int currentTimePoint) {
-		for (MamutViewer otherView : viewers) {
+		for (TrackMateModelView otherView : guimodel.getViews()) {
 			otherView.centerViewOn(spot);
 		}
 	}
@@ -711,6 +795,27 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 		viewer.getLogger().log(str);
 	}
 
+	/**
+	 * Returns the starting display settings that will be passed to any new view
+	 * registered within this GUI.
+	 * @param model  the model this GUI will configure; might be required by some display settings.
+	 * @return a map of display settings mappings.
+	 */
+	protected Map<String, Object> createDisplaySettings(TrackMateModel model) {
+		Map<String, Object> displaySettings = new HashMap<String, Object>();
+		displaySettings.put(KEY_COLOR, DEFAULT_COLOR);
+		displaySettings.put(KEY_HIGHLIGHT_COLOR, DEFAULT_HIGHLIGHT_COLOR);
+		displaySettings.put(KEY_SPOTS_VISIBLE, true);
+		displaySettings.put(KEY_DISPLAY_SPOT_NAMES, false);
+		displaySettings.put(KEY_SPOT_COLOR_FEATURE, null);
+		displaySettings.put(KEY_SPOT_RADIUS_RATIO, 1.0f);
+		displaySettings.put(KEY_TRACKS_VISIBLE, true);
+		displaySettings.put(KEY_TRACK_DISPLAY_MODE, DEFAULT_TRACK_DISPLAY_MODE);
+		displaySettings.put(KEY_TRACK_DISPLAY_DEPTH, DEFAULT_TRACK_DISPLAY_DEPTH);
+		displaySettings.put(KEY_TRACK_COLORING, new PerTrackFeatureColorGenerator(model, TrackIndexAnalyzer.TRACK_INDEX));
+		displaySettings.put(KEY_COLORMAP, DEFAULT_COLOR_MAP);
+		return displaySettings;
+	}
 
 	/*
 	 * MAIN METHOD
