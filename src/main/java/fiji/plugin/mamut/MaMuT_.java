@@ -66,6 +66,8 @@ import fiji.plugin.mamut.viewer.MamutOverlay;
 import fiji.plugin.mamut.viewer.MamutViewer;
 import fiji.plugin.trackmate.ModelChangeEvent;
 import fiji.plugin.trackmate.ModelChangeListener;
+import fiji.plugin.trackmate.SelectionChangeEvent;
+import fiji.plugin.trackmate.SelectionChangeListener;
 import fiji.plugin.trackmate.SelectionModel;
 import fiji.plugin.trackmate.Settings;
 import fiji.plugin.trackmate.Spot;
@@ -180,6 +182,15 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 		 */
 
 		selectionModel = new SelectionModel(model);
+		selectionModel.addTrackMateSelectionChangeListener(new SelectionChangeListener() {
+			@Override
+			public void selectionChanged(SelectionChangeEvent event) {
+				refresh();
+				if (selectionModel.getSpotSelection().size() == 1) {
+					centerOnSpot(selectionModel.getSpotSelection().iterator().next());
+				}
+			}
+		});
 
 		/*
 		 * Create image source
@@ -516,10 +527,9 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 
 					
 					Spot spot = getSpotWithinRadius(viewer);
-					int currentTimePoint = viewer.getCurrentTimepoint();
 					if (null != spot) {
 						// Center view on it
-						centerOnSpot(spot, currentTimePoint);
+						centerOnSpot(spot);
 						if (!event.isShiftDown()) {
 							// Replace selection
 							selectionModel.clearSpotSelection();
@@ -583,7 +593,7 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 		}
 	}
 
-	private void centerOnSpot(Spot spot, int currentTimePoint) {
+	private void centerOnSpot(Spot spot) {
 		for (TrackMateModelView otherView : guimodel.getViews()) {
 			otherView.centerViewOn(spot);
 		}

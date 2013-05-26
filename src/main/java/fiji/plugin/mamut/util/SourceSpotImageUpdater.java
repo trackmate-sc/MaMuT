@@ -123,14 +123,15 @@ public class SourceSpotImageUpdater <T extends RealType<T>> extends SpotImageUpd
 		
 		int index = 0;
 		for (T pixel : Views.iterable(rai)) {
+			int value;
 			try {
-			double val = pixel.getRealDouble();
-			int value = (int) ( val * scale + 0.5);
-			if (value>255) value = 255;
-			pixels8[index++] = (byte)value;
+				double val = pixel.getRealDouble();
+				value = (int) ( val * scale + 0.5);
+				if (value>255) value = 255;
 			} catch (ArrayIndexOutOfBoundsException ai) {
-				continue;
+				value = 0;
 			}
+			pixels8[index++] = (byte)value;
 		}
 		return pixels8;
 	}

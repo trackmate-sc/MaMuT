@@ -148,6 +148,7 @@ public class MamutViewer extends SpimViewer implements TrackMateModelView {
 		
 		int tp = spot.getFeature(Spot.FRAME).intValue();
 		state.setCurrentTimepoint(tp);
+		sliderTime.setValue(tp);
 
 		AffineTransform3D t = new AffineTransform3D();
 		state.getViewerTransform(t);
