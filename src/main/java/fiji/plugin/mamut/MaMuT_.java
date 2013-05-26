@@ -77,7 +77,6 @@ import fiji.plugin.trackmate.features.track.TrackIndexAnalyzer;
 import fiji.plugin.trackmate.gui.DisplaySettingsEvent;
 import fiji.plugin.trackmate.gui.DisplaySettingsListener;
 import fiji.plugin.trackmate.gui.TrackMateGUIModel;
-import fiji.plugin.trackmate.gui.panels.ConfigureViewsPanel;
 import fiji.plugin.trackmate.visualization.PerTrackFeatureColorGenerator;
 import fiji.plugin.trackmate.visualization.TrackColorGenerator;
 import fiji.plugin.trackmate.visualization.TrackMateModelView;
@@ -136,7 +135,7 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 	private Settings settings;
 	private SelectionModel selectionModel;
 	private TrackMateGUIModel guimodel;
-	private ConfigureViewsPanel panel;
+	private MamutControlPanel panel;
 	private ImgPlusSource<T> source;
 
 	public MaMuT_() throws ImgIOException, FormatException, IOException {
@@ -170,6 +169,11 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 		settings = new Settings();
 		settings.setFrom(imp);
 		settings.addTrackAnalyzer(new TrackIndexAnalyzer(model)); // we need at least this one
+		
+		/*
+		 * Declare features
+		 */
+		
 
 		/*
 		 * Autoupdate features
@@ -223,12 +227,10 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 		guimodel.setDisplaySettings(createDisplaySettings(model));
 		
 		/*
-		 * Create views
+		 * Control Panel
 		 */
-
-		newViewer();
 		
-		panel = new ConfigureViewsPanel(model);
+		panel = new MamutControlPanel(model);
 		panel.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent event) {
@@ -237,6 +239,9 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 
 				} else if (event == panel.DO_ANALYSIS_BUTTON_PRESSED) {
 					launchDoAnalysis();
+					
+				} else if (event == panel.MAMUT_VIEWER_BUTTON_PRESSED) {
+					newViewer();
 
 				} else {
 					System.out.println("[TrackMateGUIController] Caught unknown event: " + event);
