@@ -10,7 +10,7 @@ import static fiji.plugin.trackmate.visualization.TrackMateModelView.KEY_COLORMA
 import static fiji.plugin.trackmate.visualization.TrackMateModelView.KEY_DISPLAY_SPOT_NAMES;
 import static fiji.plugin.trackmate.visualization.TrackMateModelView.KEY_HIGHLIGHT_COLOR;
 import static fiji.plugin.trackmate.visualization.TrackMateModelView.KEY_SPOTS_VISIBLE;
-import static fiji.plugin.trackmate.visualization.TrackMateModelView.KEY_SPOT_COLOR_FEATURE;
+import static fiji.plugin.trackmate.visualization.TrackMateModelView.KEY_SPOT_COLORING;
 import static fiji.plugin.trackmate.visualization.TrackMateModelView.KEY_SPOT_RADIUS_RATIO;
 import static fiji.plugin.trackmate.visualization.TrackMateModelView.KEY_TRACKS_VISIBLE;
 import static fiji.plugin.trackmate.visualization.TrackMateModelView.KEY_TRACK_COLORING;
@@ -78,6 +78,7 @@ import fiji.plugin.trackmate.gui.DisplaySettingsEvent;
 import fiji.plugin.trackmate.gui.DisplaySettingsListener;
 import fiji.plugin.trackmate.gui.TrackMateGUIModel;
 import fiji.plugin.trackmate.visualization.PerTrackFeatureColorGenerator;
+import fiji.plugin.trackmate.visualization.SpotColorGenerator;
 import fiji.plugin.trackmate.visualization.TrackColorGenerator;
 import fiji.plugin.trackmate.visualization.TrackMateModelView;
 import fiji.plugin.trackmate.visualization.trackscheme.SpotImageUpdater;
@@ -822,12 +823,12 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 		displaySettings.put(KEY_HIGHLIGHT_COLOR, DEFAULT_HIGHLIGHT_COLOR);
 		displaySettings.put(KEY_SPOTS_VISIBLE, true);
 		displaySettings.put(KEY_DISPLAY_SPOT_NAMES, false);
-		displaySettings.put(KEY_SPOT_COLOR_FEATURE, null);
+		displaySettings.put(KEY_SPOT_COLORING, new SpotColorGenerator(model));
 		displaySettings.put(KEY_SPOT_RADIUS_RATIO, 1.0f);
 		displaySettings.put(KEY_TRACKS_VISIBLE, true);
 		displaySettings.put(KEY_TRACK_DISPLAY_MODE, DEFAULT_TRACK_DISPLAY_MODE);
 		displaySettings.put(KEY_TRACK_DISPLAY_DEPTH, DEFAULT_TRACK_DISPLAY_DEPTH);
-		displaySettings.put(KEY_TRACK_COLORING, new PerTrackFeatureColorGenerator(model, TrackIndexAnalyzer.TRACK_INDEX));
+		displaySettings.put(KEY_TRACK_COLORING, trackColorProvider);
 		displaySettings.put(KEY_COLORMAP, DEFAULT_COLOR_MAP);
 		return displaySettings;
 	}
