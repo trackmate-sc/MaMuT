@@ -71,8 +71,10 @@ import fiji.plugin.trackmate.SelectionChangeListener;
 import fiji.plugin.trackmate.SelectionModel;
 import fiji.plugin.trackmate.Settings;
 import fiji.plugin.trackmate.Spot;
+import fiji.plugin.trackmate.TrackMate;
 import fiji.plugin.trackmate.TrackMateModel;
 import fiji.plugin.trackmate.features.ModelFeatureUpdater;
+import fiji.plugin.trackmate.features.edges.EdgeVelocityAnalyzer;
 import fiji.plugin.trackmate.features.track.TrackIndexAnalyzer;
 import fiji.plugin.trackmate.gui.DisplaySettingsEvent;
 import fiji.plugin.trackmate.gui.DisplaySettingsListener;
@@ -145,7 +147,8 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 		 * Load image
 		 */
 
-		final String id = "E:/Users/JeanYves/Desktop/Data/Celegans.tif";// "/Users/tinevez/Desktop/Data/Celegans-XY.tif";
+//		final String id = "E:/Users/JeanYves/Desktop/Data/Celegans.tif";// "/Users/tinevez/Desktop/Data/Celegans-XY.tif";
+		final String id = "/Users/tinevez/Google Drive/IP course/Materials/J. Tracking objects over time/Celegans.tif";
 		ImagePlus imp = IJ.openImage(id);
 		final ImgPlus<T> img = ImagePlusAdapter.wrapImgPlus(imp);
 		nTimepoints = (int) img.dimension(3);
@@ -170,6 +173,7 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 		settings = new Settings();
 		settings.setFrom(imp);
 		settings.addTrackAnalyzer(new TrackIndexAnalyzer(model)); // we need at least this one
+		settings.addEdgeAnalyzer(new EdgeVelocityAnalyzer(model));
 		
 		/*
 		 * Declare features
@@ -181,6 +185,11 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 		 */
 
 		new ModelFeatureUpdater(model, settings);
+		
+		TrackMate trackmate = new TrackMate(model, settings);
+		trackmate.computeSpotFeatures(true);
+		trackmate.computeEdgeFeatures(true);
+		trackmate.computeTrackFeatures(true);
 
 		/*
 		 * Selection model
@@ -274,6 +283,11 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 	public MamutViewer newViewer() {
 		final MamutViewer viewer = new MamutViewer(800, 600, sources, nTimepoints, model, selectionModel, 
 				spotColorProvider, trackColorProvider);
+		
+		for (String key : guimodel.getDisplaySettings().keySet()) {
+			viewer.setDisplaySettings(key, guimodel.getDisplaySettings().get(key));
+		}
+		
 		installKeyBindings(viewer);
 		installMouseListeners(viewer);
 		//		viewer.addHandler(viewer);
