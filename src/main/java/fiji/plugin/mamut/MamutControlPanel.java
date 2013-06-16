@@ -1,6 +1,7 @@
 package fiji.plugin.mamut;
 
 import static fiji.plugin.trackmate.gui.TrackMateWizard.SMALL_FONT;
+
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
@@ -9,7 +10,7 @@ import java.awt.event.ActionListener;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 
-import fiji.plugin.trackmate.TrackMateModel;
+import fiji.plugin.trackmate.Model;
 import fiji.plugin.trackmate.gui.panels.ConfigureViewsPanel;
 
 public class MamutControlPanel extends ConfigureViewsPanel {
@@ -19,7 +20,7 @@ public class MamutControlPanel extends ConfigureViewsPanel {
 	private JButton jButtonMamutViewer;
 	public final ActionEvent MAMUT_VIEWER_BUTTON_PRESSED = new ActionEvent(this, 2, "MamutViewerButtonPushed");
 
-	public MamutControlPanel(TrackMateModel model) {
+	public MamutControlPanel(Model model) {
 		super(model);
 		
 		// Move trackscheme button

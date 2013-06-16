@@ -12,7 +12,6 @@ import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.Stroke;
-import java.util.Map;
 import java.util.Set;
 
 import net.imglib2.realtransform.AffineTransform3D;
@@ -20,9 +19,9 @@ import net.imglib2.realtransform.AffineTransform3D;
 import org.jgrapht.graph.DefaultWeightedEdge;
 
 import viewer.render.ViewerState;
+import fiji.plugin.trackmate.Model;
 import fiji.plugin.trackmate.SelectionModel;
 import fiji.plugin.trackmate.Spot;
-import fiji.plugin.trackmate.TrackMateModel;
 import fiji.plugin.trackmate.visualization.AbstractTrackMateModelView;
 import fiji.plugin.trackmate.visualization.TrackMateModelView;
 
@@ -36,7 +35,7 @@ public class MamutOverlay {
 	/** The transform for the viewer current viewpoint. */
 	private final AffineTransform3D transform = new AffineTransform3D();
 	/** The model to point on this overlay. */
-	private final TrackMateModel model;
+	private final Model model;
 	/** The viewer in which this overlay is painted. */
 	private final MamutViewer viewer;
 	/** The font use to paint spot name. */
@@ -45,7 +44,7 @@ public class MamutOverlay {
 	private final SelectionModel selectionModel;
 
 
-	public MamutOverlay(TrackMateModel model, SelectionModel selectionModel, MamutViewer viewer) {
+	public MamutOverlay(Model model, SelectionModel selectionModel, MamutViewer viewer) {
 		this.model = model;
 		this.selectionModel = selectionModel;
 		this.viewer = viewer;
@@ -145,7 +144,7 @@ public class MamutOverlay {
 
 		boolean tracksVisible = (Boolean) viewer.displaySettings.get(TrackMateModelView.KEY_TRACKS_VISIBLE);
 
-		if (tracksVisible  && model.getTrackModel().getNFilteredTracks() > 0) {
+		if (tracksVisible  && model.getTrackModel().nTracks(false) > 0) {
 
 			// Save graphic device original settings
 			final Composite originalComposite = g.getComposite();
@@ -167,8 +166,8 @@ public class MamutOverlay {
 			final int currentFrame = viewer.getCurrentTimepoint();
 			final int trackDisplayMode = (Integer) viewer.displaySettings.get(TrackMateModelView.KEY_TRACK_DISPLAY_MODE);
 			final int trackDisplayDepth = (Integer) viewer.displaySettings.get(TrackMateModelView.KEY_TRACK_DISPLAY_DEPTH);
-			final Map<Integer, Set<DefaultWeightedEdge>> trackEdges = model.getTrackModel().getTrackEdges(); 
-			final Set<Integer> filteredTrackIDs = model.getTrackModel().getFilteredTrackIDs();
+//			final Map<Integer, Set<DefaultWeightedEdge>> trackEdges = model.getTrackModel(). 
+			final Set<Integer> filteredTrackIDs = model.getTrackModel().trackIDs(true);
 
 			g.setStroke(new BasicStroke(2.0f,  BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
 			if (trackDisplayMode == TrackMateModelView.TRACK_DISPLAY_MODE_LOCAL || trackDisplayMode == TrackMateModelView.TRACK_DISPLAY_MODE_LOCAL_QUICK) 
@@ -202,7 +201,7 @@ public class MamutOverlay {
 			case TrackMateModelView.TRACK_DISPLAY_MODE_WHOLE: {
 				for (Integer trackID : filteredTrackIDs) {
 					viewer.trackColorProvider.setCurrentTrackID(trackID);
-					final Set<DefaultWeightedEdge> track = trackEdges.get(trackID);
+					final Set<DefaultWeightedEdge> track = model.getTrackModel().trackEdges(trackID);
 
 					for (DefaultWeightedEdge edge : track) {
 						if (selectionModel.getEdgeSelection().contains(edge))
@@ -225,7 +224,7 @@ public class MamutOverlay {
 
 				for (int trackID : filteredTrackIDs) {
 					viewer.trackColorProvider.setCurrentTrackID(trackID);
-					final Set<DefaultWeightedEdge> track= trackEdges.get(trackID);
+					final Set<DefaultWeightedEdge> track = model.getTrackModel().trackEdges(trackID);
 
 					for (DefaultWeightedEdge edge : track) {
 						if (selectionModel.getEdgeSelection().contains(edge))
@@ -252,7 +251,7 @@ public class MamutOverlay {
 
 				for (int trackID : filteredTrackIDs) {
 					viewer.trackColorProvider.setCurrentTrackID(trackID);
-					final Set<DefaultWeightedEdge> track= trackEdges.get(trackID);
+					final Set<DefaultWeightedEdge> track = model.getTrackModel().trackEdges(trackID);
 
 					for (DefaultWeightedEdge edge : track) {
 						if (selectionModel.getEdgeSelection().contains(edge))

@@ -64,6 +64,7 @@ import fiji.plugin.mamut.util.SourceSpotImageUpdater;
 import fiji.plugin.mamut.viewer.ImgPlusSource;
 import fiji.plugin.mamut.viewer.MamutOverlay;
 import fiji.plugin.mamut.viewer.MamutViewer;
+import fiji.plugin.trackmate.Model;
 import fiji.plugin.trackmate.ModelChangeEvent;
 import fiji.plugin.trackmate.ModelChangeListener;
 import fiji.plugin.trackmate.SelectionChangeEvent;
@@ -72,7 +73,6 @@ import fiji.plugin.trackmate.SelectionModel;
 import fiji.plugin.trackmate.Settings;
 import fiji.plugin.trackmate.Spot;
 import fiji.plugin.trackmate.TrackMate;
-import fiji.plugin.trackmate.TrackMateModel;
 import fiji.plugin.trackmate.features.ModelFeatureUpdater;
 import fiji.plugin.trackmate.features.edges.EdgeVelocityAnalyzer;
 import fiji.plugin.trackmate.features.track.TrackIndexAnalyzer;
@@ -117,7 +117,7 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 	private final ArrayList< AbstractLinearRange > displayRanges;
 	private BrightnessDialog brightnessDialog;
 	/** The model shown and edited by this plugin. */
-	private TrackMateModel model;
+	private Model model;
 	/** The next created spot will be set with this radius. */
 	private double radius = DEFAULT_RADIUS;
 	/** The radius below which a spot cannot go. */
@@ -163,8 +163,8 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 		 * Instantiate model
 		 */
 
-		model = new TrackMateModel();
-		model.addTrackMateModelChangeListener(this);
+		model = new Model();
+		model.addModelChangeListener(this);
 
 		/*
 		 * Settings
@@ -196,7 +196,7 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 		 */
 
 		selectionModel = new SelectionModel(model);
-		selectionModel.addTrackMateSelectionChangeListener(new SelectionChangeListener() {
+		selectionModel.addSelectionChangeListener(new SelectionChangeListener() {
 			@Override
 			public void selectionChanged(SelectionChangeEvent event) {
 				refresh();
@@ -593,7 +593,7 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 				for (String settingKey : guimodel.getDisplaySettings().keySet()) {
 					trackscheme.setDisplaySettings(settingKey, guimodel.getDisplaySettings().get(settingKey));
 				}
-				selectionModel.addTrackMateSelectionChangeListener(trackscheme);
+				selectionModel.addSelectionChangeListener(trackscheme);
 				trackscheme.render();
 				guimodel.addView(trackscheme);
 				button.setEnabled(true);
@@ -831,7 +831,7 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 	 * @param model  the model this GUI will configure; might be required by some display settings.
 	 * @return a map of display settings mappings.
 	 */
-	protected Map<String, Object> createDisplaySettings(TrackMateModel model) {
+	protected Map<String, Object> createDisplaySettings(Model model) {
 		Map<String, Object> displaySettings = new HashMap<String, Object>();
 		displaySettings.put(KEY_COLOR, DEFAULT_COLOR);
 		displaySettings.put(KEY_HIGHLIGHT_COLOR, DEFAULT_HIGHLIGHT_COLOR);
