@@ -28,11 +28,10 @@ public class NewMamutAnnotationPlugin implements PlugIn {
 			File folder = new File(System.getProperty("user.dir")).getParentFile().getParentFile();
 			file = new File(folder.getPath() + File.separator + "data.xml");
 		}
-		file = IOUtils.askForFileForLoading(file, "Open a hdf5/sml file", IJ.getInstance(), logger );
+		file = IOUtils.askForFileForLoading(file, "Open a hdf5/xml file", IJ.getInstance(), logger );
 		if (null == file) {
 			return;
 		}
-		
 		
 		MaMuT_ mamut = new MaMuT_();
 		try {

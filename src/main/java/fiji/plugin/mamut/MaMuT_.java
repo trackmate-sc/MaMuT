@@ -46,11 +46,19 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import loci.formats.FormatException;
 import mpicbg.spim.data.SequenceDescription;
+import net.imglib2.Interval;
+import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealPoint;
+import net.imglib2.algorithm.histogram.DiscreteFrequencyDistribution;
+import net.imglib2.algorithm.histogram.Histogram1d;
+import net.imglib2.algorithm.histogram.Real1dBinMapper;
 import net.imglib2.display.AbstractLinearRange;
 import net.imglib2.display.RealARGBConverter;
 import net.imglib2.io.ImgIOException;
+import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.integer.UnsignedShortType;
+import net.imglib2.util.LinAlgHelpers;
+import net.imglib2.view.Views;
 
 import org.jfree.chart.renderer.InterpolatePaintScale;
 import org.jgrapht.graph.DefaultWeightedEdge;
@@ -58,9 +66,13 @@ import org.xml.sax.SAXException;
 
 import viewer.BrightnessDialog;
 import viewer.HelpFrame;
+import viewer.RotationAnimator;
 import viewer.SequenceViewsLoader;
 import viewer.SpimSource;
+import viewer.render.Source;
 import viewer.render.SourceAndConverter;
+import viewer.render.SourceState;
+import viewer.render.ViewerState;
 import fiji.plugin.mamut.util.SourceSpotImageUpdater;
 import fiji.plugin.mamut.viewer.MamutOverlay;
 import fiji.plugin.mamut.viewer.MamutViewer;
@@ -89,13 +101,17 @@ public class MaMuT_ implements BrightnessDialog.MinMaxListener, ModelChangeListe
 
 	public static final String PLUGIN_NAME = "MaMuT";
 	public static final String PLUGIN_VERSION = "v0.5.0";
-	private static final double DEFAULT_RADIUS = 1;
+	private static final double DEFAULT_RADIUS = 10;
 	/** By how portion of the current radius we change this radius for every
 	 * change request.	 */
 	private static final double RADIUS_CHANGE_FACTOR = 0.1;
 
 	private static final int CHANGE_A_LOT_KEY = KeyEvent.SHIFT_DOWN_MASK;
 	private static final int CHANGE_A_BIT_KEY = KeyEvent.CTRL_DOWN_MASK;
+	/** The default width for new image viewers. */
+	private static final int DEFAULT_WIDTH = 800;
+	/** The default height for new image viewers. */
+	private static final int DEFAULT_HEIGHT = 600;
 
 	private KeyStroke brightnessKeystroke = KeyStroke.getKeyStroke( KeyEvent.VK_C, 0 );
 	private KeyStroke helpKeystroke = KeyStroke.getKeyStroke( KeyEvent.VK_F1, 0 );
@@ -280,7 +296,7 @@ public class MaMuT_ implements BrightnessDialog.MinMaxListener, ModelChangeListe
 	 */
 
 	public MamutViewer newViewer() {
-		final MamutViewer viewer = new MamutViewer(800, 600, sources, nTimepoints, model, selectionModel, 
+		final MamutViewer viewer = new MamutViewer(DEFAULT_WIDTH, DEFAULT_HEIGHT, sources, nTimepoints, model, selectionModel, 
 				spotColorProvider, trackColorProvider);
 		
 		for (String key : guimodel.getDisplaySettings().keySet()) {
@@ -290,8 +306,6 @@ public class MaMuT_ implements BrightnessDialog.MinMaxListener, ModelChangeListe
 		installKeyBindings(viewer);
 		installMouseListeners(viewer);
 		//		viewer.addHandler(viewer);
-		viewer.render();
-		guimodel.addView(viewer);
 
 		viewer.getFrame().addWindowListener(new WindowListener() {
 			@Override
@@ -316,7 +330,100 @@ public class MaMuT_ implements BrightnessDialog.MinMaxListener, ModelChangeListe
 			public void windowActivated(WindowEvent arg0) { }
 		});
 
+		initTransform(viewer, DEFAULT_WIDTH, DEFAULT_HEIGHT);
+		initBrightness(viewer, 0.001, 0.999 );
+
+		viewer.render();
+		guimodel.addView(viewer);
+		
 		return viewer;
+		
+	}
+
+	private void initTransform(MamutViewer viewer, final int viewerWidth, final int viewerHeight ) {
+		final int cX = viewerWidth / 2;
+		final int cY = viewerHeight / 2;
+
+		final ViewerState state = viewer.getState();
+		final SourceState< ? > source = state.getSources().get( state.getCurrentSource() );
+		final int timepoint = state.getCurrentTimepoint();
+		final AffineTransform3D sourceTransform = source.getSpimSource().getSourceTransform( timepoint, 0 );
+
+		final Interval sourceInterval = source.getSpimSource().getSource( timepoint, 0 );
+		final double sX0 = sourceInterval.min( 0 );
+		final double sX1 = sourceInterval.max( 0 );
+		final double sY0 = sourceInterval.min( 1 );
+		final double sY1 = sourceInterval.max( 1 );
+		final double sZ0 = sourceInterval.min( 2 );
+		final double sZ1 = sourceInterval.max( 2 );
+		final double sX = ( sX0 + sX1 + 1 ) / 2;
+		final double sY = ( sY0 + sY1 + 1 ) / 2;
+		final double sZ = ( sZ0 + sZ1 + 1 ) / 2;
+
+		final double[][] m = new double[3][4];
+
+		// rotation
+		final double[] qSource = new double[ 4 ];
+		final double[] qViewer = new double[ 4 ];
+		RotationAnimator.extractApproximateRotationAffine( sourceTransform, qSource, 2 );
+		LinAlgHelpers.quaternionInvert( qSource, qViewer );
+		LinAlgHelpers.quaternionToR( qViewer, m );
+
+		// translation
+		final double[] centerSource = new double[] { sX, sY, sZ };
+		final double[] centerGlobal = new double[ 3 ];
+		final double[] translation = new double[ 3 ];
+		sourceTransform.apply( centerSource, centerGlobal );
+		LinAlgHelpers.quaternionApply( qViewer, centerGlobal, translation );
+		LinAlgHelpers.scale( translation, -1, translation );
+		LinAlgHelpers.setCol( 3, translation, m );
+
+		final AffineTransform3D viewerTransform = new AffineTransform3D();
+		viewerTransform.set( m );
+
+		// scale
+		final double[] pSource = new double[] { sX1, sY1, sZ };
+		final double[] pGlobal = new double[ 3 ];
+		final double[] pScreen = new double[ 3 ];
+		sourceTransform.apply( pSource, pGlobal );
+		viewerTransform.apply( pGlobal, pScreen );
+		final double scaleX = cX / pScreen[ 0 ];
+		final double scaleY = cY / pScreen[ 1 ];
+		final double scale = Math.min( scaleX, scaleY );
+		viewerTransform.scale( scale );
+
+		// window center offset
+		viewerTransform.set( viewerTransform.get( 0, 3 ) + cX, 0, 3 );
+		viewerTransform.set( viewerTransform.get( 1, 3 ) + cY, 1, 3 );
+
+		viewer.setCurrentViewerTransform( viewerTransform );
+	}
+
+	private void initBrightness(MamutViewer viewer, final double cumulativeMinCutoff, final double cumulativeMaxCutoff ) {
+		final ViewerState state = viewer.getState();
+		final Source< ? > source = state.getSources().get( state.getCurrentSource() ).getSpimSource();
+		final RandomAccessibleInterval< UnsignedShortType > img = ( RandomAccessibleInterval ) source.getSource( state.getCurrentTimepoint(), source.getNumMipmapLevels() - 1 );
+		final long z = ( img.min( 2 ) + img.max( 2 ) + 1 ) / 2;
+
+		final int numBins = 6535;
+		final Histogram1d< UnsignedShortType > histogram = new Histogram1d< UnsignedShortType >( Views.iterable( Views.hyperSlice( img, 2, z ) ), new Real1dBinMapper< UnsignedShortType >( 0, 65535, numBins, false ) );
+		final DiscreteFrequencyDistribution dfd = histogram.dfd();
+		final long[] bin = new long[] {0};
+		double cumulative = 0;
+		int i = 0;
+		for ( ; i < numBins && cumulative < cumulativeMinCutoff; ++i )
+		{
+			bin[ 0 ] = i;
+			cumulative += dfd.relativeFrequency( bin );
+		}
+		final int min = i * 65535 / numBins;
+		for ( ; i < numBins && cumulative < cumulativeMaxCutoff; ++i )
+		{
+			bin[ 0 ] = i;
+			cumulative += dfd.relativeFrequency( bin );
+		}
+		final int max = i * 65535 / numBins;
+		brightnessDialog.setMinMax( min, max );
 	}
 
 
