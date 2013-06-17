@@ -16,8 +16,6 @@ import static fiji.plugin.trackmate.visualization.TrackMateModelView.KEY_TRACKS_
 import static fiji.plugin.trackmate.visualization.TrackMateModelView.KEY_TRACK_COLORING;
 import static fiji.plugin.trackmate.visualization.TrackMateModelView.KEY_TRACK_DISPLAY_DEPTH;
 import static fiji.plugin.trackmate.visualization.TrackMateModelView.KEY_TRACK_DISPLAY_MODE;
-import ij.IJ;
-import ij.ImagePlus;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -32,6 +30,7 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -43,25 +42,26 @@ import javax.swing.AbstractAction;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.KeyStroke;
+import javax.xml.parsers.ParserConfigurationException;
 
 import loci.formats.FormatException;
+import mpicbg.spim.data.SequenceDescription;
 import net.imglib2.RealPoint;
 import net.imglib2.display.AbstractLinearRange;
 import net.imglib2.display.RealARGBConverter;
-import net.imglib2.img.ImagePlusAdapter;
-import net.imglib2.img.ImgPlus;
 import net.imglib2.io.ImgIOException;
-import net.imglib2.type.NativeType;
-import net.imglib2.type.numeric.RealType;
+import net.imglib2.type.numeric.integer.UnsignedShortType;
 
 import org.jfree.chart.renderer.InterpolatePaintScale;
 import org.jgrapht.graph.DefaultWeightedEdge;
+import org.xml.sax.SAXException;
 
 import viewer.BrightnessDialog;
 import viewer.HelpFrame;
+import viewer.SequenceViewsLoader;
+import viewer.SpimSource;
 import viewer.render.SourceAndConverter;
 import fiji.plugin.mamut.util.SourceSpotImageUpdater;
-import fiji.plugin.mamut.viewer.ImgPlusSource;
 import fiji.plugin.mamut.viewer.MamutOverlay;
 import fiji.plugin.mamut.viewer.MamutViewer;
 import fiji.plugin.trackmate.Model;
@@ -70,7 +70,6 @@ import fiji.plugin.trackmate.ModelChangeListener;
 import fiji.plugin.trackmate.SelectionChangeEvent;
 import fiji.plugin.trackmate.SelectionChangeListener;
 import fiji.plugin.trackmate.SelectionModel;
-import fiji.plugin.trackmate.Settings;
 import fiji.plugin.trackmate.Spot;
 import fiji.plugin.trackmate.TrackMate;
 import fiji.plugin.trackmate.features.ModelFeatureUpdater;
@@ -86,7 +85,7 @@ import fiji.plugin.trackmate.visualization.TrackMateModelView;
 import fiji.plugin.trackmate.visualization.trackscheme.SpotImageUpdater;
 import fiji.plugin.trackmate.visualization.trackscheme.TrackScheme;
 
-public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements BrightnessDialog.MinMaxListener, ModelChangeListener {
+public class MaMuT_ implements BrightnessDialog.MinMaxListener, ModelChangeListener {
 
 	public static final String PLUGIN_NAME = "MaMuT";
 	public static final String PLUGIN_VERSION = "v0.5.0";
@@ -114,50 +113,58 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 	private KeyStroke decreaseRadiusABitKeystroke = KeyStroke.getKeyStroke( decreaseRadiusKey, CHANGE_A_BIT_KEY );
 	private KeyStroke toggleLinkingModeKeystroke = KeyStroke.getKeyStroke( KeyEvent.VK_L, 0);
 
-	private final ArrayList< AbstractLinearRange > displayRanges;
+	private ArrayList< AbstractLinearRange > displayRanges;
 	private BrightnessDialog brightnessDialog;
 	/** The model shown and edited by this plugin. */
 	private Model model;
 	/** The next created spot will be set with this radius. */
 	private double radius = DEFAULT_RADIUS;
 	/** The radius below which a spot cannot go. */
-	private final double minRadius;
+	private double minRadius;
 	/** The spot currently moved under the mouse. */
 	private Spot movedSpot = null;
 	/** The image data sources to be displayed in the views. */
-	private final List<SourceAndConverter<?>> sources;
+	private List<SourceAndConverter<?>> sources;
 	/** The number of timepoints in the image sources. */
-	private final int nTimepoints;
+	private int nTimepoints;
 	/**  If true, the next added spot will be automatically linked to the previously created one, given that 
 	 * the new spot is created in a subsequent frame. */
 	private boolean isLinkingMode = false;
 	/** The color map for painting the spots. It is centralized here and is used in the 
 	 * {@link MamutOverlay}s.  */
-	private final Map<Spot, Color> spotColorProvider;
+	private Map<Spot, Color> spotColorProvider;
 	private TrackColorGenerator trackColorProvider;
-	private Settings settings;
+	private SourceSettings settings;
 	private SelectionModel selectionModel;
 	private TrackMateGUIModel guimodel;
 	private MamutControlPanel panel;
-	private ImgPlusSource<T> source;
 
-	public MaMuT_() throws ImgIOException, FormatException, IOException {
+	public MaMuT_()  {
+	}
+	
+	
+	public void launch(File file) throws ImgIOException, FormatException, IOException, ParserConfigurationException, SAXException, InstantiationException, IllegalAccessException, ClassNotFoundException {
 
 		/*
-		 * Load image
+		 * Create image source
 		 */
 
-//		final String id = "E:/Users/JeanYves/Desktop/Data/Celegans.tif";// "/Users/tinevez/Desktop/Data/Celegans-XY.tif";
-		final String id = "/Users/tinevez/Google Drive/IP course/Materials/J. Tracking objects over time/Celegans.tif";
-		ImagePlus imp = IJ.openImage(id);
-		final ImgPlus<T> img = ImagePlusAdapter.wrapImgPlus(imp);
-		nTimepoints = (int) img.dimension(3);
+		final RealARGBConverter< UnsignedShortType > converter = new RealARGBConverter< UnsignedShortType >( 0, 65535 );
+		
+		String xmlFilename = file.getAbsolutePath();
+		final SequenceViewsLoader loader = new SequenceViewsLoader( xmlFilename  );
+		final SequenceDescription seq = loader.getSequenceDescription();
+		nTimepoints = seq.numTimepoints();
+		sources = new ArrayList< SourceAndConverter< ? > >();
+		for ( int setup = 0; setup < seq.numViewSetups(); ++setup ) {
+			sources.add( new SourceAndConverter< UnsignedShortType >( new SpimSource( loader, setup, "angle " + seq.setups.get( setup ).getAngle() ), converter ) );
+		}
 
 		/*
 		 * Find adequate rough scales
 		 */
 
-		minRadius = 2 * Math.min(img.calibration(0), img.calibration(1));
+		minRadius = 4; // TODO change this when we have physical units
 
 		/*
 		 * Instantiate model
@@ -170,10 +177,10 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 		 * Settings
 		 */
 
-		settings = new Settings();
-		settings.setFrom(imp);
+		settings = new SourceSettings();
+		settings.setFrom(sources, file, seq.numTimepoints());
 		settings.addTrackAnalyzer(new TrackIndexAnalyzer(model)); // we need at least this one
-		settings.addEdgeAnalyzer(new EdgeVelocityAnalyzer(model));
+		settings.addEdgeAnalyzer(new EdgeVelocityAnalyzer(model)); // we need at least this one
 		
 		/*
 		 * Declare features
@@ -206,15 +213,7 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 			}
 		});
 
-		/*
-		 * Create image source
-		 */
-
-		source = new ImgPlusSource<T>(img);
-		final RealARGBConverter< T > converter = new RealARGBConverter< T >( 0, img.firstElement().getMaxValue() );
-		sources = new ArrayList< SourceAndConverter< ? > >(1);
-		sources.add( new SourceAndConverter< T >(source, converter ));
-
+		
 		/*
 		 * Create display range
 		 */
@@ -588,7 +587,7 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 			public void run() {
 				TrackScheme trackscheme = new TrackScheme(model, selectionModel);
 				@SuppressWarnings({ "rawtypes", "unchecked" })
-				SpotImageUpdater thumbnailUpdater = new SourceSpotImageUpdater(settings, source);
+				SpotImageUpdater thumbnailUpdater = new SourceSpotImageUpdater(settings, sources.get(0).getSpimSource());
 				trackscheme.setSpotImageUpdater(thumbnailUpdater);
 				for (String settingKey : guimodel.getDisplaySettings().keySet()) {
 					trackscheme.setDisplaySettings(settingKey, guimodel.getDisplaySettings().get(settingKey));
@@ -660,8 +659,6 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 
 		// Then, possibly, the edge. We must do it in a subsequent update, otherwise the model gets confused.
 		final Set<Spot> spotSelection = selectionModel.getSpotSelection();
-		
-		System.out.println(selectionModel);// DEBUG
 		
 		if (isLinkingMode && spotSelection.size() == 1) { // if we are in the right mode & if there is only one spot in selection
 			Spot targetSpot = spotSelection.iterator().next();
@@ -845,14 +842,6 @@ public class MaMuT_ <T extends RealType<T> & NativeType<T>> implements Brightnes
 		displaySettings.put(KEY_TRACK_COLORING, trackColorProvider);
 		displaySettings.put(KEY_COLORMAP, DEFAULT_COLOR_MAP);
 		return displaySettings;
-	}
-
-	/*
-	 * MAIN METHOD
-	 */
-
-	public static <T extends RealType<T> & NativeType<T>> void main(String[] args) throws ImgIOException, FormatException, IOException {
-		new MaMuT_<T>();
 	}
 
 }
