@@ -7,8 +7,17 @@ import java.io.IOException;
 
 import javax.imageio.ImageIO;
 
+import net.imglib2.Point;
 import net.imglib2.RandomAccessibleInterval;
+import net.imglib2.algorithm.stats.Max;
+import net.imglib2.algorithm.stats.Min;
+import net.imglib2.display.RealUnsignedByteConverter;
+import net.imglib2.display.XYProjector;
+import net.imglib2.img.array.ArrayImgs;
+import net.imglib2.position.transform.Round;
+import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.RealType;
+import net.imglib2.type.numeric.integer.UnsignedByteType;
 import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
 import viewer.render.Source;
@@ -24,23 +33,49 @@ public class SourceSpotImageUpdater <T extends RealType<T>> extends SpotImageUpd
 	/** How much extra we capture around spot radius. */
 	private static final double RADIUS_FACTOR = 1.1;
 	private Source<T> source;
-	private Integer previousFrame = -1;
+	private Integer previousFrame = -1; // TODO: remove and make super.previousFrame protected?
 	private final double[] calibration;
 	private RandomAccessibleInterval<T> img;
 
 	public SourceSpotImageUpdater(Settings settings, Source<T> source) {
 		super(settings);
 		this.source = source;
-		this.calibration = new double[] { settings.dx, settings.dy, settings.dz }; 
+		this.calibration = new double[] { settings.dx, settings.dy, settings.dz };
 	}
 
-	
+	// TODO: move this to a helper class together with the extract... methods in RotationAnimator
+	/**
+	 * Get the scale factor along the X, Y, or Z axis. For example, a points
+	 * A=(x,0,0) and B=(x+1,0,0) on the X axis will be transformed to points
+	 * A'=T*A and B'=T*B by the transform T. The distance between A' and B'
+	 * gives the X scale factor.
+	 *
+	 * @param transform
+	 *            an affine transform.
+	 * @param axis
+	 *            index of the axis for which the scale factor should be
+	 *            computed.
+	 * @return scale factor.
+	 */
+	public static double extractScale(final AffineTransform3D transform, final int axis)
+	{
+		double sqSum = 0;
+		final int c = axis;
+		for ( int r = 0; r < 3; ++r )
+		{
+			final double x = transform.get( r, c );
+			sqSum += x * x;
+		}
+		return Math.sqrt( sqSum );
+	}
+
 	/**
 	 * @return the image string of the given spot, based on the raw images contained in the given model.
-	 * For performance, the image at target frame is stored for subsequent calls of this method. 
+	 * For performance, the image at target frame is stored for subsequent calls of this method.
 	 * So it is a good idea to group calls to this method for spots that belong to the
 	 * same frame.
 	 */
+	@Override
 	public String getImageString(final Spot spot) {
 
 		Integer frame = spot.getFeature(Spot.FRAME).intValue();
@@ -52,30 +87,35 @@ public class SourceSpotImageUpdater <T extends RealType<T>> extends SpotImageUpd
 			img = source.getSource(frame, 0);
 			previousFrame = frame;
 		}
-		
-		// Extract central slice
-		long z = Math.round(spot.getFeature(Spot.POSITION_Z).doubleValue() / calibration[2]);
-		IntervalView<T> slice = Views.hyperSlice(img, 2, z);
-		
+
+		// TODO?: Currently calibration[] is not used
+
 		// Get spot coords
-		long x = Math.round(spot.getFeature(Spot.POSITION_X).doubleValue() / calibration[0]);
-		long y = Math.round(spot.getFeature(Spot.POSITION_Y).doubleValue() / calibration[1]);
-		long r = (long) Math.ceil(RADIUS_FACTOR * spot.getFeature(Spot.RADIUS).doubleValue() / calibration[0]);
-		
+		AffineTransform3D sourceToGlobal = source.getSourceTransform(frame, 0);
+		Point roundedSourcePos = new Point(3);
+		sourceToGlobal.applyInverse(new Round<Point>(roundedSourcePos), spot);
+		long x = roundedSourcePos.getLongPosition(0);
+		long y = roundedSourcePos.getLongPosition(1);
+		long z = roundedSourcePos.getLongPosition(2);
+		long r = (long) Math.ceil(RADIUS_FACTOR * spot.getFeature(Spot.RADIUS).doubleValue() / extractScale(sourceToGlobal, 0));
+
+		// Extract central slice
+		IntervalView<T> slice = Views.hyperSlice(img, 2, z);
+
 		// Crop
 		long[] min = new long[] { x - r, y - r };
 		long[] max = new long[] { x + r, y + r };
-		IntervalView<T> crop = Views.interval(slice, min, max);
-		
-		// Convert to string
-		byte[] bytes = create8BitImage(crop);
+		IntervalView<T> crop = Views.zeroMin( Views.interval(slice, min, max) );
+
 		int width = (int) crop.dimension(0);
 		int height = (int) crop.dimension(1);
-		
 		BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY);
 	    byte[] imgData = ((DataBufferByte) image.getRaster().getDataBuffer()).getData();
-	    System.arraycopy(bytes, 0, imgData, 0, bytes.length);     
-		
+	    double minValue = Min.findMin(Views.iterable(crop)).get().getRealDouble();
+	    double maxValue = Max.findMax(Views.iterable(crop)).get().getRealDouble();
+		new XYProjector<T,UnsignedByteType>(crop,ArrayImgs.unsignedBytes(imgData, width, height), new RealUnsignedByteConverter<T>(minValue, maxValue)).map();
+
+		// Convert to string
 	    String str;
 	    ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		try {
@@ -85,54 +125,7 @@ public class SourceSpotImageUpdater <T extends RealType<T>> extends SpotImageUpd
 			e.printStackTrace();
 			return "";
 		}
-		
+
 		return str;
-	}
-	
-	
-
-
-	private static final <T extends RealType<T>> byte[] create8BitImage(RandomAccessibleInterval<T> rai) {
-		
-		/*
-		 * Determine min & max
-		 */
-		double min = Double.POSITIVE_INFINITY;
-		double max = Double.NEGATIVE_INFINITY;
-		for (T pixel : Views.iterable(rai)) {
-			try {
-				double val = pixel.getRealDouble();
-				if (val > max) {
-					max = val;
-				}
-				if (val < min) {
-					min = val;
-				}
-			} catch (ArrayIndexOutOfBoundsException ai) {
-				continue;
-			}
-		}
-		double scale = 256.0/(max-min+1);
-
-		/*
-		 * Scale
-		 */
-		
-		int size = (int) (rai.dimension(0)*rai.dimension(1));
-		byte[] pixels8 = new byte[size];
-		
-		int index = 0;
-		for (T pixel : Views.iterable(rai)) {
-			int value;
-			try {
-				double val = pixel.getRealDouble();
-				value = (int) ( val * scale + 0.5);
-				if (value>255) value = 255;
-			} catch (ArrayIndexOutOfBoundsException ai) {
-				value = 0;
-			}
-			pixels8[index++] = (byte)value;
-		}
-		return pixels8;
 	}
 }
