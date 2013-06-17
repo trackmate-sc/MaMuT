@@ -91,7 +91,7 @@ public class MamutOverlay {
 					color = AbstractTrackMateModelView.DEFAULT_HIGHLIGHT_COLOR;
 					stroke = HIGHLIGHT_STROKE;
 				} else {
-					if (null == viewer.spotColorProvider || null == (color = viewer.spotColorProvider.get(spot))) {
+					if (null == viewer.spotColorProvider || null == (color = viewer.spotColorProvider.color(spot))) {
 						color = AbstractTrackMateModelView.DEFAULT_COLOR;
 					}
 					stroke = NORMAL_STROKE;

@@ -47,4 +47,8 @@ public class SourceSettings extends Settings {
 		this.polygon = null;
 	}
 	
+	public List<SourceAndConverter<?>> getSources() {
+		return sources;
+	}
+	
 }

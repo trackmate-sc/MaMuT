@@ -26,6 +26,7 @@ import fiji.plugin.trackmate.Logger;
 import fiji.plugin.trackmate.Model;
 import fiji.plugin.trackmate.SelectionModel;
 import fiji.plugin.trackmate.Spot;
+import fiji.plugin.trackmate.visualization.SpotColorGenerator;
 import fiji.plugin.trackmate.visualization.TrackColorGenerator;
 import fiji.plugin.trackmate.visualization.TrackMateModelView;
 
@@ -55,21 +56,19 @@ public class MamutViewer extends SpimViewer implements TrackMateModelView {
 	/**  A map of String/Object that configures the look and feel of the display. */
 	protected Map<String, Object> displaySettings = new HashMap<String, Object>();
 	/** The mapping from spot to a color. */
-	final Map<Spot, Color> spotColorProvider;
-	final TrackColorGenerator trackColorProvider;
+	SpotColorGenerator spotColorProvider;
+	TrackColorGenerator trackColorProvider;
 
 	/*
 	 * CONSTRUCTOR
 	 */
 
 
-	public MamutViewer(int width, int height, Collection<SourceAndConverter<?>> sources, int numTimePoints, Model model, SelectionModel selectionModel, final Map<Spot, Color> spotColorProvider, final TrackColorGenerator trackColorProvider) {
+	public MamutViewer(int width, int height, Collection<SourceAndConverter<?>> sources, int numTimePoints, Model model, SelectionModel selectionModel) {
 		super(width, height, sources, numTimePoints);
 		this.model = model;
 		this.selectionModel = selectionModel;
 		this.logger = new MamutViewerLogger(); 
-		this.spotColorProvider = spotColorProvider;
-		this.trackColorProvider = trackColorProvider;
 	}
 
 	/*

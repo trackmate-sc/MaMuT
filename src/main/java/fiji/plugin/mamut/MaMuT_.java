@@ -36,6 +36,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -76,7 +77,9 @@ import viewer.render.Source;
 import viewer.render.SourceAndConverter;
 import viewer.render.SourceState;
 import viewer.render.ViewerState;
+import fiji.plugin.mamut.io.MamutXmlReader;
 import fiji.plugin.mamut.io.MamutXmlWriter;
+import fiji.plugin.mamut.providers.MamutViewProvider;
 import fiji.plugin.mamut.util.SourceSpotImageUpdater;
 import fiji.plugin.mamut.viewer.MamutOverlay;
 import fiji.plugin.mamut.viewer.MamutViewer;
@@ -97,6 +100,7 @@ import fiji.plugin.trackmate.gui.DisplaySettingsEvent;
 import fiji.plugin.trackmate.gui.DisplaySettingsListener;
 import fiji.plugin.trackmate.gui.TrackMateGUIModel;
 import fiji.plugin.trackmate.io.IOUtils;
+import fiji.plugin.trackmate.providers.ViewProvider;
 import fiji.plugin.trackmate.visualization.PerTrackFeatureColorGenerator;
 import fiji.plugin.trackmate.visualization.SpotColorGenerator;
 import fiji.plugin.trackmate.visualization.TrackColorGenerator;
@@ -116,9 +120,9 @@ public class MaMuT_ implements BrightnessDialog.MinMaxListener, ModelChangeListe
 	private static final int CHANGE_A_LOT_KEY = KeyEvent.SHIFT_DOWN_MASK;
 	private static final int CHANGE_A_BIT_KEY = KeyEvent.CTRL_DOWN_MASK;
 	/** The default width for new image viewers. */
-	private static final int DEFAULT_WIDTH = 800;
+	public static final int DEFAULT_WIDTH = 800;
 	/** The default height for new image viewers. */
-	private static final int DEFAULT_HEIGHT = 600;
+	public static final int DEFAULT_HEIGHT = 600;
 
 	private KeyStroke brightnessKeystroke = KeyStroke.getKeyStroke( KeyEvent.VK_C, 0 );
 	private KeyStroke helpKeystroke = KeyStroke.getKeyStroke( KeyEvent.VK_F1, 0 );
@@ -155,7 +159,7 @@ public class MaMuT_ implements BrightnessDialog.MinMaxListener, ModelChangeListe
 	private boolean isLinkingMode = false;
 	/** The color map for painting the spots. It is centralized here and is used in the 
 	 * {@link MamutOverlay}s.  */
-	private Map<Spot, Color> spotColorProvider;
+	private SpotColorGenerator spotColorProvider;
 	private TrackColorGenerator trackColorProvider;
 	private SourceSettings settings;
 	private SelectionModel selectionModel;
@@ -164,6 +168,32 @@ public class MaMuT_ implements BrightnessDialog.MinMaxListener, ModelChangeListe
 	private static  File file;
 
 	public MaMuT_()  {
+	}
+
+	
+	
+	public void load(File mamutfile) {
+		
+		MamutXmlReader reader = new MamutXmlReader(mamutfile);
+
+		model = reader.getModel();
+		selectionModel = new SelectionModel(model);
+		settings = new SourceSettings();
+		
+		reader.readSettings(settings, null, null, null, null, null);
+		
+		MamutViewProvider provider = new MamutViewProvider(model, settings, selectionModel);
+		Collection<TrackMateModelView> views = reader.getViews(provider);
+		guimodel.setDisplaySettings(createDisplaySettings(model));
+		for (TrackMateModelView view : views) {
+			for (String key : guimodel.getDisplaySettings().keySet()) {
+				view.setDisplaySettings(key, guimodel.getDisplaySettings().get(key));
+			}
+			guimodel.addView(view);
+		}
+		
+		// TODO
+		
 	}
 
 
@@ -252,7 +282,7 @@ public class MaMuT_ implements BrightnessDialog.MinMaxListener, ModelChangeListe
 		 * Color provider
 		 */
 
-		spotColorProvider = new HashMap<Spot, Color>();
+		spotColorProvider = new SpotColorGenerator(model);
 		trackColorProvider = new PerTrackFeatureColorGenerator(model, TrackIndexAnalyzer.TRACK_ID);
 
 		/*
@@ -310,8 +340,7 @@ public class MaMuT_ implements BrightnessDialog.MinMaxListener, ModelChangeListe
 	 */
 
 	public MamutViewer newViewer() {
-		final MamutViewer viewer = new MamutViewer(DEFAULT_WIDTH, DEFAULT_HEIGHT, sources, nTimepoints, model, selectionModel, 
-				spotColorProvider, trackColorProvider);
+		final MamutViewer viewer = new MamutViewer(DEFAULT_WIDTH, DEFAULT_HEIGHT, sources, nTimepoints, model, selectionModel);
 
 		for (String key : guimodel.getDisplaySettings().keySet()) {
 			viewer.setDisplaySettings(key, guimodel.getDisplaySettings().get(key));
@@ -941,41 +970,6 @@ public class MaMuT_ implements BrightnessDialog.MinMaxListener, ModelChangeListe
 
 	}
 
-
-	private void computeSpotColors(final String feature) {
-		spotColorProvider.clear();
-		// Check null
-		if (null == feature) {
-			for(Spot spot : model.getSpots().iterable(false)) {
-				spotColorProvider.put(spot, TrackMateModelView.DEFAULT_COLOR);
-			}
-			return;
-		}
-
-		// Get min & max
-		double min = Float.POSITIVE_INFINITY;
-		double max = Float.NEGATIVE_INFINITY;
-		Double val;
-		for (int ikey : model.getSpots().keySet()) {
-			for (Spot spot : model.getSpots().iterable(ikey, false)) {
-				val = spot.getFeature(feature);
-				if (null == val)
-					continue;
-				if (val > max) max = val;
-				if (val < min) min = val;
-			}
-		}
-
-		for(Spot spot : model.getSpots().iterable(false)) {
-			val = spot.getFeature(feature);
-			InterpolatePaintScale  colorMap = InterpolatePaintScale.Jet;
-			if (null == feature || null == val)
-				spotColorProvider.put(spot, TrackMateModelView.DEFAULT_COLOR);
-			else
-				spotColorProvider.put(spot, colorMap .getPaint((val-min)/(max-min)) );
-		}
-	}
-
 	private void toggleLinkingMode(MamutViewer viewer) {
 		this.isLinkingMode = !isLinkingMode;
 		String str = "Switched auto-linking mode " +  (isLinkingMode ? "on." : "off.");
@@ -1000,6 +994,7 @@ public class MaMuT_ implements BrightnessDialog.MinMaxListener, ModelChangeListe
 		displaySettings.put(KEY_TRACK_DISPLAY_MODE, DEFAULT_TRACK_DISPLAY_MODE);
 		displaySettings.put(KEY_TRACK_DISPLAY_DEPTH, DEFAULT_TRACK_DISPLAY_DEPTH);
 		displaySettings.put(KEY_TRACK_COLORING, trackColorProvider);
+		displaySettings.put(KEY_SPOT_COLORING, spotColorProvider);
 		displaySettings.put(KEY_COLORMAP, DEFAULT_COLOR_MAP);
 		return displaySettings;
 	}
