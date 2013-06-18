@@ -168,7 +168,8 @@ public class MaMuT_ implements BrightnessDialog.MinMaxListener, ModelChangeListe
 	private TrackMateGUIModel guimodel;
 	private MamutControlPanel panel;
 	private SourceSpotImageUpdater<?> thumbnailUpdater;
-	private static  File file;
+	private static File mamutFile;
+	private static File imageFile;
 
 	public MaMuT_()  {
 
@@ -194,6 +195,8 @@ public class MaMuT_ implements BrightnessDialog.MinMaxListener, ModelChangeListe
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public void load(File mamutfile) throws ParserConfigurationException, SAXException, IOException, InstantiationException, IllegalAccessException, ClassNotFoundException {
 
+		MaMuT_.mamutFile = mamutfile;
+		
 		MamutXmlReader reader = new MamutXmlReader(mamutfile);
 
 		/*
@@ -232,8 +235,8 @@ public class MaMuT_ implements BrightnessDialog.MinMaxListener, ModelChangeListe
 
 		final RealARGBConverter< UnsignedShortType > converter = new RealARGBConverter< UnsignedShortType >( 0, 65535 );
 
-		String xmlFilename = new File(settings.imageFolder, settings.imageFileName).getAbsolutePath();
-		final SequenceViewsLoader loader = new SequenceViewsLoader( xmlFilename  );
+		imageFile = new File(settings.imageFolder, settings.imageFileName);
+		final SequenceViewsLoader loader = new SequenceViewsLoader( imageFile.getAbsolutePath() );
 		final SequenceDescription seq = loader.getSequenceDescription();
 		nTimepoints = seq.numTimepoints();
 		sources = new ArrayList< SourceAndConverter< ? > >();
@@ -245,7 +248,7 @@ public class MaMuT_ implements BrightnessDialog.MinMaxListener, ModelChangeListe
 		 * Update settings
 		 */
 
-		settings.setFrom(sources, mamutfile, nTimepoints);
+		settings.setFrom(sources, imageFile, nTimepoints);
 
 		/*
 		 * Autoupdate features
@@ -377,7 +380,7 @@ public class MaMuT_ implements BrightnessDialog.MinMaxListener, ModelChangeListe
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public void launch(File file) throws ImgIOException, FormatException, IOException, ParserConfigurationException, SAXException, InstantiationException, IllegalAccessException, ClassNotFoundException {
 
-		MaMuT_.file = file;
+		MaMuT_.imageFile = file;
 
 		/*
 		 * Create image source
@@ -575,17 +578,16 @@ public class MaMuT_ implements BrightnessDialog.MinMaxListener, ModelChangeListe
 	private void save() {
 
 		Logger logger = Logger.IJ_LOGGER;
-		File mamutFile;
-		if (null == file) {
+		if (null == imageFile) {
 			File folder = new File(System.getProperty("user.dir")).getParentFile().getParentFile();
 			mamutFile = new File(folder.getPath() + File.separator + "MamutAnnotation.xml");
 		} else {
-			String pf = file.getParent();
-			String lf = file.getName();
+			String pf = imageFile.getParent();
+			String lf = imageFile.getName();
 			lf = lf.split("\\.")[0] + "-mamut.xml";
 			mamutFile = new File(pf, lf);
-
 		}
+		
 		mamutFile = IOUtils.askForFileForSaving(mamutFile, IJ.getInstance(), logger );
 		if (null == mamutFile) {
 			return;
