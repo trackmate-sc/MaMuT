@@ -41,9 +41,12 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.swing.AbstractAction;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.KeyStroke;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
 import javax.xml.parsers.ParserConfigurationException;
 
 import loci.formats.FormatException;
@@ -108,6 +111,7 @@ import fiji.plugin.trackmate.visualization.trackscheme.TrackScheme;
 
 public class MaMuT_ implements BrightnessDialog.MinMaxListener, ModelChangeListener {
 
+	private static final ImageIcon MAMUT_ICON = new ImageIcon(MamutControlPanel.class.getResource("mammouth-16x16.png"));
 	public static final String PLUGIN_NAME = "MaMuT";
 	public static final String PLUGIN_VERSION = "0.5.0";
 	private static final double DEFAULT_RADIUS = 10;
@@ -167,26 +171,42 @@ public class MaMuT_ implements BrightnessDialog.MinMaxListener, ModelChangeListe
 	private static  File file;
 
 	public MaMuT_()  {
+
+		// I can't stand the metal look. If this is a problem, contact me (jeanyves.tinevez@gmail.com)
+		if (IJ.isMacOSX() || IJ.isWindows()) {
+			try {
+				UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+			} catch (ClassNotFoundException e) {
+				e.printStackTrace();
+			} catch (InstantiationException e) {
+				e.printStackTrace();
+			} catch (IllegalAccessException e) {
+				e.printStackTrace();
+			} catch (UnsupportedLookAndFeelException e) {
+				e.printStackTrace();
+			}
+		}
+
 	}
 
-	
-	
+
+
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public void load(File mamutfile) throws ParserConfigurationException, SAXException, IOException, InstantiationException, IllegalAccessException, ClassNotFoundException {
-		
+
 		MamutXmlReader reader = new MamutXmlReader(mamutfile);
 
 		/*
 		 * Read model
 		 */
-		
+
 		model = reader.getModel();
 		model.addModelChangeListener(this);
-		
+
 		/*
 		 * Selection model
 		 */
-		
+
 		selectionModel = new SelectionModel(model);
 		selectionModel.addSelectionChangeListener(new SelectionChangeListener() {
 			@Override
@@ -197,15 +217,15 @@ public class MaMuT_ implements BrightnessDialog.MinMaxListener, ModelChangeListe
 				}
 			}
 		});
-		
+
 		/*
 		 * Read settings
 		 */
-		
+
 		settings = new SourceSettings();
 		reader.readSettings(settings, null, null, 
 				new SpotAnalyzerProvider(model), new EdgeAnalyzerProvider(model), new TrackAnalyzerProvider(model));
-		
+
 		/*
 		 * Read image source
 		 */
@@ -220,33 +240,33 @@ public class MaMuT_ implements BrightnessDialog.MinMaxListener, ModelChangeListe
 		for ( int setup = 0; setup < seq.numViewSetups(); ++setup ) {
 			sources.add( new SourceAndConverter< UnsignedShortType >( new SpimSource( loader, setup, "angle " + seq.setups.get( setup ).getAngle() ), converter ) );
 		}
-		
+
 		/*
 		 * Update settings
 		 */
-		
+
 		settings.setFrom(sources, mamutfile, nTimepoints);
-		
+
 		/*
 		 * Autoupdate features
 		 */
 
 		new ModelFeatureUpdater(model, settings);
-		
-		
+
+
 		/*
 		 * Thumbnail updater
 		 */
-		
+
 		thumbnailUpdater = new SourceSpotImageUpdater(settings, sources.get(0).getSpimSource());
-		
+
 		/*
 		 * Create display range
 		 */
 
 		displayRanges = new ArrayList< AbstractLinearRange >();
 		displayRanges.add( converter );
-		
+
 		/*
 		 * Color provider
 		 */
@@ -264,14 +284,14 @@ public class MaMuT_ implements BrightnessDialog.MinMaxListener, ModelChangeListe
 		/*
 		 * Read and render views
 		 */
-		
+
 		MamutViewProvider provider = new MamutViewProvider(model, settings, selectionModel);
 		Collection<TrackMateModelView> views = reader.getViews(provider);
 		for (TrackMateModelView view : views) {
 			for (String key : guimodel.getDisplaySettings().keySet()) {
 				view.setDisplaySettings(key, guimodel.getDisplaySettings().get(key));
 			}
-			
+
 			if (view.getKey().equals(MamutViewer.KEY)) {
 				final MamutViewer viewer = (MamutViewer) view;
 				installKeyBindings(viewer );
@@ -291,19 +311,25 @@ public class MaMuT_ implements BrightnessDialog.MinMaxListener, ModelChangeListe
 
 				initTransform(viewer, viewer.getFrame().getWidth(), viewer.getFrame().getHeight());
 				initBrightness(viewer, 0.001, 0.999 );
-				
+
 			} else if (view.getKey().equals(TrackScheme.KEY)) {
 				TrackScheme trackscheme = (TrackScheme) view;
 				trackscheme.setSpotImageUpdater(thumbnailUpdater);
 			}
-			
+
 			view.render();
 			guimodel.addView(view);
 		}
-		
+
 		/*
 		 * Control Panel
 		 */
+
+		launchPanel(); 
+	}
+
+
+	private void launchPanel() {
 
 		panel = new MamutControlPanel(model);
 		panel.addActionListener(new ActionListener() {
@@ -337,11 +363,14 @@ public class MaMuT_ implements BrightnessDialog.MinMaxListener, ModelChangeListe
 				}
 			}
 		});
+
 		JFrame frame = new JFrame(PLUGIN_NAME + " v" + PLUGIN_VERSION);
-		frame.setSize(300, 520);
+		frame.setIconImage(MAMUT_ICON.getImage());
+		frame.setSize(300, 530);
 		frame.getContentPane().add(panel);
 		frame.setResizable(false);
 		frame.setVisible(true);
+
 	}
 
 
@@ -375,10 +404,10 @@ public class MaMuT_ implements BrightnessDialog.MinMaxListener, ModelChangeListe
 		/*
 		 * Thumbnail updater
 		 */
-		
+
 		thumbnailUpdater = new SourceSpotImageUpdater(settings, sources.get(0).getSpimSource());
-		
-		
+
+
 		/*
 		 * Settings
 		 */
@@ -388,7 +417,7 @@ public class MaMuT_ implements BrightnessDialog.MinMaxListener, ModelChangeListe
 		settings.addTrackAnalyzer(new TrackIndexAnalyzer(model)); // we need at least this one
 		settings.addEdgeAnalyzer(new EdgeVelocityAnalyzer(model)); // this one is for fun
 		settings.addEdgeAnalyzer(new EdgeTargetAnalyzer(model)); // we CANNOT load & save without this one
-		
+
 		/*
 		 * Autoupdate features & declare them
 		 */
@@ -484,7 +513,7 @@ public class MaMuT_ implements BrightnessDialog.MinMaxListener, ModelChangeListe
 	 * PUBLIC METHODS
 	 */
 
-	public MamutViewer newViewer() {
+	private MamutViewer newViewer() {
 		final MamutViewer viewer = new MamutViewer(DEFAULT_WIDTH, DEFAULT_HEIGHT, sources, nTimepoints, model, selectionModel);
 
 		for (String key : guimodel.getDisplaySettings().keySet()) {
@@ -493,29 +522,18 @@ public class MaMuT_ implements BrightnessDialog.MinMaxListener, ModelChangeListe
 
 		installKeyBindings(viewer);
 		installMouseListeners(viewer);
-		//		viewer.addHandler(viewer);
 
+		viewer.getFrame().setIconImage(MAMUT_ICON.getImage());
 		viewer.getFrame().addWindowListener(new WindowListener() {
-			@Override
-			public void windowOpened(WindowEvent arg0) { }
-			@Override
-			public void windowIconified(WindowEvent arg0) { }
-			@Override
-			public void windowDeiconified(WindowEvent arg0) { }
-
-			@Override
-			public void windowDeactivated(WindowEvent arg0) { }
-
-			@Override
-			public void windowClosing(WindowEvent arg0) { }
-
-			@Override
-			public void windowClosed(WindowEvent arg0) {
+			@Override public void windowOpened(WindowEvent arg0) { }
+			@Override  public void windowIconified(WindowEvent arg0) { }
+			@Override public void windowDeiconified(WindowEvent arg0) { }
+			@Override public void windowDeactivated(WindowEvent arg0) { }
+			@Override public void windowClosing(WindowEvent arg0) { }
+			@Override public void windowActivated(WindowEvent arg0) { }
+			@Override public void windowClosed(WindowEvent arg0) {
 				guimodel.getViews().remove(viewer);
 			}
-
-			@Override
-			public void windowActivated(WindowEvent arg0) { }
 		});
 
 		initTransform(viewer, viewer.getFrame().getWidth(), viewer.getFrame().getHeight());
@@ -566,13 +584,13 @@ public class MaMuT_ implements BrightnessDialog.MinMaxListener, ModelChangeListe
 			String lf = file.getName();
 			lf = lf.split("\\.")[0] + "-mamut.xml";
 			mamutFile = new File(pf, lf);
-			
+
 		}
 		mamutFile = IOUtils.askForFileForSaving(mamutFile, IJ.getInstance(), logger );
 		if (null == mamutFile) {
 			return;
 		}
-		
+
 		MamutXmlWriter writer = new MamutXmlWriter(mamutFile);
 		writer.appendModel(model);
 		writer.appendSettings(settings, null, null);
