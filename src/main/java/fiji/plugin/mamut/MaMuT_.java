@@ -111,7 +111,7 @@ import fiji.plugin.trackmate.visualization.trackscheme.TrackScheme;
 
 public class MaMuT_ implements BrightnessDialog.MinMaxListener, ModelChangeListener {
 
-	private static final ImageIcon MAMUT_ICON = new ImageIcon(MamutControlPanel.class.getResource("mammouth-16x16.png"));
+	private static final ImageIcon MAMUT_ICON = new ImageIcon(MamutControlPanel.class.getResource("mammouth-256x256.png"));
 	public static final String PLUGIN_NAME = "MaMuT";
 	public static final String PLUGIN_VERSION = "0.5.0";
 	private static final double DEFAULT_RADIUS = 10;
