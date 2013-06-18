@@ -34,13 +34,11 @@ public class SourceSpotImageUpdater <T extends RealType<T>> extends SpotImageUpd
 	private static final double RADIUS_FACTOR = 1.1;
 	private Source<T> source;
 	private Integer previousFrame = -1; // TODO: remove and make super.previousFrame protected?
-	private final double[] calibration;
 	private RandomAccessibleInterval<T> img;
 
 	public SourceSpotImageUpdater(Settings settings, Source<T> source) {
 		super(settings);
 		this.source = source;
-		this.calibration = new double[] { settings.dx, settings.dy, settings.dz };
 	}
 
 	// TODO: move this to a helper class together with the extract... methods in RotationAnimator

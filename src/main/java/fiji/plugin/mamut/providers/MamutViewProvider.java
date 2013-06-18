@@ -1,21 +1,16 @@
 package fiji.plugin.mamut.providers;
 
-import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Map;
 
 import viewer.render.SourceAndConverter;
-
 import fiji.plugin.mamut.MaMuT_;
 import fiji.plugin.mamut.SourceSettings;
 import fiji.plugin.mamut.viewer.MamutViewer;
 import fiji.plugin.trackmate.Model;
 import fiji.plugin.trackmate.SelectionModel;
 import fiji.plugin.trackmate.Settings;
-import fiji.plugin.trackmate.Spot;
 import fiji.plugin.trackmate.providers.ViewProvider;
-import fiji.plugin.trackmate.visualization.TrackColorGenerator;
 import fiji.plugin.trackmate.visualization.TrackMateModelView;
 import fiji.plugin.trackmate.visualization.trackscheme.TrackScheme;
 

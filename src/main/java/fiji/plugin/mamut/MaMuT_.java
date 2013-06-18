@@ -16,10 +16,8 @@ import static fiji.plugin.trackmate.visualization.TrackMateModelView.KEY_TRACKS_
 import static fiji.plugin.trackmate.visualization.TrackMateModelView.KEY_TRACK_COLORING;
 import static fiji.plugin.trackmate.visualization.TrackMateModelView.KEY_TRACK_DISPLAY_DEPTH;
 import static fiji.plugin.trackmate.visualization.TrackMateModelView.KEY_TRACK_DISPLAY_MODE;
-
 import ij.IJ;
 
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.MouseInfo;
 import java.awt.Point;
@@ -64,7 +62,6 @@ import net.imglib2.type.numeric.integer.UnsignedShortType;
 import net.imglib2.util.LinAlgHelpers;
 import net.imglib2.view.Views;
 
-import org.jfree.chart.renderer.InterpolatePaintScale;
 import org.jgrapht.graph.DefaultWeightedEdge;
 import org.xml.sax.SAXException;
 
@@ -100,12 +97,13 @@ import fiji.plugin.trackmate.gui.DisplaySettingsEvent;
 import fiji.plugin.trackmate.gui.DisplaySettingsListener;
 import fiji.plugin.trackmate.gui.TrackMateGUIModel;
 import fiji.plugin.trackmate.io.IOUtils;
-import fiji.plugin.trackmate.providers.ViewProvider;
+import fiji.plugin.trackmate.providers.EdgeAnalyzerProvider;
+import fiji.plugin.trackmate.providers.SpotAnalyzerProvider;
+import fiji.plugin.trackmate.providers.TrackAnalyzerProvider;
 import fiji.plugin.trackmate.visualization.PerTrackFeatureColorGenerator;
 import fiji.plugin.trackmate.visualization.SpotColorGenerator;
 import fiji.plugin.trackmate.visualization.TrackColorGenerator;
 import fiji.plugin.trackmate.visualization.TrackMateModelView;
-import fiji.plugin.trackmate.visualization.trackscheme.SpotImageUpdater;
 import fiji.plugin.trackmate.visualization.trackscheme.TrackScheme;
 
 public class MaMuT_ implements BrightnessDialog.MinMaxListener, ModelChangeListener {
@@ -147,7 +145,7 @@ public class MaMuT_ implements BrightnessDialog.MinMaxListener, ModelChangeListe
 	/** The next created spot will be set with this radius. */
 	private double radius = DEFAULT_RADIUS;
 	/** The radius below which a spot cannot go. */
-	private double minRadius;
+	private final double minRadius = 4; // TODO change this when we have a physical calibration
 	/** The spot currently moved under the mouse. */
 	private Spot movedSpot = null;
 	/** The image data sources to be displayed in the views. */
@@ -165,6 +163,7 @@ public class MaMuT_ implements BrightnessDialog.MinMaxListener, ModelChangeListe
 	private SelectionModel selectionModel;
 	private TrackMateGUIModel guimodel;
 	private MamutControlPanel panel;
+	private SourceSpotImageUpdater<?> thumbnailUpdater;
 	private static  File file;
 
 	public MaMuT_()  {
@@ -172,34 +171,186 @@ public class MaMuT_ implements BrightnessDialog.MinMaxListener, ModelChangeListe
 
 	
 	
-	public void load(File mamutfile) {
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	public void load(File mamutfile) throws ParserConfigurationException, SAXException, IOException, InstantiationException, IllegalAccessException, ClassNotFoundException {
 		
 		MamutXmlReader reader = new MamutXmlReader(mamutfile);
 
-		model = reader.getModel();
-		selectionModel = new SelectionModel(model);
-		settings = new SourceSettings();
+		/*
+		 * Read model
+		 */
 		
-		reader.readSettings(settings, null, null, null, null, null);
+		model = reader.getModel();
+		model.addModelChangeListener(this);
+		
+		
+		System.out.println(model);
+		
+		/*
+		 * Selection model
+		 */
+		
+		selectionModel = new SelectionModel(model);
+		selectionModel.addSelectionChangeListener(new SelectionChangeListener() {
+			@Override
+			public void selectionChanged(SelectionChangeEvent event) {
+				refresh();
+				if (selectionModel.getSpotSelection().size() == 1) {
+					centerOnSpot(selectionModel.getSpotSelection().iterator().next());
+				}
+			}
+		});
+		
+		/*
+		 * Read settings
+		 */
+		
+		settings = new SourceSettings();
+		reader.readSettings(settings, null, null, 
+				new SpotAnalyzerProvider(model), new EdgeAnalyzerProvider(model), new TrackAnalyzerProvider(model));
+		
+		/*
+		 * Read image source
+		 */
+
+		final RealARGBConverter< UnsignedShortType > converter = new RealARGBConverter< UnsignedShortType >( 0, 65535 );
+
+		String xmlFilename = new File(settings.imageFolder, settings.imageFileName).getAbsolutePath();
+		final SequenceViewsLoader loader = new SequenceViewsLoader( xmlFilename  );
+		final SequenceDescription seq = loader.getSequenceDescription();
+		nTimepoints = seq.numTimepoints();
+		sources = new ArrayList< SourceAndConverter< ? > >();
+		for ( int setup = 0; setup < seq.numViewSetups(); ++setup ) {
+			sources.add( new SourceAndConverter< UnsignedShortType >( new SpimSource( loader, setup, "angle " + seq.setups.get( setup ).getAngle() ), converter ) );
+		}
+		
+		/*
+		 * Update settings
+		 */
+		
+		settings.setFrom(sources, mamutfile, nTimepoints);
+		
+		/*
+		 * Autoupdate features
+		 */
+
+		new ModelFeatureUpdater(model, settings);
+		
+		
+		/*
+		 * Thumbnail updater
+		 */
+		
+		thumbnailUpdater = new SourceSpotImageUpdater(settings, sources.get(0).getSpimSource());
+		
+		/*
+		 * Create display range
+		 */
+
+		displayRanges = new ArrayList< AbstractLinearRange >();
+		displayRanges.add( converter );
+		
+		/*
+		 * Color provider
+		 */
+
+		spotColorProvider = new SpotColorGenerator(model);
+		trackColorProvider = new PerTrackFeatureColorGenerator(model, TrackIndexAnalyzer.TRACK_ID);
+
+		/*
+		 * GUI model
+		 */
+
+		guimodel = new TrackMateGUIModel();
+		guimodel.setDisplaySettings(createDisplaySettings(model));
+
+		/*
+		 * Read and render views
+		 */
 		
 		MamutViewProvider provider = new MamutViewProvider(model, settings, selectionModel);
 		Collection<TrackMateModelView> views = reader.getViews(provider);
-		guimodel.setDisplaySettings(createDisplaySettings(model));
 		for (TrackMateModelView view : views) {
 			for (String key : guimodel.getDisplaySettings().keySet()) {
 				view.setDisplaySettings(key, guimodel.getDisplaySettings().get(key));
 			}
+			
+			if (view.getKey().equals(MamutViewer.KEY)) {
+				final MamutViewer viewer = (MamutViewer) view;
+				installKeyBindings(viewer );
+				installMouseListeners(viewer);
+
+				viewer.getFrame().addWindowListener(new WindowListener() {
+					@Override public void windowOpened(WindowEvent arg0) { }
+					@Override public void windowIconified(WindowEvent arg0) { }
+					@Override public void windowDeiconified(WindowEvent arg0) { }
+					@Override public void windowDeactivated(WindowEvent arg0) { }
+					@Override public void windowClosing(WindowEvent arg0) { }
+					@Override public void windowActivated(WindowEvent arg0) { }
+					@Override public void windowClosed(WindowEvent arg0) {
+						guimodel.getViews().remove(viewer);
+					}
+				});
+
+				initTransform(viewer, viewer.getFrame().getWidth(), viewer.getFrame().getHeight());
+				initBrightness(viewer, 0.001, 0.999 );
+				
+			} else if (view.getKey().equals(TrackScheme.KEY)) {
+				TrackScheme trackscheme = (TrackScheme) view;
+				trackscheme.setSpotImageUpdater(thumbnailUpdater);
+			}
+			
+			view.render();
 			guimodel.addView(view);
 		}
 		
-		// TODO
-		
+		/*
+		 * Control Panel
+		 */
+
+		panel = new MamutControlPanel(model);
+		panel.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent event) {
+				if (event == panel.TRACK_SCHEME_BUTTON_PRESSED) {
+					launchTrackScheme();
+
+				} else if (event == panel.DO_ANALYSIS_BUTTON_PRESSED) {
+					launchDoAnalysis();
+
+				} else if (event == panel.MAMUT_VIEWER_BUTTON_PRESSED) {
+					newViewer();
+
+				} else if (event == panel.MAMUT_SAVE_BUTTON_PRESSED) {
+					save();
+
+				} else {
+					System.out.println("[MaMuT_] Caught unknown event: " + event);
+				}
+			}
+
+		});
+		panel.addDisplaySettingsChangeListener(new DisplaySettingsListener() {
+			@Override
+			public void displaySettingsChanged(DisplaySettingsEvent event) {
+				guimodel.getDisplaySettings().put(event.getKey(), event.getNewValue());
+				for (TrackMateModelView view : guimodel.getViews()) {
+					view.setDisplaySettings(event.getKey(), event.getNewValue());
+					view.refresh();
+				}
+			}
+		});
+		JFrame frame = new JFrame(PLUGIN_NAME + " v" + PLUGIN_VERSION);
+		frame.setSize(350, 600);
+		frame.getContentPane().add(panel);
+		frame.setVisible(true);
 	}
 
 
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public void launch(File file) throws ImgIOException, FormatException, IOException, ParserConfigurationException, SAXException, InstantiationException, IllegalAccessException, ClassNotFoundException {
 
-		this.file = file;
+		MaMuT_.file = file;
 
 		/*
 		 * Create image source
@@ -217,18 +368,19 @@ public class MaMuT_ implements BrightnessDialog.MinMaxListener, ModelChangeListe
 		}
 
 		/*
-		 * Find adequate rough scales
-		 */
-
-		minRadius = 4; // TODO change this when we have physical units
-
-		/*
 		 * Instantiate model
 		 */
 
 		model = new Model();
 		model.addModelChangeListener(this);
 
+		/*
+		 * Thumbnail updater
+		 */
+		
+		thumbnailUpdater = new SourceSpotImageUpdater(settings, sources.get(0).getSpimSource());
+		
+		
 		/*
 		 * Settings
 		 */
@@ -240,12 +392,7 @@ public class MaMuT_ implements BrightnessDialog.MinMaxListener, ModelChangeListe
 		settings.addEdgeAnalyzer(new EdgeTargetAnalyzer(model)); // we CANNOT load & save without this one
 		
 		/*
-		 * Declare features
-		 */
-
-
-		/*
-		 * Autoupdate features
+		 * Autoupdate features & declare them
 		 */
 
 		new ModelFeatureUpdater(model, settings);
@@ -373,7 +520,7 @@ public class MaMuT_ implements BrightnessDialog.MinMaxListener, ModelChangeListe
 			public void windowActivated(WindowEvent arg0) { }
 		});
 
-		initTransform(viewer, DEFAULT_WIDTH, DEFAULT_HEIGHT);
+		initTransform(viewer, viewer.getFrame().getWidth(), viewer.getFrame().getHeight());
 		initBrightness(viewer, 0.001, 0.999 );
 
 		viewer.render();
@@ -773,10 +920,9 @@ public class MaMuT_ implements BrightnessDialog.MinMaxListener, ModelChangeListe
 		final JButton button = panel.getTrackSchemeButton();
 		button.setEnabled(false);
 		new Thread("Launching TrackScheme thread") {
+
 			public void run() {
 				TrackScheme trackscheme = new TrackScheme(model, selectionModel);
-				@SuppressWarnings({ "rawtypes", "unchecked" })
-				SpotImageUpdater thumbnailUpdater = new SourceSpotImageUpdater(settings, sources.get(0).getSpimSource());
 				trackscheme.setSpotImageUpdater(thumbnailUpdater);
 				for (String settingKey : guimodel.getDisplaySettings().keySet()) {
 					trackscheme.setDisplaySettings(settingKey, guimodel.getDisplaySettings().get(settingKey));

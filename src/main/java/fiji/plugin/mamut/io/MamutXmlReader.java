@@ -23,7 +23,7 @@ public class MamutXmlReader extends TmXmlReader {
 	public MamutXmlReader(File file) {
 		super(file);
 	}
-	
+
 	/**
 	 * Returns the collection of views that were saved in this file. The views returned
 	 * <b>will be rendered</b>.
@@ -35,55 +35,63 @@ public class MamutXmlReader extends TmXmlReader {
 	public Collection<TrackMateModelView> getViews(ViewProvider provider) {
 		Element guiel = root.getChild(GUI_STATE_ELEMENT_KEY);
 		if (null != guiel) {
-			
+
 			List<Element> children = guiel.getChildren(GUI_VIEW_ELEMENT_KEY);
 			Collection<TrackMateModelView> views = new ArrayList<TrackMateModelView>(children.size());
 
-			for (Element child : children) {
-				String viewKey = child.getAttributeValue(GUI_VIEW_ATTRIBUTE);
+			for (final Element child : children) {
+				final String viewKey = child.getAttributeValue(GUI_VIEW_ATTRIBUTE);
 				if (null == viewKey) {
 					logger.error("Could not find view key attribute for element " + child +".\n");
 					ok = false;
 				} else {
-					TrackMateModelView view = provider.getView(viewKey);
+					final TrackMateModelView view = provider.getView(viewKey);
 					if (null == view) {
 						logger.error("Unknown view for key " + viewKey +".\n");
 						ok = false;
 					} else {
 						views.add(view);
-						
-						if (viewKey.equals(MamutViewer.KEY)) {
-							MamutViewer mv = (MamutViewer) view;
-							try {
-								int mvx = child.getAttribute(GUI_VIEW_ATTRIBUTE_POSITION_X).getIntValue();
-								int mvy = child.getAttribute(GUI_VIEW_ATTRIBUTE_POSITION_Y).getIntValue();
-								int mvwidth = child.getAttribute(GUI_VIEW_ATTRIBUTE_POSITION_WIDTH).getIntValue();
-								int mvheight = child.getAttribute(GUI_VIEW_ATTRIBUTE_POSITION_HEIGHT).getIntValue();
-								mv.getFrame().setLocation(mvx, mvy);
-								mv.getFrame().setSize(mvwidth, mvheight);
-							} catch (DataConversionException e) {
-								e.printStackTrace();
-							}
-							
-						} else if (viewKey.equals(TrackScheme.KEY)) {
-							TrackScheme ts = (TrackScheme) view;
-							try {
-								int mvx = child.getAttribute(GUI_VIEW_ATTRIBUTE_POSITION_X).getIntValue();
-								int mvy = child.getAttribute(GUI_VIEW_ATTRIBUTE_POSITION_Y).getIntValue();
-								int mvwidth = child.getAttribute(GUI_VIEW_ATTRIBUTE_POSITION_WIDTH).getIntValue();
-								int mvheight = child.getAttribute(GUI_VIEW_ATTRIBUTE_POSITION_HEIGHT).getIntValue();
-								ts.getGUI().setLocation(mvx, mvy);
-								ts.getGUI().setSize(mvwidth, mvheight);
-							} catch (DataConversionException e) {
-								e.printStackTrace();
-							}
-						}
-						
+
+						new Thread("MaMuT view rendering thread") {
+							public void run() {
+
+								if (viewKey.equals(MamutViewer.KEY)) {
+									MamutViewer mv = (MamutViewer) view;
+//									mv.render();
+									
+									try {
+										int mvx = child.getAttribute(GUI_VIEW_ATTRIBUTE_POSITION_X).getIntValue();
+										int mvy = child.getAttribute(GUI_VIEW_ATTRIBUTE_POSITION_Y).getIntValue();
+										int mvwidth = child.getAttribute(GUI_VIEW_ATTRIBUTE_POSITION_WIDTH).getIntValue();
+										int mvheight = child.getAttribute(GUI_VIEW_ATTRIBUTE_POSITION_HEIGHT).getIntValue();
+										mv.getFrame().setLocation(mvx, mvy);
+										mv.getFrame().setSize(mvwidth, mvheight);
+									} catch (DataConversionException e) {
+										e.printStackTrace();
+									}
+
+								} else if (viewKey.equals(TrackScheme.KEY)) {
+									TrackScheme ts = (TrackScheme) view;
+//									ts.render();
+									
+									try {
+										int mvx = child.getAttribute(GUI_VIEW_ATTRIBUTE_POSITION_X).getIntValue();
+										int mvy = child.getAttribute(GUI_VIEW_ATTRIBUTE_POSITION_Y).getIntValue();
+										int mvwidth = child.getAttribute(GUI_VIEW_ATTRIBUTE_POSITION_WIDTH).getIntValue();
+										int mvheight = child.getAttribute(GUI_VIEW_ATTRIBUTE_POSITION_HEIGHT).getIntValue();
+										ts.getGUI().setLocation(mvx, mvy);
+										ts.getGUI().setSize(mvwidth, mvheight);
+									} catch (DataConversionException e) {
+										e.printStackTrace();
+									}
+								}
+							};
+						}.start();
 					}
 				}
 			}
 			return views;
-			
+
 		} else {
 			logger.error("Could not find GUI state element.\n");
 			ok = false;

@@ -187,7 +187,21 @@ public class MamutViewer extends SpimViewer implements TrackMateModelView {
 
 	@Override
 	public void setDisplaySettings(final String key, final Object value) {
+		
+		if (key.equals(KEY_SPOT_COLORING)) {
+			if (null != spotColorProvider) {
+				spotColorProvider.terminate();
+			}
+			spotColorProvider = (SpotColorGenerator) value;
+		} else if (key.equals(KEY_TRACK_COLORING)) {
+			if (null != trackColorProvider) {
+				trackColorProvider.terminate();
+			}
+			trackColorProvider = (TrackColorGenerator) value;
+		}
+		
 		displaySettings.put(key, value);
+		refresh();
 	}
 
 	@Override 

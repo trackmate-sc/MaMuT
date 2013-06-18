@@ -13,9 +13,6 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import org.xml.sax.SAXException;
 
-import loci.formats.FormatException;
-import net.imglib2.io.ImgIOException;
-
 public class LoadMamutAnnotationPlugin implements PlugIn {
 
 	private static File file;
@@ -34,7 +31,27 @@ public class LoadMamutAnnotationPlugin implements PlugIn {
 		}
 		
 		MaMuT_ mamut = new MaMuT_();
-		mamut.load(file);
+		try {
+			mamut.load(file);
+		} catch (ParserConfigurationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (SAXException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InstantiationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	
