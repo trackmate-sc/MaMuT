@@ -109,7 +109,7 @@ import fiji.plugin.trackmate.visualization.trackscheme.TrackScheme;
 public class MaMuT_ implements BrightnessDialog.MinMaxListener, ModelChangeListener {
 
 	public static final String PLUGIN_NAME = "MaMuT";
-	public static final String PLUGIN_VERSION = "v0.5.0";
+	public static final String PLUGIN_VERSION = "0.5.0";
 	private static final double DEFAULT_RADIUS = 10;
 	/** By how portion of the current radius we change this radius for every
 	 * change request.	 */
@@ -182,9 +182,6 @@ public class MaMuT_ implements BrightnessDialog.MinMaxListener, ModelChangeListe
 		
 		model = reader.getModel();
 		model.addModelChangeListener(this);
-		
-		
-		System.out.println(model);
 		
 		/*
 		 * Selection model
@@ -341,8 +338,9 @@ public class MaMuT_ implements BrightnessDialog.MinMaxListener, ModelChangeListe
 			}
 		});
 		JFrame frame = new JFrame(PLUGIN_NAME + " v" + PLUGIN_VERSION);
-		frame.setSize(350, 600);
+		frame.setSize(300, 520);
 		frame.getContentPane().add(panel);
+		frame.setResizable(false);
 		frame.setVisible(true);
 	}
 
