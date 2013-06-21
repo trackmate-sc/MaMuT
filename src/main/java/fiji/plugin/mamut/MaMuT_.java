@@ -77,6 +77,7 @@ import viewer.render.Source;
 import viewer.render.SourceAndConverter;
 import viewer.render.SourceState;
 import viewer.render.ViewerState;
+import fiji.plugin.mamut.detection.SemiAutoTracker;
 import fiji.plugin.mamut.io.MamutXmlReader;
 import fiji.plugin.mamut.io.MamutXmlWriter;
 import fiji.plugin.mamut.providers.MamutViewProvider;
@@ -129,6 +130,7 @@ public class MaMuT_ implements BrightnessDialog.MinMaxListener, ModelChangeListe
 	private KeyStroke brightnessKeystroke = KeyStroke.getKeyStroke( KeyEvent.VK_C, 0 );
 	private KeyStroke helpKeystroke = KeyStroke.getKeyStroke( KeyEvent.VK_F1, 0 );
 	private KeyStroke addSpotKeystroke = KeyStroke.getKeyStroke( KeyEvent.VK_A, 0 );
+	private KeyStroke semiAutoAddSpotKeystroke = KeyStroke.getKeyStroke( KeyEvent.VK_A, KeyEvent.SHIFT_DOWN_MASK);
 	private KeyStroke deleteSpotKeystroke = KeyStroke.getKeyStroke( KeyEvent.VK_D, 0 );
 	private KeyStroke moveSpotKeystroke = KeyStroke.getKeyStroke( KeyEvent.VK_SPACE, 0 );
 
@@ -149,7 +151,7 @@ public class MaMuT_ implements BrightnessDialog.MinMaxListener, ModelChangeListe
 	/** The next created spot will be set with this radius. */
 	private double radius = DEFAULT_RADIUS;
 	/** The radius below which a spot cannot go. */
-	private final double minRadius = 4; // TODO change this when we have a physical calibration
+	private final double minRadius = 2; // TODO change this when we have a physical calibration
 	/** The spot currently moved under the mouse. */
 	private Spot movedSpot = null;
 	/** The image data sources to be displayed in the views. */
@@ -743,6 +745,19 @@ public class MaMuT_ implements BrightnessDialog.MinMaxListener, ModelChangeListe
 			}
 			private static final long serialVersionUID = 1L;
 		});
+		
+		/*
+		 * Semi-auto find spots
+		 */
+		
+		viewer.addKeyAction(semiAutoAddSpotKeystroke, new AbstractAction( "semi-auto detect spot") {
+			
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				semiAutoDetectSpot(viewer);
+			}
+			private static final long serialVersionUID = 1L;
+		});
 
 		/*
 		 * Delete spot
@@ -972,6 +987,27 @@ public class MaMuT_ implements BrightnessDialog.MinMaxListener, ModelChangeListe
 	}
 
 	/**
+	 * Performs the semi-automatic detection of subsequent spots. For this
+	 * to work, exactly one spot must be in the selection. 
+	 */
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	private void semiAutoDetectSpot(final MamutViewer viewer) {
+		final SemiAutoTracker autotracker = new SemiAutoTracker(model, selectionModel, sources);
+		new Thread("MaMuT semi-automated tracking thread") {
+			@Override
+			public void run() {
+				boolean ok = autotracker.checkInput() && autotracker.process();
+				if (ok) {
+					viewer.getLogger().log(autotracker.getErrorMessage());
+				} else {
+					viewer.getLogger().error(autotracker.getErrorMessage());
+				}
+			}
+		}.start();
+	}
+
+
+	/**
 	 * Adds a new spot at the mouse current location.
 	 * @param viewer  the viewer in which the add spot request was made.
 	 */
@@ -997,6 +1033,7 @@ public class MaMuT_ implements BrightnessDialog.MinMaxListener, ModelChangeListe
 		gPos.localize(coordinates);
 		Spot spot = new Spot(coordinates);
 		spot.putFeature(Spot.RADIUS, radius );
+		spot.putFeature(Spot.QUALITY, -1d);
 		spot.putFeature(Spot.POSITION_T, Double.valueOf(frame) );
 		model.beginUpdate();
 		try {

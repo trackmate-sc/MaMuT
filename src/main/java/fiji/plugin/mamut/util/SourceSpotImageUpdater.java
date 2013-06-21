@@ -41,32 +41,6 @@ public class SourceSpotImageUpdater <T extends RealType<T>> extends SpotImageUpd
 		this.source = source;
 	}
 
-	// TODO: move this to a helper class together with the extract... methods in RotationAnimator
-	/**
-	 * Get the scale factor along the X, Y, or Z axis. For example, a points
-	 * A=(x,0,0) and B=(x+1,0,0) on the X axis will be transformed to points
-	 * A'=T*A and B'=T*B by the transform T. The distance between A' and B'
-	 * gives the X scale factor.
-	 *
-	 * @param transform
-	 *            an affine transform.
-	 * @param axis
-	 *            index of the axis for which the scale factor should be
-	 *            computed.
-	 * @return scale factor.
-	 */
-	public static double extractScale(final AffineTransform3D transform, final int axis)
-	{
-		double sqSum = 0;
-		final int c = axis;
-		for ( int r = 0; r < 3; ++r )
-		{
-			final double x = transform.get( r, c );
-			sqSum += x * x;
-		}
-		return Math.sqrt( sqSum );
-	}
-
 	/**
 	 * @return the image string of the given spot, based on the raw images contained in the given model.
 	 * For performance, the image at target frame is stored for subsequent calls of this method.
@@ -95,7 +69,8 @@ public class SourceSpotImageUpdater <T extends RealType<T>> extends SpotImageUpd
 		long x = roundedSourcePos.getLongPosition(0);
 		long y = roundedSourcePos.getLongPosition(1);
 		long z = roundedSourcePos.getLongPosition(2);
-		long r = (long) Math.ceil(RADIUS_FACTOR * spot.getFeature(Spot.RADIUS).doubleValue() / extractScale(sourceToGlobal, 0));
+		long r = (long) Math.ceil(RADIUS_FACTOR * spot.getFeature(Spot.RADIUS).doubleValue() / 
+				Utils.extractScale(sourceToGlobal, 0));
 
 		// Extract central slice
 		IntervalView<T> slice = Views.hyperSlice(img, 2, z);
