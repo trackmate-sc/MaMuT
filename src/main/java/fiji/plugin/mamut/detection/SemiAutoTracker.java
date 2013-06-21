@@ -4,7 +4,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.TreeSet;
 
-import net.imglib2.ExtendedRandomAccessibleInterval;
 import net.imglib2.Point;
 import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessibleInterval;
@@ -18,7 +17,6 @@ import net.imglib2.position.transform.Round;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
-import net.imglib2.view.Views;
 import viewer.render.Source;
 import viewer.render.SourceAndConverter;
 import fiji.plugin.mamut.util.Utils;
@@ -30,15 +28,42 @@ import fiji.plugin.trackmate.detection.SpotDetector;
 import fiji.plugin.trackmate.tracking.SpotTracker;
 import fiji.plugin.trackmate.util.CropImgView;
 
+/**
+ * A class made to perform semi-automated tracking of spots in MaMuT.
+ * <p>
+ * The user has to select one spot, one a meaningful location of a source.
+ * The spot location and its radius are then used to extract a small rectangular
+ * neighborhood in the next frame around the spot. The neighborhood is then
+ * passed to a {@link SpotDetector} that returns the spot it found. If a spot
+ * of {@link Spot#QUALITY} high enough is found near enough to the first spot
+ * center, then it is added to the model and linked with the first spot.
+ * <p> 
+ * The process is then repeated, taking the newly found spot as a source 
+ * for the next neighborhood.
+ * The model is updated live for every spot found.
+ * <p>
+ * The process halts when:
+ * <ul>
+ * 	<li> no spots of quality high enough are found;
+ * 	<li> spots of high quality are found, but too far from the initial spot;
+ * 	<li> the source has no time-point left. 
+ * </ul>
+ * 
+ * @author Jean-Yves Tinevez - 2013
+ * @param <T> the type of the source. Must extend {@link RealType} and {@link NativeType}
+ * to use with most TrackMate {@link SpotDetector}s.
+ */
 public class SemiAutoTracker<T extends RealType<T>  & NativeType<T>> implements Algorithm {
 
 	private static final String BASE_ERROR_MESSAGE = "[SemiAutoTracker] ";
 	/** The size of the local neighborhood to inspect, in units of the source spot diameter. */
 	private static final double NEIGHBORHOOD_FACTOR = 3d;
 	/** The quality drop we tolerate before aborting detection. The highest, the more intolerant. */
-	private static final double QUALITY_THRESHOLD = 0.01d;
+	private static final double QUALITY_THRESHOLD = 0.2d;
 	/** How close must be the new spot found to be accepted, in radius units. */
-	private static final double DISTANCE_TOLERANCE = 1.5;
+	private static final double DISTANCE_TOLERANCE = 1.1d;
+	/** The minimal diameter size, in pixel, under which we stop down-sampling. */
+	private static final double MIN_SPOT_PIXEL_SIZE = 10d;
 	private final Model model;
 	private final SelectionModel selectionModel;
 	private final List<SourceAndConverter<T>> sources;
@@ -78,13 +103,11 @@ public class SemiAutoTracker<T extends RealType<T>  & NativeType<T>> implements 
 			double[] position = new double[3];
 			spot.localize(position);
 
-
 			/*
 			 * Source, rai and transform
 			 */
-
+			
 			int sourceIndex = 0; // TODO when Tobias will have saved the source index origin as a spot feature, use it.
-			int level = 0; // TODO is there a way to exploit this better? Use different level for large spots?
 			Source<T> source = sources.get(sourceIndex).getSpimSource();
 			
 			if (!source.isPresent(frame)) {
@@ -92,7 +115,26 @@ public class SemiAutoTracker<T extends RealType<T>  & NativeType<T>> implements 
 				return true;
 			}
 			
-			AffineTransform3D sourceToGlobal = source.getSourceTransform(frame, 0);
+			/*
+			 * Determine optimal level to operate on. 
+			 * We want to exploit the possible multi-levels that exist in the source,
+			 * to go faster. For instance, we do not want to detect spot that are larger
+			 * than 10 pixels (then we move up by one level), but we do not want to
+			 * detect spots that are smaller than 5 pixels in diameter
+			 */
+			
+			int level = 0;
+			while (level < source.getNumMipmapLevels() - 1) {
+				AffineTransform3D sourceToGlobal = source.getSourceTransform(frame, level);
+				double scale = Utils.extractScale(sourceToGlobal, level);
+				double diameterInPix = 2 * radius / scale;
+				if (diameterInPix < MIN_SPOT_PIXEL_SIZE) {
+					break;
+				}
+				level++;
+			}
+			
+			AffineTransform3D sourceToGlobal = source.getSourceTransform(frame, level);
 			RandomAccessibleInterval<T> rai = source.getSource(frame, level);
 
 			/*
@@ -114,7 +156,7 @@ public class SemiAutoTracker<T extends RealType<T>  & NativeType<T>> implements 
 			long z = roundedSourcePos.getLongPosition(2);
 			long r = (long) Math.ceil(NEIGHBORHOOD_FACTOR * radius / dx);
 			long rz = (long) Math.ceil(NEIGHBORHOOD_FACTOR * radius / dz);
-
+			
 			/*
 			 * Ensure quality
 			 */
@@ -143,14 +185,13 @@ public class SemiAutoTracker<T extends RealType<T>  & NativeType<T>> implements 
 			long y0 = Math.max(0, y - r);
 			long z0 = Math.max(0, z - rz);
 
-			long x1 = Math.min(width, x + r);
-			long y1 = Math.min(height, y + r);
-			long z1 = Math.min(depth, z + rz);
+			long x1 = Math.min(width-1, x + r);
+			long y1 = Math.min(height-1, y + r);
+			long z1 = Math.min(depth-1, z + rz);
 
 			long[] min = new long[] { x0, y0, z0 };
 			long[] max = new long[] { x1, y1, z1 };
-			ExtendedRandomAccessibleInterval<T, RandomAccessibleInterval<T>> erai = Views.extendBorder(rai);
-			Img<T> cropimg =new CropImgView<T>(erai, min, max, new ArrayImgFactory<T>());
+			Img<T> cropimg =new CropImgView<T>(rai, min, max, new ArrayImgFactory<T>());
 
 			/*
 			 * Detect in crop cube
@@ -204,7 +245,7 @@ public class SemiAutoTracker<T extends RealType<T>  & NativeType<T>> implements 
 			}
 
 			if (!found) {
-				errorMessage = "Suitable spot found, but outside the target radius.";
+				errorMessage = "Suitable spot found, but outside the tolerance radius.";
 				return true;
 			}
 			
@@ -218,13 +259,6 @@ public class SemiAutoTracker<T extends RealType<T>  & NativeType<T>> implements 
 			model.beginUpdate();
 			try {
 				model.addSpotTo(target, frame);
-			} finally { 
-				model.endUpdate(); 
-			}
-
-			// link
-			model.beginUpdate();
-			try {
 				model.addEdge(spot, target, spot.squareDistanceTo(target));
 			} finally {
 				model.endUpdate();
