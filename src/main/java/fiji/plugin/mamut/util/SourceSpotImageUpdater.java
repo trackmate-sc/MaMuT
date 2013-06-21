@@ -76,8 +76,20 @@ public class SourceSpotImageUpdater <T extends RealType<T>> extends SpotImageUpd
 		IntervalView<T> slice = Views.hyperSlice(img, 2, z);
 
 		// Crop
-		long[] min = new long[] { x - r, y - r };
-		long[] max = new long[] { x + r, y + r };
+		
+		long w = img.dimension(0);
+		long h = img.dimension(1);
+
+		long x0 = Math.max(0, x - r);
+		long y0 = Math.max(0, y - r);
+
+		long x1 = Math.min(w-1, x + r);
+		long y1 = Math.min(h-1, y + r);
+
+		long[] min = new long[] { x0, y0 };
+		long[] max = new long[] { x1, y1 };
+
+		
 		IntervalView<T> crop = Views.zeroMin( Views.interval(slice, min, max) );
 
 		int width = (int) crop.dimension(0);
