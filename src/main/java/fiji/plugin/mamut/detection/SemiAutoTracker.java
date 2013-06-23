@@ -2,17 +2,21 @@ package fiji.plugin.mamut.detection;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.ArrayBlockingQueue;
 
 import net.imglib2.Point;
 import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.algorithm.Algorithm;
+import net.imglib2.algorithm.MultiThreaded;
 import net.imglib2.img.Img;
 import net.imglib2.img.ImgPlus;
 import net.imglib2.img.array.ArrayImgFactory;
 import net.imglib2.meta.Axes;
 import net.imglib2.meta.AxisType;
+import net.imglib2.multithreading.SimpleMultiThreading;
 import net.imglib2.position.transform.Round;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.NativeType;
@@ -53,7 +57,7 @@ import fiji.plugin.trackmate.util.CropImgView;
  * @param <T> the type of the source. Must extend {@link RealType} and {@link NativeType}
  * to use with most TrackMate {@link SpotDetector}s.
  */
-public class SemiAutoTracker<T extends RealType<T>  & NativeType<T>> implements Algorithm {
+public class SemiAutoTracker<T extends RealType<T>  & NativeType<T>> implements Algorithm, MultiThreaded {
 
 	private static final String BASE_ERROR_MESSAGE = "[SemiAutoTracker] ";
 	/** The size of the local neighborhood to inspect, in units of the source spot diameter. */
@@ -68,6 +72,8 @@ public class SemiAutoTracker<T extends RealType<T>  & NativeType<T>> implements 
 	private final SelectionModel selectionModel;
 	private final List<SourceAndConverter<T>> sources;
 	private String errorMessage;
+	private int numThreads;
+	private boolean ok;
 
 	/*
 	 * CONSTRUCTOR 
@@ -82,15 +88,36 @@ public class SemiAutoTracker<T extends RealType<T>  & NativeType<T>> implements 
 	/*
 	 * METHODS
 	 */
-
+	
+	
 	@Override
 	public boolean process() {
+		final Set<Spot> spots = selectionModel.getSpotSelection();
+		int nThreads = Math.min(numThreads, spots.size());
+		final ArrayBlockingQueue<Spot> queue = new ArrayBlockingQueue<Spot>(nThreads, false, spots);
+		
+		ok = true;
+		Thread[] threads = SimpleMultiThreading.newThreads(nThreads);
+		for (int i = 0; i < threads.length; i++) {
+			threads[i] = new Thread("TrackLocationAnalyzer thread " + i) {
+				@Override
+				public void run() {
+					Spot spot;
+					while ((spot = queue.poll()) != null) {
+						processSpot(spot);
+					}
+				}
+			};
+		}
+		return ok;
+	}
+
+	public void processSpot(final Spot initialSpot) {
 
 		/*
 		 * Initial spot
 		 */
-
-		Spot spot = selectionModel.getSpotSelection().iterator().next();
+		Spot spot = initialSpot;
 
 		while (true) {
 
@@ -111,8 +138,7 @@ public class SemiAutoTracker<T extends RealType<T>  & NativeType<T>> implements 
 			Source<T> source = sources.get(sourceIndex).getSpimSource();
 			
 			if (!source.isPresent(frame)) {
-				errorMessage = "Target source has exhausted its time points";
-				return true;
+				return "Spot: " + initialSpot + ": Target source has exhausted its time points";
 			}
 			
 			/*
@@ -163,8 +189,9 @@ public class SemiAutoTracker<T extends RealType<T>  & NativeType<T>> implements 
 
 			Double qf = spot.getFeature(Spot.QUALITY);
 			if (null == qf) {
+				ok = false;
 				errorMessage = BASE_ERROR_MESSAGE + "Target spot has a null QUALITY feature.";
-				return false;
+				return "Spot: " + initialSpot + " Bad spot: has a null QUALITY feature.";
 			}
 			double quality = qf.doubleValue(); 
 			if (quality < 0) {
@@ -203,8 +230,9 @@ public class SemiAutoTracker<T extends RealType<T>  & NativeType<T>> implements 
 			SpotDetector<T> detector = createDetector(imgplus, radius, quality * QUALITY_THRESHOLD);
 
 			if (!detector.checkInput() || !detector.process()) {
+				ok = false;
 				errorMessage = detector.getErrorMessage();
-				return false;
+				return "Spot: " + initialSpot + ": Detection problen: " + detector.getErrorMessage();
 			}
 
 			/*
@@ -213,8 +241,7 @@ public class SemiAutoTracker<T extends RealType<T>  & NativeType<T>> implements 
 
 			List<Spot> detectedSpots = detector.getResult();
 			if (detectedSpots.isEmpty()) {
-				errorMessage = "No suitable spot found.";
-				return true;
+				return "Spot: " + initialSpot + ": No suitable spot found.";
 			}
 			
 			/*
@@ -245,8 +272,7 @@ public class SemiAutoTracker<T extends RealType<T>  & NativeType<T>> implements 
 			}
 
 			if (!found) {
-				errorMessage = "Suitable spot found, but outside the tolerance radius.";
-				return true;
+				return "Spot: " + initialSpot + ": Suitable spot found, but outside the tolerance radius.";
 			}
 			
 			/*
@@ -256,6 +282,7 @@ public class SemiAutoTracker<T extends RealType<T>  & NativeType<T>> implements 
 			// spot
 			target.putFeature(Spot.RADIUS, radius );
 			target.putFeature(Spot.POSITION_T, Double.valueOf(frame) );
+			
 			model.beginUpdate();
 			try {
 				model.addSpotTo(target, frame);
@@ -282,7 +309,7 @@ public class SemiAutoTracker<T extends RealType<T>  & NativeType<T>> implements 
 	 */
 	protected SpotDetector<T> createDetector(ImgPlus<T> img, double radius, double quality) {
 		LogDetector<T> detector = new LogDetector<T>(img, radius, quality, true, false);
-		detector.setNumThreads(1); // KISS TODO test if it would be better to shoot a few threads more
+		detector.setNumThreads(1);
 		return detector;
 	}
 
@@ -294,11 +321,6 @@ public class SemiAutoTracker<T extends RealType<T>  & NativeType<T>> implements 
 		}
 		if (null == selectionModel) {
 			errorMessage = BASE_ERROR_MESSAGE + "selectionModel is null.";
-			return false;
-		}
-		if (selectionModel.getSpotSelection().size() != 1) {
-			errorMessage = BASE_ERROR_MESSAGE + "Expected to have 1 spot in selection, but got " + 
-					selectionModel.getSpotSelection().size() + "."; 
 			return false;
 		}
 		if (sources == null) {
@@ -313,5 +335,21 @@ public class SemiAutoTracker<T extends RealType<T>  & NativeType<T>> implements 
 	public String getErrorMessage() {
 		return errorMessage;
 	}
+
+	@Override
+	public void setNumThreads() {
+		this.numThreads = Runtime.getRuntime().availableProcessors();
+	}
+
+	@Override
+	public void setNumThreads(int numThreads) {
+		this.numThreads = numThreads;
+	}
+
+	@Override
+	public int getNumThreads() {
+		return numThreads;
+	}
+
 
 }
