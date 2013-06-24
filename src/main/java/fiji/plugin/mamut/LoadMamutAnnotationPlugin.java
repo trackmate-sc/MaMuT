@@ -30,7 +30,7 @@ public class LoadMamutAnnotationPlugin implements PlugIn {
 			return;
 		}
 		
-		MaMuT_ mamut = new MaMuT_();
+		MaMuT mamut = new MaMuT();
 		try {
 			mamut.load(file);
 		} catch (ParserConfigurationException e) {

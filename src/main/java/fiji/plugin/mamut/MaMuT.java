@@ -110,7 +110,7 @@ import fiji.plugin.trackmate.visualization.TrackColorGenerator;
 import fiji.plugin.trackmate.visualization.TrackMateModelView;
 import fiji.plugin.trackmate.visualization.trackscheme.TrackScheme;
 
-public class MaMuT_ implements BrightnessDialog.MinMaxListener, ModelChangeListener {
+public class MaMuT implements BrightnessDialog.MinMaxListener, ModelChangeListener {
 
 	private static final ImageIcon MAMUT_ICON = new ImageIcon(MamutControlPanel.class.getResource("mammouth-256x256.png"));
 	public static final String PLUGIN_NAME = "MaMuT";
@@ -173,7 +173,7 @@ public class MaMuT_ implements BrightnessDialog.MinMaxListener, ModelChangeListe
 	private static File mamutFile;
 	private static File imageFile;
 
-	public MaMuT_()  {
+	public MaMuT()  {
 
 		// I can't stand the metal look. If this is a problem, contact me (jeanyves.tinevez@gmail.com)
 		if (IJ.isMacOSX() || IJ.isWindows()) {
@@ -197,7 +197,7 @@ public class MaMuT_ implements BrightnessDialog.MinMaxListener, ModelChangeListe
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public void load(File mamutfile) throws ParserConfigurationException, SAXException, IOException, InstantiationException, IllegalAccessException, ClassNotFoundException {
 
-		MaMuT_.mamutFile = mamutfile;
+		MaMuT.mamutFile = mamutfile;
 		
 		MamutXmlReader reader = new MamutXmlReader(mamutfile);
 
@@ -382,7 +382,7 @@ public class MaMuT_ implements BrightnessDialog.MinMaxListener, ModelChangeListe
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public void launch(File file) throws ImgIOException, FormatException, IOException, ParserConfigurationException, SAXException, InstantiationException, IllegalAccessException, ClassNotFoundException {
 
-		MaMuT_.imageFile = file;
+		MaMuT.imageFile = file;
 
 		/*
 		 * Create image source
@@ -1132,7 +1132,7 @@ public class MaMuT_ implements BrightnessDialog.MinMaxListener, ModelChangeListe
 
 
 	private void showHelp() {
-		new HelpFrame(MaMuT_.class.getResource("Help.html"));
+		new HelpFrame(MaMuT.class.getResource("Help.html"));
 	}
 
 

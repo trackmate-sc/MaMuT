@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import viewer.render.SourceAndConverter;
-import fiji.plugin.mamut.MaMuT_;
+import fiji.plugin.mamut.MaMuT;
 import fiji.plugin.mamut.SourceSettings;
 import fiji.plugin.mamut.viewer.MamutViewer;
 import fiji.plugin.trackmate.Model;
@@ -40,7 +40,7 @@ public class MamutViewProvider extends ViewProvider {
 			if (key.equals(MamutViewer.KEY)) {
 				
 				Collection<SourceAndConverter<?>> sources = ss.getSources();
-				val = new MamutViewer(MaMuT_.DEFAULT_WIDTH, MaMuT_.DEFAULT_HEIGHT, 
+				val = new MamutViewer(MaMuT.DEFAULT_WIDTH, MaMuT.DEFAULT_HEIGHT, 
 						sources, ss.nframes, model, selectionModel);
 			}
 		}

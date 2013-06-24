@@ -33,7 +33,7 @@ public class NewMamutAnnotationPlugin implements PlugIn {
 			return;
 		}
 		
-		MaMuT_ mamut = new MaMuT_();
+		MaMuT mamut = new MaMuT();
 		try {
 			mamut.launch(file);
 		} catch (ImgIOException e) {
