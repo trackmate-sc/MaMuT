@@ -114,7 +114,7 @@ public class MaMuT_ implements BrightnessDialog.MinMaxListener, ModelChangeListe
 
 	private static final ImageIcon MAMUT_ICON = new ImageIcon(MamutControlPanel.class.getResource("mammouth-256x256.png"));
 	public static final String PLUGIN_NAME = "MaMuT";
-	public static final String PLUGIN_VERSION = "0.5.0";
+	public static final String PLUGIN_VERSION = "0.6.0";
 	private static final double DEFAULT_RADIUS = 10;
 	/** By how portion of the current radius we change this radius for every
 	 * change request.	 */
@@ -992,14 +992,13 @@ public class MaMuT_ implements BrightnessDialog.MinMaxListener, ModelChangeListe
 	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private void semiAutoDetectSpot(final MamutViewer viewer) {
-		final SemiAutoTracker autotracker = new SemiAutoTracker(model, selectionModel, sources);
+		final SemiAutoTracker autotracker = new SemiAutoTracker(model, selectionModel, sources, viewer.getLogger());
+		autotracker.setNumThreads(4);
 		new Thread("MaMuT semi-automated tracking thread") {
 			@Override
 			public void run() {
 				boolean ok = autotracker.checkInput() && autotracker.process();
-				if (ok) {
-					viewer.getLogger().log(autotracker.getErrorMessage());
-				} else {
+				if (!ok) {
 					viewer.getLogger().error(autotracker.getErrorMessage());
 				}
 			}
