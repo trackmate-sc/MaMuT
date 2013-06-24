@@ -12,6 +12,7 @@ import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.Stroke;
+import java.util.HashSet;
 import java.util.Set;
 
 import net.imglib2.realtransform.AffineTransform3D;
@@ -201,7 +202,7 @@ public class MamutOverlay {
 			case TrackMateModelView.TRACK_DISPLAY_MODE_WHOLE: {
 				for (Integer trackID : filteredTrackIDs) {
 					viewer.trackColorProvider.setCurrentTrackID(trackID);
-					final Set<DefaultWeightedEdge> track = model.getTrackModel().trackEdges(trackID);
+					final Set<DefaultWeightedEdge> track = new HashSet<DefaultWeightedEdge>(model.getTrackModel().trackEdges(trackID)); // TODO TEST
 
 					for (DefaultWeightedEdge edge : track) {
 						if (selectionModel.getEdgeSelection().contains(edge))
@@ -224,7 +225,7 @@ public class MamutOverlay {
 
 				for (int trackID : filteredTrackIDs) {
 					viewer.trackColorProvider.setCurrentTrackID(trackID);
-					final Set<DefaultWeightedEdge> track = model.getTrackModel().trackEdges(trackID);
+					final Set<DefaultWeightedEdge> track = new HashSet<DefaultWeightedEdge>(model.getTrackModel().trackEdges(trackID)); // TODO TEST
 
 					for (DefaultWeightedEdge edge : track) {
 						if (selectionModel.getEdgeSelection().contains(edge))

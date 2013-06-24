@@ -1,5 +1,6 @@
 package fiji.plugin.mamut.detection;
 
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -24,6 +25,7 @@ import net.imglib2.type.numeric.RealType;
 import viewer.render.Source;
 import viewer.render.SourceAndConverter;
 import fiji.plugin.mamut.util.Utils;
+import fiji.plugin.trackmate.Logger;
 import fiji.plugin.trackmate.Model;
 import fiji.plugin.trackmate.SelectionModel;
 import fiji.plugin.trackmate.Spot;
@@ -74,15 +76,17 @@ public class SemiAutoTracker<T extends RealType<T>  & NativeType<T>> implements 
 	private String errorMessage;
 	private int numThreads;
 	private boolean ok;
+	private final Logger logger;
 
 	/*
 	 * CONSTRUCTOR 
 	 */
 
-	public SemiAutoTracker(Model model, SelectionModel selectionModel, List<SourceAndConverter<T>> sources) {
+	public SemiAutoTracker(Model model, SelectionModel selectionModel, List<SourceAndConverter<T>> sources, Logger logger) {
 		this.model = model;
 		this.selectionModel = selectionModel;
 		this.sources = sources;
+		this.logger = logger;
 	}
 
 	/*
@@ -92,9 +96,11 @@ public class SemiAutoTracker<T extends RealType<T>  & NativeType<T>> implements 
 	
 	@Override
 	public boolean process() {
-		final Set<Spot> spots = selectionModel.getSpotSelection();
+		final Set<Spot> spots = new HashSet<Spot>(selectionModel.getSpotSelection());
+		selectionModel.clearSelection();
+		
 		int nThreads = Math.min(numThreads, spots.size());
-		final ArrayBlockingQueue<Spot> queue = new ArrayBlockingQueue<Spot>(nThreads, false, spots);
+		final ArrayBlockingQueue<Spot> queue = new ArrayBlockingQueue<Spot>(spots.size(), false, spots);
 		
 		ok = true;
 		Thread[] threads = SimpleMultiThreading.newThreads(nThreads);
@@ -109,6 +115,7 @@ public class SemiAutoTracker<T extends RealType<T>  & NativeType<T>> implements 
 				}
 			};
 		}
+		SimpleMultiThreading.startAndJoin(threads);
 		return ok;
 	}
 
@@ -138,7 +145,8 @@ public class SemiAutoTracker<T extends RealType<T>  & NativeType<T>> implements 
 			Source<T> source = sources.get(sourceIndex).getSpimSource();
 			
 			if (!source.isPresent(frame)) {
-				return "Spot: " + initialSpot + ": Target source has exhausted its time points";
+				logger.log("Spot: " + initialSpot + ": Target source has exhausted its time points");
+				return;
 			}
 			
 			/*
@@ -190,8 +198,8 @@ public class SemiAutoTracker<T extends RealType<T>  & NativeType<T>> implements 
 			Double qf = spot.getFeature(Spot.QUALITY);
 			if (null == qf) {
 				ok = false;
-				errorMessage = BASE_ERROR_MESSAGE + "Target spot has a null QUALITY feature.";
-				return "Spot: " + initialSpot + " Bad spot: has a null QUALITY feature.";
+				logger.error("Spot: " + initialSpot + " Bad spot: has a null QUALITY feature.");
+				return;
 			}
 			double quality = qf.doubleValue(); 
 			if (quality < 0) {
@@ -232,7 +240,8 @@ public class SemiAutoTracker<T extends RealType<T>  & NativeType<T>> implements 
 			if (!detector.checkInput() || !detector.process()) {
 				ok = false;
 				errorMessage = detector.getErrorMessage();
-				return "Spot: " + initialSpot + ": Detection problen: " + detector.getErrorMessage();
+				logger.error("Spot: " + initialSpot + ": Detection problen: " + detector.getErrorMessage());
+				return;
 			}
 
 			/*
@@ -241,7 +250,8 @@ public class SemiAutoTracker<T extends RealType<T>  & NativeType<T>> implements 
 
 			List<Spot> detectedSpots = detector.getResult();
 			if (detectedSpots.isEmpty()) {
-				return "Spot: " + initialSpot + ": No suitable spot found.";
+				logger.log("Spot: " + initialSpot + ": No suitable spot found.");
+				return;
 			}
 			
 			/*
@@ -272,7 +282,8 @@ public class SemiAutoTracker<T extends RealType<T>  & NativeType<T>> implements 
 			}
 
 			if (!found) {
-				return "Spot: " + initialSpot + ": Suitable spot found, but outside the tolerance radius.";
+				logger.log("Spot: " + initialSpot + ": Suitable spot found, but outside the tolerance radius.");
+				return;
 			}
 			
 			/*
