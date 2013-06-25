@@ -97,6 +97,10 @@ public class SemiAutoTracker<T extends RealType<T>  & NativeType<T>> implements 
 	@Override
 	public boolean process() {
 		final Set<Spot> spots = new HashSet<Spot>(selectionModel.getSpotSelection());
+		if (spots.isEmpty()) {
+			errorMessage = BASE_ERROR_MESSAGE + "No spots in selection.";
+			return false;
+		}
 		selectionModel.clearSelection();
 		
 		int nThreads = Math.min(numThreads, spots.size());
