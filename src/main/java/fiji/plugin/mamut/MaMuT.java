@@ -51,16 +51,16 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import loci.formats.FormatException;
 import mpicbg.spim.data.SequenceDescription;
+import net.imglib.display.RealARGBColorConverter;
 import net.imglib2.Interval;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealPoint;
 import net.imglib2.algorithm.histogram.DiscreteFrequencyDistribution;
 import net.imglib2.algorithm.histogram.Histogram1d;
 import net.imglib2.algorithm.histogram.Real1dBinMapper;
-import net.imglib2.display.AbstractLinearRange;
-import net.imglib2.display.RealARGBConverter;
 import net.imglib2.io.ImgIOException;
 import net.imglib2.realtransform.AffineTransform3D;
+import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.integer.UnsignedShortType;
 import net.imglib2.util.LinAlgHelpers;
 import net.imglib2.view.Views;
@@ -68,11 +68,15 @@ import net.imglib2.view.Views;
 import org.jgrapht.graph.DefaultWeightedEdge;
 import org.xml.sax.SAXException;
 
-import viewer.BrightnessDialog;
 import viewer.HelpFrame;
 import viewer.RotationAnimator;
 import viewer.SequenceViewsLoader;
 import viewer.SpimSource;
+import viewer.SpimViewer;
+import viewer.gui.brightness.ConverterSetup;
+import viewer.gui.brightness.MinMaxGroup;
+import viewer.gui.brightness.NewBrightnessDialog;
+import viewer.gui.brightness.SetupAssignments;
 import viewer.render.Source;
 import viewer.render.SourceAndConverter;
 import viewer.render.SourceState;
@@ -110,7 +114,7 @@ import fiji.plugin.trackmate.visualization.TrackColorGenerator;
 import fiji.plugin.trackmate.visualization.TrackMateModelView;
 import fiji.plugin.trackmate.visualization.trackscheme.TrackScheme;
 
-public class MaMuT implements BrightnessDialog.MinMaxListener, ModelChangeListener {
+public class MaMuT implements ModelChangeListener {
 
 	private static final ImageIcon MAMUT_ICON = new ImageIcon(MamutControlPanel.class.getResource("mammouth-256x256.png"));
 	public static final String PLUGIN_NAME = "MaMuT";
@@ -144,8 +148,10 @@ public class MaMuT implements BrightnessDialog.MinMaxListener, ModelChangeListen
 	private KeyStroke decreaseRadiusABitKeystroke = KeyStroke.getKeyStroke( decreaseRadiusKey, CHANGE_A_BIT_KEY );
 	private KeyStroke toggleLinkingModeKeystroke = KeyStroke.getKeyStroke( KeyEvent.VK_L, 0);
 
-	private ArrayList< AbstractLinearRange > displayRanges;
-	private BrightnessDialog brightnessDialog;
+	private JFrame mamutPanelFrame;
+
+	private SetupAssignments setupAssignments;
+	private NewBrightnessDialog brightnessDialog;
 	/** The model shown and edited by this plugin. */
 	private Model model;
 	/** The next created spot will be set with this radius. */
@@ -235,15 +241,58 @@ public class MaMuT implements BrightnessDialog.MinMaxListener, ModelChangeListen
 		 * Read image source
 		 */
 
-		final RealARGBConverter< UnsignedShortType > converter = new RealARGBConverter< UnsignedShortType >( 0, 65535 );
-
 		imageFile = new File(settings.imageFolder, settings.imageFileName);
 		final SequenceViewsLoader loader = new SequenceViewsLoader( imageFile.getAbsolutePath() );
 		final SequenceDescription seq = loader.getSequenceDescription();
 		nTimepoints = seq.numTimepoints();
 		sources = new ArrayList< SourceAndConverter< ? > >();
+		final ArrayList< ConverterSetup > converterSetups = new ArrayList< ConverterSetup >();
 		for ( int setup = 0; setup < seq.numViewSetups(); ++setup ) {
+			final RealARGBColorConverter< UnsignedShortType > converter = new RealARGBColorConverter< UnsignedShortType >( 0, 65535 );
+			converter.setColor( new ARGBType( ARGBType.rgba( 255, 255, 255, 255 ) ) );
 			sources.add( new SourceAndConverter< UnsignedShortType >( new SpimSource( loader, setup, "angle " + seq.setups.get( setup ).getAngle() ), converter ) );
+			final int id = setup;
+			converterSetups.add( new ConverterSetup()
+			{
+				@Override
+				public void setDisplayRange( final int min, final int max )
+				{
+					converter.setMin( min );
+					converter.setMax( max );
+					requestRepaintAllViewers();
+				}
+
+				@Override
+				public void setColor( final ARGBType color )
+				{
+					converter.setColor( color );
+					requestRepaintAllViewers();
+				}
+
+				@Override
+				public int getSetupId()
+				{
+					return id;
+				}
+
+				@Override
+				public int getDisplayRangeMin()
+				{
+					return ( int ) converter.getMin();
+				}
+
+				@Override
+				public int getDisplayRangeMax()
+				{
+					return ( int ) converter.getMax();
+				}
+
+				@Override
+				public ARGBType getColor()
+				{
+					return converter.getColor();
+				}
+			} );
 		}
 
 		/*
@@ -266,11 +315,13 @@ public class MaMuT implements BrightnessDialog.MinMaxListener, ModelChangeListen
 		thumbnailUpdater = new SourceSpotImageUpdater(settings, sources.get(0).getSpimSource());
 
 		/*
-		 * Create display range
+		 * Create setup assignments (for managing brightness and color).
 		 */
 
-		displayRanges = new ArrayList< AbstractLinearRange >();
-		displayRanges.add( converter );
+		setupAssignments = new SetupAssignments( converterSetups, 0, 65535 );
+		final MinMaxGroup group = setupAssignments.getMinMaxGroups().get( 0 );
+		for ( final ConverterSetup setup : setupAssignments.getConverterSetups() )
+			setupAssignments.moveSetupToGroup( setup, group );
 
 		/*
 		 * Color provider
@@ -331,6 +382,7 @@ public class MaMuT implements BrightnessDialog.MinMaxListener, ModelChangeListen
 		 */
 
 		launchPanel(); 
+		brightnessDialog = new NewBrightnessDialog( mamutPanelFrame, setupAssignments );
 	}
 
 
@@ -369,12 +421,12 @@ public class MaMuT implements BrightnessDialog.MinMaxListener, ModelChangeListen
 			}
 		});
 
-		JFrame frame = new JFrame(PLUGIN_NAME + " v" + PLUGIN_VERSION);
-		frame.setIconImage(MAMUT_ICON.getImage());
-		frame.setSize(300, 530);
-		frame.getContentPane().add(panel);
-		frame.setResizable(false);
-		frame.setVisible(true);
+		mamutPanelFrame = new JFrame(PLUGIN_NAME + " v" + PLUGIN_VERSION);
+		mamutPanelFrame.setIconImage(MAMUT_ICON.getImage());
+		mamutPanelFrame.setSize(300, 530);
+		mamutPanelFrame.getContentPane().add(panel);
+		mamutPanelFrame.setResizable(false);
+		mamutPanelFrame.setVisible(true);
 
 	}
 
@@ -388,16 +440,62 @@ public class MaMuT implements BrightnessDialog.MinMaxListener, ModelChangeListen
 		 * Create image source
 		 */
 
-		final RealARGBConverter< UnsignedShortType > converter = new RealARGBConverter< UnsignedShortType >( 0, 65535 );
-
 		String xmlFilename = file.getAbsolutePath();
 		final SequenceViewsLoader loader = new SequenceViewsLoader( xmlFilename  );
 		final SequenceDescription seq = loader.getSequenceDescription();
 		nTimepoints = seq.numTimepoints();
 		sources = new ArrayList< SourceAndConverter< ? > >();
-		for ( int setup = 0; setup < seq.numViewSetups(); ++setup ) {
+		final ArrayList< ConverterSetup > converterSetups = new ArrayList< ConverterSetup >();
+		for ( int setup = 0; setup < seq.numViewSetups(); ++setup )
+		{
+			final RealARGBColorConverter< UnsignedShortType > converter = new RealARGBColorConverter< UnsignedShortType >( 0, 65535 );
+			converter.setColor( new ARGBType( ARGBType.rgba( 255, 255, 255, 255 ) ) );
 			sources.add( new SourceAndConverter< UnsignedShortType >( new SpimSource( loader, setup, "angle " + seq.setups.get( setup ).getAngle() ), converter ) );
+			final int id = setup;
+			converterSetups.add( new ConverterSetup()
+			{
+				@Override
+				public void setDisplayRange( final int min, final int max )
+				{
+					converter.setMin( min );
+					converter.setMax( max );
+					requestRepaintAllViewers();
+				}
+
+				@Override
+				public void setColor( final ARGBType color )
+				{
+					converter.setColor( color );
+					requestRepaintAllViewers();
+				}
+
+				@Override
+				public int getSetupId()
+				{
+					return id;
+				}
+
+				@Override
+				public int getDisplayRangeMin()
+				{
+					return ( int ) converter.getMin();
+				}
+
+				@Override
+				public int getDisplayRangeMax()
+				{
+					return ( int ) converter.getMax();
+				}
+
+				@Override
+				public ARGBType getColor()
+				{
+					return converter.getColor();
+				}
+			} );
 		}
+
+
 
 		/*
 		 * Instantiate model
@@ -451,11 +549,13 @@ public class MaMuT implements BrightnessDialog.MinMaxListener, ModelChangeListen
 
 
 		/*
-		 * Create display range
+		 * Create setup assignments (for managing brightness and color).
 		 */
 
-		displayRanges = new ArrayList< AbstractLinearRange >();
-		displayRanges.add( converter );
+		setupAssignments = new SetupAssignments( converterSetups, 0, 65535 );
+		final MinMaxGroup group = setupAssignments.getMinMaxGroups().get( 0 );
+		for ( final ConverterSetup setup : setupAssignments.getConverterSetups() )
+			setupAssignments.moveSetupToGroup( setup, group );
 
 		/*
 		 * Color provider
@@ -507,10 +607,12 @@ public class MaMuT implements BrightnessDialog.MinMaxListener, ModelChangeListen
 				}
 			}
 		});
-		JFrame frame = new JFrame(PLUGIN_NAME + " v" + PLUGIN_VERSION);
-		frame.setSize(350, 600);
-		frame.getContentPane().add(panel);
-		frame.setVisible(true);
+		mamutPanelFrame = new JFrame(PLUGIN_NAME + " v" + PLUGIN_VERSION);
+		mamutPanelFrame.setSize(350, 600);
+		mamutPanelFrame.getContentPane().add(panel);
+		mamutPanelFrame.setVisible(true);
+
+		brightnessDialog = new NewBrightnessDialog( mamutPanelFrame, setupAssignments );
 	}		
 
 
@@ -554,16 +656,6 @@ public class MaMuT implements BrightnessDialog.MinMaxListener, ModelChangeListen
 
 	@Override
 	public void modelChanged(ModelChangeEvent event) {
-		refresh();
-	}
-
-
-	@Override
-	public void setMinMax( final int min, final int max ) {
-		for ( final AbstractLinearRange r : displayRanges ) {
-			r.setMin( min );
-			r.setMax( max );
-		}
 		refresh();
 	}
 
@@ -612,6 +704,13 @@ public class MaMuT implements BrightnessDialog.MinMaxListener, ModelChangeListen
 	}
 
 
+	private void requestRepaintAllViewers()
+	{
+		if (guimodel != null)
+			for ( final TrackMateModelView view : guimodel.getViews() )
+				if (view instanceof SpimViewer)
+					( ( SpimViewer ) view ).requestRepaint();
+	}
 
 	private void initTransform(MamutViewer viewer, final int viewerWidth, final int viewerHeight ) {
 		final int cX = viewerWidth / 2;
@@ -672,6 +771,7 @@ public class MaMuT implements BrightnessDialog.MinMaxListener, ModelChangeListen
 		viewer.setCurrentViewerTransform( viewerTransform );
 	}
 
+
 	private void initBrightness(MamutViewer viewer, final double cumulativeMinCutoff, final double cumulativeMaxCutoff ) {
 		final ViewerState state = viewer.getState();
 		final Source< ? > source = state.getSources().get( state.getCurrentSource() ).getSpimSource();
@@ -697,7 +797,9 @@ public class MaMuT implements BrightnessDialog.MinMaxListener, ModelChangeListen
 			cumulative += dfd.relativeFrequency( bin );
 		}
 		final int max = i * 65535 / numBins;
-		brightnessDialog.setMinMax( min, max );
+		final MinMaxGroup minmax = setupAssignments.getMinMaxGroups().get(0);
+		minmax.getMinBoundedValue().setCurrentValue(min);
+		minmax.getMaxBoundedValue().setCurrentValue(max);
 	}
 
 
@@ -730,9 +832,7 @@ public class MaMuT implements BrightnessDialog.MinMaxListener, ModelChangeListen
 
 			private static final long serialVersionUID = 1L;
 		} );
-		brightnessDialog = new BrightnessDialog( viewer.getFrame() );
 		viewer.installKeyActions( brightnessDialog );
-		brightnessDialog.setListener( this );
 
 		/*
 		 *  Add spot
