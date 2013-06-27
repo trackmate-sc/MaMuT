@@ -199,6 +199,11 @@ public class MaMuT implements ModelChangeListener {
 	}
 
 
+	/*
+	 * PUBLIC METHODS
+	 */
+
+
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public void load(File mamutfile) throws ParserConfigurationException, SAXException, IOException, InstantiationException, IllegalAccessException, ClassNotFoundException {
@@ -242,7 +247,237 @@ public class MaMuT implements ModelChangeListener {
 		 */
 
 		imageFile = new File(settings.imageFolder, settings.imageFileName);
-		final SequenceViewsLoader loader = new SequenceViewsLoader( imageFile.getAbsolutePath() );
+		prepareSources(imageFile);
+		
+
+		/*
+		 * Update settings
+		 */
+
+		settings.setFrom(sources, imageFile, nTimepoints);
+
+		/*
+		 * Autoupdate features
+		 */
+
+		new ModelFeatureUpdater(model, settings);
+
+
+		/*
+		 * Thumbnail updater
+		 */
+
+		thumbnailUpdater = new SourceSpotImageUpdater(settings, sources.get(0).getSpimSource());
+
+		/*
+		 * Color provider
+		 */
+
+		spotColorProvider = new SpotColorGenerator(model);
+		trackColorProvider = new PerTrackFeatureColorGenerator(model, TrackIndexAnalyzer.TRACK_ID);
+
+		/*
+		 * GUI model
+		 */
+
+		guimodel = new TrackMateGUIModel();
+		guimodel.setDisplaySettings(createDisplaySettings(model));
+
+		/*
+		 * Brightness
+		 */
+		
+		brightnessDialog = new NewBrightnessDialog( mamutPanelFrame, setupAssignments );
+		
+		/*
+		 * Read and render views
+		 */
+
+		MamutViewProvider provider = new MamutViewProvider(model, settings, selectionModel);
+		Collection<TrackMateModelView> views = reader.getViews(provider);
+		for (TrackMateModelView view : views) {
+			for (String key : guimodel.getDisplaySettings().keySet()) {
+				view.setDisplaySettings(key, guimodel.getDisplaySettings().get(key));
+			}
+
+			if (view.getKey().equals(MamutViewer.KEY)) {
+				final MamutViewer viewer = (MamutViewer) view;
+				installKeyBindings(viewer );
+				installMouseListeners(viewer);
+
+				viewer.getFrame().addWindowListener(new WindowListener() {
+					@Override public void windowOpened(WindowEvent arg0) { }
+					@Override public void windowIconified(WindowEvent arg0) { }
+					@Override public void windowDeiconified(WindowEvent arg0) { }
+					@Override public void windowDeactivated(WindowEvent arg0) { }
+					@Override public void windowClosing(WindowEvent arg0) { }
+					@Override public void windowActivated(WindowEvent arg0) { }
+					@Override public void windowClosed(WindowEvent arg0) {
+						guimodel.getViews().remove(viewer);
+					}
+				});
+
+				initTransform(viewer, viewer.getFrame().getWidth(), viewer.getFrame().getHeight());
+				initBrightness(viewer, 0.001, 0.999 );
+
+			} else if (view.getKey().equals(TrackScheme.KEY)) {
+				TrackScheme trackscheme = (TrackScheme) view;
+				trackscheme.setSpotImageUpdater(thumbnailUpdater);
+			}
+
+			view.render();
+			guimodel.addView(view);
+		}
+
+		/*
+		 * Control Panel
+		 */
+
+		launchPanel(); 
+	}
+
+
+
+
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public void launch(File file) throws ImgIOException, FormatException, IOException, ParserConfigurationException, SAXException, InstantiationException, IllegalAccessException, ClassNotFoundException {
+
+		MaMuT.imageFile = file;
+
+		/*
+		 * Load image source
+		 */
+
+		prepareSources(file);
+
+		/*
+		 * Instantiate model
+		 */
+
+		model = new Model();
+		model.addModelChangeListener(this);
+
+		/*
+		 * Thumbnail updater
+		 */
+
+		thumbnailUpdater = new SourceSpotImageUpdater(settings, sources.get(0).getSpimSource());
+
+
+		/*
+		 * Settings
+		 */
+
+		settings = new SourceSettings();
+		settings.setFrom(sources, file, nTimepoints);
+		settings.addTrackAnalyzer(new TrackIndexAnalyzer(model)); // we need at least this one
+		settings.addEdgeAnalyzer(new EdgeVelocityAnalyzer(model)); // this one is for fun
+		settings.addEdgeAnalyzer(new EdgeTargetAnalyzer(model)); // we CANNOT load & save without this one
+
+		/*
+		 * Autoupdate features & declare them
+		 */
+
+		new ModelFeatureUpdater(model, settings);
+
+		TrackMate trackmate = new TrackMate(model, settings);
+		trackmate.computeSpotFeatures(true);
+		trackmate.computeEdgeFeatures(true);
+		trackmate.computeTrackFeatures(true);
+
+		/*
+		 * Selection model
+		 */
+
+		selectionModel = new SelectionModel(model);
+		selectionModel.addSelectionChangeListener(new SelectionChangeListener() {
+			@Override
+			public void selectionChanged(SelectionChangeEvent event) {
+				refresh();
+				if (selectionModel.getSpotSelection().size() == 1) {
+					centerOnSpot(selectionModel.getSpotSelection().iterator().next());
+				}
+			}
+		});
+
+		/*
+		 * Color provider
+		 */
+
+		spotColorProvider = new SpotColorGenerator(model);
+		trackColorProvider = new PerTrackFeatureColorGenerator(model, TrackIndexAnalyzer.TRACK_ID);
+
+		/*
+		 * GUI model
+		 */
+
+		guimodel = new TrackMateGUIModel();
+		guimodel.setDisplaySettings(createDisplaySettings(model));
+
+		/*
+		 * Control Panel
+		 */
+
+		launchPanel();
+
+		brightnessDialog = new NewBrightnessDialog( mamutPanelFrame, setupAssignments );
+	}		
+	
+	@Override
+	public void modelChanged(ModelChangeEvent event) {
+		refresh();
+	}
+	
+	/*
+	 * PRIVATE METHODS
+	 */
+	
+	private void launchPanel() {
+
+		panel = new MamutControlPanel(model);
+		panel.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent event) {
+				if (event == panel.TRACK_SCHEME_BUTTON_PRESSED) {
+					launchTrackScheme();
+
+				} else if (event == panel.DO_ANALYSIS_BUTTON_PRESSED) {
+					launchDoAnalysis();
+
+				} else if (event == panel.MAMUT_VIEWER_BUTTON_PRESSED) {
+					newViewer();
+
+				} else if (event == panel.MAMUT_SAVE_BUTTON_PRESSED) {
+					save();
+
+				} else {
+					System.out.println("[MaMuT_] Caught unknown event: " + event);
+				}
+			}
+
+		});
+		panel.addDisplaySettingsChangeListener(new DisplaySettingsListener() {
+			@Override
+			public void displaySettingsChanged(DisplaySettingsEvent event) {
+				guimodel.getDisplaySettings().put(event.getKey(), event.getNewValue());
+				for (TrackMateModelView view : guimodel.getViews()) {
+					view.setDisplaySettings(event.getKey(), event.getNewValue());
+					view.refresh();
+				}
+			}
+		});
+
+		mamutPanelFrame = new JFrame(PLUGIN_NAME + " v" + PLUGIN_VERSION);
+		mamutPanelFrame.setIconImage(MAMUT_ICON.getImage());
+		mamutPanelFrame.setSize(300, 530);
+		mamutPanelFrame.getContentPane().add(panel);
+		mamutPanelFrame.setResizable(false);
+		mamutPanelFrame.setVisible(true);
+
+	}
+	
+	private void prepareSources(File dataFile) throws ParserConfigurationException, SAXException, IOException, InstantiationException, IllegalAccessException, ClassNotFoundException {
+		final SequenceViewsLoader loader = new SequenceViewsLoader( dataFile.getAbsolutePath() );
 		final SequenceDescription seq = loader.getSequenceDescription();
 		nTimepoints = seq.numTimepoints();
 		sources = new ArrayList< SourceAndConverter< ? > >();
@@ -294,26 +529,7 @@ public class MaMuT implements ModelChangeListener {
 				}
 			} );
 		}
-
-		/*
-		 * Update settings
-		 */
-
-		settings.setFrom(sources, imageFile, nTimepoints);
-
-		/*
-		 * Autoupdate features
-		 */
-
-		new ModelFeatureUpdater(model, settings);
-
-
-		/*
-		 * Thumbnail updater
-		 */
-
-		thumbnailUpdater = new SourceSpotImageUpdater(settings, sources.get(0).getSpimSource());
-
+		
 		/*
 		 * Create setup assignments (for managing brightness and color).
 		 */
@@ -322,303 +538,7 @@ public class MaMuT implements ModelChangeListener {
 		final MinMaxGroup group = setupAssignments.getMinMaxGroups().get( 0 );
 		for ( final ConverterSetup setup : setupAssignments.getConverterSetups() )
 			setupAssignments.moveSetupToGroup( setup, group );
-
-		/*
-		 * Color provider
-		 */
-
-		spotColorProvider = new SpotColorGenerator(model);
-		trackColorProvider = new PerTrackFeatureColorGenerator(model, TrackIndexAnalyzer.TRACK_ID);
-
-		/*
-		 * GUI model
-		 */
-
-		guimodel = new TrackMateGUIModel();
-		guimodel.setDisplaySettings(createDisplaySettings(model));
-
-		/*
-		 * Read and render views
-		 */
-
-		MamutViewProvider provider = new MamutViewProvider(model, settings, selectionModel);
-		Collection<TrackMateModelView> views = reader.getViews(provider);
-		for (TrackMateModelView view : views) {
-			for (String key : guimodel.getDisplaySettings().keySet()) {
-				view.setDisplaySettings(key, guimodel.getDisplaySettings().get(key));
-			}
-
-			if (view.getKey().equals(MamutViewer.KEY)) {
-				final MamutViewer viewer = (MamutViewer) view;
-				installKeyBindings(viewer );
-				installMouseListeners(viewer);
-
-				viewer.getFrame().addWindowListener(new WindowListener() {
-					@Override public void windowOpened(WindowEvent arg0) { }
-					@Override public void windowIconified(WindowEvent arg0) { }
-					@Override public void windowDeiconified(WindowEvent arg0) { }
-					@Override public void windowDeactivated(WindowEvent arg0) { }
-					@Override public void windowClosing(WindowEvent arg0) { }
-					@Override public void windowActivated(WindowEvent arg0) { }
-					@Override public void windowClosed(WindowEvent arg0) {
-						guimodel.getViews().remove(viewer);
-					}
-				});
-
-				initTransform(viewer, viewer.getFrame().getWidth(), viewer.getFrame().getHeight());
-				initBrightness(viewer, 0.001, 0.999 );
-
-			} else if (view.getKey().equals(TrackScheme.KEY)) {
-				TrackScheme trackscheme = (TrackScheme) view;
-				trackscheme.setSpotImageUpdater(thumbnailUpdater);
-			}
-
-			view.render();
-			guimodel.addView(view);
-		}
-
-		/*
-		 * Control Panel
-		 */
-
-		launchPanel(); 
-		brightnessDialog = new NewBrightnessDialog( mamutPanelFrame, setupAssignments );
 	}
-
-
-	private void launchPanel() {
-
-		panel = new MamutControlPanel(model);
-		panel.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent event) {
-				if (event == panel.TRACK_SCHEME_BUTTON_PRESSED) {
-					launchTrackScheme();
-
-				} else if (event == panel.DO_ANALYSIS_BUTTON_PRESSED) {
-					launchDoAnalysis();
-
-				} else if (event == panel.MAMUT_VIEWER_BUTTON_PRESSED) {
-					newViewer();
-
-				} else if (event == panel.MAMUT_SAVE_BUTTON_PRESSED) {
-					save();
-
-				} else {
-					System.out.println("[MaMuT_] Caught unknown event: " + event);
-				}
-			}
-
-		});
-		panel.addDisplaySettingsChangeListener(new DisplaySettingsListener() {
-			@Override
-			public void displaySettingsChanged(DisplaySettingsEvent event) {
-				guimodel.getDisplaySettings().put(event.getKey(), event.getNewValue());
-				for (TrackMateModelView view : guimodel.getViews()) {
-					view.setDisplaySettings(event.getKey(), event.getNewValue());
-					view.refresh();
-				}
-			}
-		});
-
-		mamutPanelFrame = new JFrame(PLUGIN_NAME + " v" + PLUGIN_VERSION);
-		mamutPanelFrame.setIconImage(MAMUT_ICON.getImage());
-		mamutPanelFrame.setSize(300, 530);
-		mamutPanelFrame.getContentPane().add(panel);
-		mamutPanelFrame.setResizable(false);
-		mamutPanelFrame.setVisible(true);
-
-	}
-
-
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public void launch(File file) throws ImgIOException, FormatException, IOException, ParserConfigurationException, SAXException, InstantiationException, IllegalAccessException, ClassNotFoundException {
-
-		MaMuT.imageFile = file;
-
-		/*
-		 * Create image source
-		 */
-
-		String xmlFilename = file.getAbsolutePath();
-		final SequenceViewsLoader loader = new SequenceViewsLoader( xmlFilename  );
-		final SequenceDescription seq = loader.getSequenceDescription();
-		nTimepoints = seq.numTimepoints();
-		sources = new ArrayList< SourceAndConverter< ? > >();
-		final ArrayList< ConverterSetup > converterSetups = new ArrayList< ConverterSetup >();
-		for ( int setup = 0; setup < seq.numViewSetups(); ++setup )
-		{
-			final RealARGBColorConverter< UnsignedShortType > converter = new RealARGBColorConverter< UnsignedShortType >( 0, 65535 );
-			converter.setColor( new ARGBType( ARGBType.rgba( 255, 255, 255, 255 ) ) );
-			sources.add( new SourceAndConverter< UnsignedShortType >( new SpimSource( loader, setup, "angle " + seq.setups.get( setup ).getAngle() ), converter ) );
-			final int id = setup;
-			converterSetups.add( new ConverterSetup()
-			{
-				@Override
-				public void setDisplayRange( final int min, final int max )
-				{
-					converter.setMin( min );
-					converter.setMax( max );
-					requestRepaintAllViewers();
-				}
-
-				@Override
-				public void setColor( final ARGBType color )
-				{
-					converter.setColor( color );
-					requestRepaintAllViewers();
-				}
-
-				@Override
-				public int getSetupId()
-				{
-					return id;
-				}
-
-				@Override
-				public int getDisplayRangeMin()
-				{
-					return ( int ) converter.getMin();
-				}
-
-				@Override
-				public int getDisplayRangeMax()
-				{
-					return ( int ) converter.getMax();
-				}
-
-				@Override
-				public ARGBType getColor()
-				{
-					return converter.getColor();
-				}
-			} );
-		}
-
-
-
-		/*
-		 * Instantiate model
-		 */
-
-		model = new Model();
-		model.addModelChangeListener(this);
-
-		/*
-		 * Thumbnail updater
-		 */
-
-		thumbnailUpdater = new SourceSpotImageUpdater(settings, sources.get(0).getSpimSource());
-
-
-		/*
-		 * Settings
-		 */
-
-		settings = new SourceSettings();
-		settings.setFrom(sources, file, seq.numTimepoints());
-		settings.addTrackAnalyzer(new TrackIndexAnalyzer(model)); // we need at least this one
-		settings.addEdgeAnalyzer(new EdgeVelocityAnalyzer(model)); // this one is for fun
-		settings.addEdgeAnalyzer(new EdgeTargetAnalyzer(model)); // we CANNOT load & save without this one
-
-		/*
-		 * Autoupdate features & declare them
-		 */
-
-		new ModelFeatureUpdater(model, settings);
-
-		TrackMate trackmate = new TrackMate(model, settings);
-		trackmate.computeSpotFeatures(true);
-		trackmate.computeEdgeFeatures(true);
-		trackmate.computeTrackFeatures(true);
-
-		/*
-		 * Selection model
-		 */
-
-		selectionModel = new SelectionModel(model);
-		selectionModel.addSelectionChangeListener(new SelectionChangeListener() {
-			@Override
-			public void selectionChanged(SelectionChangeEvent event) {
-				refresh();
-				if (selectionModel.getSpotSelection().size() == 1) {
-					centerOnSpot(selectionModel.getSpotSelection().iterator().next());
-				}
-			}
-		});
-
-
-		/*
-		 * Create setup assignments (for managing brightness and color).
-		 */
-
-		setupAssignments = new SetupAssignments( converterSetups, 0, 65535 );
-		final MinMaxGroup group = setupAssignments.getMinMaxGroups().get( 0 );
-		for ( final ConverterSetup setup : setupAssignments.getConverterSetups() )
-			setupAssignments.moveSetupToGroup( setup, group );
-
-		/*
-		 * Color provider
-		 */
-
-		spotColorProvider = new SpotColorGenerator(model);
-		trackColorProvider = new PerTrackFeatureColorGenerator(model, TrackIndexAnalyzer.TRACK_ID);
-
-		/*
-		 * GUI model
-		 */
-
-		guimodel = new TrackMateGUIModel();
-		guimodel.setDisplaySettings(createDisplaySettings(model));
-
-		/*
-		 * Control Panel
-		 */
-
-		panel = new MamutControlPanel(model);
-		panel.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent event) {
-				if (event == panel.TRACK_SCHEME_BUTTON_PRESSED) {
-					launchTrackScheme();
-
-				} else if (event == panel.DO_ANALYSIS_BUTTON_PRESSED) {
-					launchDoAnalysis();
-
-				} else if (event == panel.MAMUT_VIEWER_BUTTON_PRESSED) {
-					newViewer();
-
-				} else if (event == panel.MAMUT_SAVE_BUTTON_PRESSED) {
-					save();
-
-				} else {
-					System.out.println("[MaMuT_] Caught unknown event: " + event);
-				}
-			}
-
-		});
-		panel.addDisplaySettingsChangeListener(new DisplaySettingsListener() {
-			@Override
-			public void displaySettingsChanged(DisplaySettingsEvent event) {
-				guimodel.getDisplaySettings().put(event.getKey(), event.getNewValue());
-				for (TrackMateModelView view : guimodel.getViews()) {
-					view.setDisplaySettings(event.getKey(), event.getNewValue());
-					view.refresh();
-				}
-			}
-		});
-		mamutPanelFrame = new JFrame(PLUGIN_NAME + " v" + PLUGIN_VERSION);
-		mamutPanelFrame.setSize(350, 600);
-		mamutPanelFrame.getContentPane().add(panel);
-		mamutPanelFrame.setVisible(true);
-
-		brightnessDialog = new NewBrightnessDialog( mamutPanelFrame, setupAssignments );
-	}		
-
-
-	/*
-	 * PUBLIC METHODS
-	 */
 
 	private MamutViewer newViewer() {
 		final MamutViewer viewer = new MamutViewer(DEFAULT_WIDTH, DEFAULT_HEIGHT, sources, nTimepoints, model, selectionModel);
@@ -653,22 +573,10 @@ public class MaMuT implements ModelChangeListener {
 
 	}
 
-
-	@Override
-	public void modelChanged(ModelChangeEvent event) {
-		refresh();
-	}
-
-
-	public void toggleBrightnessDialog() {
+	private void toggleBrightnessDialog() {
 		brightnessDialog.setVisible( ! brightnessDialog.isVisible() );
 	}
-
-	/*
-	 * PRIVATE METHODS
-	 */
-
-
+	
 	private void save() {
 
 		Logger logger = Logger.IJ_LOGGER;
@@ -966,8 +874,6 @@ public class MaMuT implements ModelChangeListener {
 
 	}
 
-
-
 	/**
 	 * Configures the specified {@link MamutViewer} with mouse listeners. 
 	 * @param viewer  the {@link MamutViewer} to configure.
@@ -986,29 +892,19 @@ public class MaMuT implements ModelChangeListener {
 					movedSpot.putFeature(Spot.POSITION_Y, coordinates[1]);
 					movedSpot.putFeature(Spot.POSITION_Z, coordinates[2]);
 				}
-
 			}
 
-			@Override
-			public void mouseDragged(MouseEvent arg0) { }
+			@Override public void mouseDragged(MouseEvent arg0) { }
 		});
-
 
 		viewer.addHandler(new MouseListener() {
 
-			@Override
-			public void mouseReleased(MouseEvent arg0) { }
-
-			@Override
-			public void mousePressed(MouseEvent arg0) { }
-
-			@Override
-			public void mouseExited(MouseEvent arg0) {}
-
-			@Override
-			public void mouseEntered(MouseEvent arg0) { }
-
-			@Override
+			@Override public void mouseReleased(MouseEvent arg0) { }
+			@Override public void mousePressed(MouseEvent arg0) { }
+			@Override public void mouseExited(MouseEvent arg0) {}
+			@Override public void mouseEntered(MouseEvent arg0) { }
+			
+			@Override 
 			public void mouseClicked(MouseEvent event) {
 
 				if (event.getClickCount() < 2) {
