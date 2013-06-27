@@ -69,7 +69,7 @@ public class SemiAutoTracker<T extends RealType<T>  & NativeType<T>> implements 
 	/** How close must be the new spot found to be accepted, in radius units. */
 	private static final double DISTANCE_TOLERANCE = 1.1d;
 	/** The minimal diameter size, in pixel, under which we stop down-sampling. */
-	private static final double MIN_SPOT_PIXEL_SIZE = 10d;
+	private static final double MIN_SPOT_PIXEL_SIZE = 5d;
 	private final Model model;
 	private final SelectionModel selectionModel;
 	private final List<SourceAndConverter<T>> sources;
@@ -106,10 +106,12 @@ public class SemiAutoTracker<T extends RealType<T>  & NativeType<T>> implements 
 		int nThreads = Math.min(numThreads, spots.size());
 		final ArrayBlockingQueue<Spot> queue = new ArrayBlockingQueue<Spot>(spots.size(), false, spots);
 		
+			
 		ok = true;
+		final ThreadGroup semiAutoTrackingThreadgroup = new ThreadGroup( "Mamut semi-auto tracking threads" );
 		Thread[] threads = SimpleMultiThreading.newThreads(nThreads);
 		for (int i = 0; i < threads.length; i++) {
-			threads[i] = new Thread("TrackLocationAnalyzer thread " + i) {
+			threads[i] = new Thread( semiAutoTrackingThreadgroup, new Runnable() {
 				@Override
 				public void run() {
 					Spot spot;
@@ -117,7 +119,7 @@ public class SemiAutoTracker<T extends RealType<T>  & NativeType<T>> implements 
 						processSpot(spot);
 					}
 				}
-			};
+			});
 		}
 		SimpleMultiThreading.startAndJoin(threads);
 		return ok;
@@ -241,7 +243,7 @@ public class SemiAutoTracker<T extends RealType<T>  & NativeType<T>> implements 
 
 			long[] min = new long[] { x0, y0, z0 };
 			long[] max = new long[] { x1, y1, z1 };
-			Img<T> cropimg =new CropImgView<T>(rai, min, max, new ArrayImgFactory<T>());
+			Img<T> cropimg = new CropImgView<T>(rai, min, max, new ArrayImgFactory<T>());
 
 			/*
 			 * Detect in crop cube
