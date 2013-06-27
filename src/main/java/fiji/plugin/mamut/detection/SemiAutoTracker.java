@@ -163,8 +163,19 @@ public class SemiAutoTracker<T extends RealType<T>  & NativeType<T>> implements 
 			
 			int level = 0;
 			while (level < source.getNumMipmapLevels() - 1) {
+
+				/* Scan all axes. The "worst" one is the one with the largest scale. 
+				 * If at this scale the spot is too small, then we stop.  */
+				
 				AffineTransform3D sourceToGlobal = source.getSourceTransform(frame, level);
-				double scale = Utils.extractScale(sourceToGlobal, level);
+				double scale = Utils.extractScale(sourceToGlobal, 0);
+				for (int axis = 1; axis < sourceToGlobal.numDimensions(); axis++) {
+					double sc = Utils.extractScale(sourceToGlobal, axis);
+					if (sc > scale) {
+						scale = sc;
+					}
+				}
+						
 				double diameterInPix = 2 * radius / scale;
 				if (diameterInPix < MIN_SPOT_PIXEL_SIZE) {
 					break;
