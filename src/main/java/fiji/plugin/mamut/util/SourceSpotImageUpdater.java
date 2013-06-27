@@ -7,6 +7,7 @@ import java.io.IOException;
 
 import javax.imageio.ImageIO;
 
+import net.imglib2.Interval;
 import net.imglib2.Point;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.algorithm.stats.Max;
@@ -18,6 +19,7 @@ import net.imglib2.position.transform.Round;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
+import net.imglib2.util.Intervals;
 import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
 import viewer.render.Source;
@@ -76,29 +78,22 @@ public class SourceSpotImageUpdater <T extends RealType<T>> extends SpotImageUpd
 		IntervalView<T> slice = Views.hyperSlice(img, 2, z);
 
 		// Crop
-		
-		long w = img.dimension(0);
-		long h = img.dimension(1);
+		Interval cropInterval = Intervals.intersect(slice, Intervals.createMinMax(x - r, y - r, x + r, y + r));
 
-		long x0 = Math.max(0, x - r);
-		long y0 = Math.max(0, y - r);
-
-		long x1 = Math.min(w-1, x + r);
-		long y1 = Math.min(h-1, y + r);
-
-		long[] min = new long[] { x0, y0 };
-		long[] max = new long[] { x1, y1 };
-
-		
-		IntervalView<T> crop = Views.zeroMin( Views.interval(slice, min, max) );
-
-		int width = (int) crop.dimension(0);
-		int height = (int) crop.dimension(1);
-		BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY);
-	    byte[] imgData = ((DataBufferByte) image.getRaster().getDataBuffer()).getData();
-	    double minValue = Min.findMin(Views.iterable(crop)).get().getRealDouble();
-	    double maxValue = Max.findMax(Views.iterable(crop)).get().getRealDouble();
-		new XYProjector<T,UnsignedByteType>(crop,ArrayImgs.unsignedBytes(imgData, width, height), new RealUnsignedByteConverter<T>(minValue, maxValue)).map();
+		final BufferedImage image;
+		if (Intervals.isEmpty(cropInterval))
+			image = new BufferedImage(1, 1, BufferedImage.TYPE_BYTE_GRAY);
+		else
+		{
+			IntervalView< T > crop = Views.zeroMin( Views.interval( slice, cropInterval ) );
+			int width = ( int ) crop.dimension( 0 );
+			int height = ( int ) crop.dimension( 1 );
+			image = new BufferedImage( width, height, BufferedImage.TYPE_BYTE_GRAY );
+			byte[] imgData = ( ( DataBufferByte ) image.getRaster().getDataBuffer() ).getData();
+			double minValue = Min.findMin( Views.iterable( crop ) ).get().getRealDouble();
+			double maxValue = Max.findMax( Views.iterable( crop ) ).get().getRealDouble();
+			new XYProjector< T, UnsignedByteType >( crop, ArrayImgs.unsignedBytes( imgData, width, height ), new RealUnsignedByteConverter< T >( minValue, maxValue ) ).map();
+		}
 
 		// Convert to string
 	    String str;
