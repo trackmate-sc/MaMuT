@@ -85,9 +85,8 @@ public class SourceSemiAutoTracker<T extends RealType<T>  & NativeType<T>> exten
 
 	@Override
 	protected SpotNeighborhood<T> getNeighborhood(Spot spot, int frame) {
+		
 		double radius = spot.getFeature(Spot.RADIUS);
-		double[] position = new double[3];
-		spot.localize(position);
 
 		/*
 		 * Source, rai and transform
