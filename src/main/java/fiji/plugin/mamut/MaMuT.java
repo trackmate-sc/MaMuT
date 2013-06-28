@@ -81,7 +81,7 @@ import viewer.render.Source;
 import viewer.render.SourceAndConverter;
 import viewer.render.SourceState;
 import viewer.render.ViewerState;
-import fiji.plugin.mamut.detection.SemiAutoTracker;
+import fiji.plugin.mamut.detection.SourceSemiAutoTracker;
 import fiji.plugin.mamut.io.MamutXmlReader;
 import fiji.plugin.mamut.io.MamutXmlWriter;
 import fiji.plugin.mamut.providers.MamutViewProvider;
@@ -988,7 +988,7 @@ public class MaMuT implements ModelChangeListener {
 	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private void semiAutoDetectSpot(final MamutViewer viewer) {
-		final SemiAutoTracker autotracker = new SemiAutoTracker(model, selectionModel, sources, viewer.getLogger());
+		final SourceSemiAutoTracker autotracker = new SourceSemiAutoTracker(model, selectionModel, sources, viewer.getLogger());
 		autotracker.setNumThreads(4);
 		new Thread("MaMuT semi-automated tracking thread") {
 			@Override
