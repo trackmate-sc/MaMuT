@@ -144,14 +144,16 @@ public class SourceSemiAutoTracker<T extends RealType<T>  & NativeType<T>> exten
 		/*
 		 * Extract source coords
 		 */
+		
+		double neighborhoodFactor = Math.max(NEIGHBORHOOD_FACTOR, distanceTolerance + 1);
 
 		Point roundedSourcePos = new Point(3);
 		sourceToGlobal.applyInverse(new Round<Point>(roundedSourcePos), spot);
 		long x = roundedSourcePos.getLongPosition(0);
 		long y = roundedSourcePos.getLongPosition(1);
 		long z = roundedSourcePos.getLongPosition(2);
-		long r = (long) Math.ceil(NEIGHBORHOOD_FACTOR * radius / dx);
-		long rz = (long) Math.ceil(NEIGHBORHOOD_FACTOR * radius / dz);
+		long r = (long) Math.ceil(neighborhoodFactor * radius / dx);
+		long rz = (long) Math.ceil(neighborhoodFactor * radius / dz);
 
 		/*
 		 * Ensure quality
