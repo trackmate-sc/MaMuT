@@ -1030,10 +1030,8 @@ public class MaMuT implements ModelChangeListener {
 		int sourceId = viewer.getState().getCurrentSource();
 
 		// Ok, then create this spot, wherever it is.
-		final RealPoint gPos = new RealPoint( 3 );
-		viewer.getGlobalMouseCoordinates(gPos);
 		double[] coordinates = new double[3];
-		gPos.localize(coordinates);
+		viewer.getGlobalMouseCoordinates(RealPoint.wrap(coordinates));
 		Spot spot = new Spot(coordinates);
 		spot.putFeature(Spot.RADIUS, radius );
 		spot.putFeature(Spot.QUALITY, -1d);
