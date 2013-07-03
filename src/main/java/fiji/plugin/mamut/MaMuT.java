@@ -1027,6 +1027,7 @@ public class MaMuT implements ModelChangeListener {
 		}
 
 		int frame = viewer.getCurrentTimepoint();
+		int sourceId = viewer.getState().getCurrentSource();
 
 		// Ok, then create this spot, wherever it is.
 		final RealPoint gPos = new RealPoint( 3 );
@@ -1037,6 +1038,8 @@ public class MaMuT implements ModelChangeListener {
 		spot.putFeature(Spot.RADIUS, radius );
 		spot.putFeature(Spot.QUALITY, -1d);
 		spot.putFeature(Spot.POSITION_T, Double.valueOf(frame) );
+		spot.putFeature(MamutSpotFeatures.SOURCE_ID, Double.valueOf(sourceId));
+
 		model.beginUpdate();
 		try {
 			model.addSpotTo(spot, frame);
