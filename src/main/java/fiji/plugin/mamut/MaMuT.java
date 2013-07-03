@@ -1,8 +1,8 @@
 package fiji.plugin.mamut;
 
-import static fiji.plugin.trackmate.visualization.TrackMateModelView.DEFAULT_SPOT_COLOR;
 import static fiji.plugin.trackmate.visualization.TrackMateModelView.DEFAULT_COLOR_MAP;
 import static fiji.plugin.trackmate.visualization.TrackMateModelView.DEFAULT_HIGHLIGHT_COLOR;
+import static fiji.plugin.trackmate.visualization.TrackMateModelView.DEFAULT_SPOT_COLOR;
 import static fiji.plugin.trackmate.visualization.TrackMateModelView.DEFAULT_TRACK_DISPLAY_DEPTH;
 import static fiji.plugin.trackmate.visualization.TrackMateModelView.DEFAULT_TRACK_DISPLAY_MODE;
 import static fiji.plugin.trackmate.visualization.TrackMateModelView.KEY_COLOR;
@@ -284,12 +284,6 @@ public class MaMuT implements ModelChangeListener {
 		guimodel.setDisplaySettings(createDisplaySettings(model));
 
 		/*
-		 * Brightness
-		 */
-		
-		brightnessDialog = new NewBrightnessDialog( mamutPanelFrame, setupAssignments );
-		
-		/*
 		 * Read and render views
 		 */
 
@@ -334,6 +328,13 @@ public class MaMuT implements ModelChangeListener {
 		 */
 
 		launchPanel(); 
+
+		/*
+		 * Brightness
+		 */
+
+		brightnessDialog = new NewBrightnessDialog(mamutPanelFrame, setupAssignments);
+
 	}
 
 
@@ -420,8 +421,12 @@ public class MaMuT implements ModelChangeListener {
 
 		launchPanel();
 
-		brightnessDialog = new NewBrightnessDialog( mamutPanelFrame, setupAssignments );
-	}		
+		/*
+		 * Brightness
+		 */
+
+		brightnessDialog = new NewBrightnessDialog(mamutPanelFrame, setupAssignments);
+	}
 	
 	@Override
 	public void modelChanged(ModelChangeEvent event) {
