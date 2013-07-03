@@ -81,8 +81,10 @@ import viewer.render.SourceAndConverter;
 import viewer.render.SourceState;
 import viewer.render.ViewerState;
 import fiji.plugin.mamut.detection.SourceSemiAutoTracker;
+import fiji.plugin.mamut.gui.AnnotationPanel;
 import fiji.plugin.mamut.gui.MamutControlPanel;
 import fiji.plugin.mamut.gui.MamutGUI;
+import fiji.plugin.mamut.gui.MamutGUIModel;
 import fiji.plugin.mamut.io.MamutXmlReader;
 import fiji.plugin.mamut.io.MamutXmlWriter;
 import fiji.plugin.mamut.providers.MamutViewProvider;
@@ -104,11 +106,11 @@ import fiji.plugin.trackmate.features.edges.EdgeVelocityAnalyzer;
 import fiji.plugin.trackmate.features.track.TrackIndexAnalyzer;
 import fiji.plugin.trackmate.gui.DisplaySettingsEvent;
 import fiji.plugin.trackmate.gui.DisplaySettingsListener;
-import fiji.plugin.trackmate.gui.TrackMateGUIModel;
 import fiji.plugin.trackmate.io.IOUtils;
 import fiji.plugin.trackmate.providers.EdgeAnalyzerProvider;
 import fiji.plugin.trackmate.providers.SpotAnalyzerProvider;
 import fiji.plugin.trackmate.providers.TrackAnalyzerProvider;
+import fiji.plugin.trackmate.util.ModelTools;
 import fiji.plugin.trackmate.visualization.PerEdgeFeatureColorGenerator;
 import fiji.plugin.trackmate.visualization.PerTrackFeatureColorGenerator;
 import fiji.plugin.trackmate.visualization.SpotColorGenerator;
@@ -175,8 +177,9 @@ public class MaMuT implements ModelChangeListener {
 	
 	private SourceSettings settings;
 	private SelectionModel selectionModel;
-	private TrackMateGUIModel guimodel;
+	private MamutGUIModel guimodel;
 	private SourceSpotImageUpdater<?> thumbnailUpdater;
+	private Logger logger;
 	private static File mamutFile;
 	private static File imageFile;
 
@@ -283,14 +286,14 @@ public class MaMuT implements ModelChangeListener {
 		 * GUI model
 		 */
 
-		guimodel = new TrackMateGUIModel();
+		guimodel = new MamutGUIModel();
 		guimodel.setDisplaySettings(createDisplaySettings(model));
 
 		/*
 		 * Control Panel
 		 */
 
-		MamutGUI gui = launchPanel(); 
+		MamutGUI gui = launchGUI(); 
 
 		/*
 		 * Brightness
@@ -419,14 +422,14 @@ public class MaMuT implements ModelChangeListener {
 		 * GUI model
 		 */
 
-		guimodel = new TrackMateGUIModel();
+		guimodel = new MamutGUIModel();
 		guimodel.setDisplaySettings(createDisplaySettings(model));
 
 		/*
 		 * Control Panel
 		 */
 
-		MamutGUI gui = launchPanel();
+		MamutGUI gui = launchGUI();
 
 		/*
 		 * Brightness
@@ -444,10 +447,11 @@ public class MaMuT implements ModelChangeListener {
 	 * PRIVATE METHODS
 	 */
 	
-	private MamutGUI launchPanel() {
+	private MamutGUI launchGUI() {
 
-		MamutGUI mamutPanelFrame = new MamutGUI(model);
-		final MamutControlPanel viewPanel = mamutPanelFrame.getViewPanel();
+		MamutGUI mamutGUI = new MamutGUI(model, guimodel);
+		
+		final MamutControlPanel viewPanel = mamutGUI.getViewPanel();
 		viewPanel.setTrackColorGenerator(trackColorProvider);
 		viewPanel.setEdgeColorGenerator(edgeColorProvider);
 		viewPanel.setSpotColorGenerator(spotColorProvider);
@@ -468,7 +472,7 @@ public class MaMuT implements ModelChangeListener {
 					save();
 
 				} else {
-					System.out.println("[MaMuT_] Caught unknown event: " + event);
+					System.out.println("[MaMuT] Caught unknown event: " + event);
 				}
 			}
 
@@ -484,7 +488,32 @@ public class MaMuT implements ModelChangeListener {
 			}
 		});
 		
-		return mamutPanelFrame;
+		
+		final AnnotationPanel annotationPanel = mamutGUI.getAnnotationPanel();
+		logger = annotationPanel.getLogger();
+		annotationPanel.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent event) {
+				if (event == annotationPanel.SEMI_AUTO_TRACKING_BUTTON_PRESSED) {
+					semiAutoDetectSpot();
+					
+				} else if (event == annotationPanel.SELECT_TRACK_BUTTON_PRESSED) {
+					ModelTools.selectTrack(selectionModel);
+					
+				} else if (event == annotationPanel.SELECT_TRACK_DOWNWARD_BUTTON_PRESSED) {
+					ModelTools.selectTrackDownward(selectionModel);
+					
+				} else if (event == annotationPanel.SELECT_TRACK_UPWARD_BUTTON_PRESSED) {
+					ModelTools.selectTrackUpward(selectionModel);
+					
+				} else {
+					System.out.println("[MaMuT] Caught unknown event: " + event);
+				}
+			}
+		});
+		
+		return mamutGUI;
 
 
 	}
@@ -775,7 +804,7 @@ public class MaMuT implements ModelChangeListener {
 			
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				semiAutoDetectSpot(viewer);
+				semiAutoDetectSpot();
 			}
 			private static final long serialVersionUID = 1L;
 		});
@@ -999,15 +1028,17 @@ public class MaMuT implements ModelChangeListener {
 	 * to work, exactly one spot must be in the selection. 
 	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	private void semiAutoDetectSpot(final MamutViewer viewer) {
-		final SourceSemiAutoTracker autotracker = new SourceSemiAutoTracker(model, selectionModel, sources, viewer.getLogger());
+	private void semiAutoDetectSpot() {
+		final SourceSemiAutoTracker autotracker = new SourceSemiAutoTracker(model, selectionModel, sources, logger);
 		autotracker.setNumThreads(4);
+		autotracker.setParameters(guimodel.qualityThreshold, guimodel.distanceTolerance);
+		
 		new Thread("MaMuT semi-automated tracking thread") {
 			@Override
 			public void run() {
 				boolean ok = autotracker.checkInput() && autotracker.process();
 				if (!ok) {
-					viewer.getLogger().error(autotracker.getErrorMessage());
+					logger.error(autotracker.getErrorMessage());
 				}
 			}
 		}.start();

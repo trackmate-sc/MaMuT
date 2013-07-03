@@ -59,8 +59,5 @@ public class MamutControlPanel extends ConfigureViewsPanel {
 			}
 		});
 		add(jButtonSaveButton);
-		
-		
 	}
-
 }
