@@ -43,7 +43,6 @@ import java.util.Set;
 import javax.swing.AbstractAction;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JFrame;
 import javax.swing.KeyStroke;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
@@ -82,6 +81,8 @@ import viewer.render.SourceAndConverter;
 import viewer.render.SourceState;
 import viewer.render.ViewerState;
 import fiji.plugin.mamut.detection.SourceSemiAutoTracker;
+import fiji.plugin.mamut.gui.MamutControlPanel;
+import fiji.plugin.mamut.gui.MamutGUI;
 import fiji.plugin.mamut.io.MamutXmlReader;
 import fiji.plugin.mamut.io.MamutXmlWriter;
 import fiji.plugin.mamut.providers.MamutViewProvider;
@@ -108,15 +109,15 @@ import fiji.plugin.trackmate.io.IOUtils;
 import fiji.plugin.trackmate.providers.EdgeAnalyzerProvider;
 import fiji.plugin.trackmate.providers.SpotAnalyzerProvider;
 import fiji.plugin.trackmate.providers.TrackAnalyzerProvider;
+import fiji.plugin.trackmate.visualization.PerEdgeFeatureColorGenerator;
 import fiji.plugin.trackmate.visualization.PerTrackFeatureColorGenerator;
 import fiji.plugin.trackmate.visualization.SpotColorGenerator;
-import fiji.plugin.trackmate.visualization.TrackColorGenerator;
 import fiji.plugin.trackmate.visualization.TrackMateModelView;
 import fiji.plugin.trackmate.visualization.trackscheme.TrackScheme;
 
 public class MaMuT implements ModelChangeListener {
 
-	private static final ImageIcon MAMUT_ICON = new ImageIcon(MamutControlPanel.class.getResource("mammouth-256x256.png"));
+	public static final ImageIcon MAMUT_ICON = new ImageIcon(MaMuT.class.getResource("mammouth-256x256.png"));
 	public static final String PLUGIN_NAME = "MaMuT";
 	public static final String PLUGIN_VERSION = "0.6.1";
 	private static final double DEFAULT_RADIUS = 10;
@@ -148,8 +149,6 @@ public class MaMuT implements ModelChangeListener {
 	private KeyStroke decreaseRadiusABitKeystroke = KeyStroke.getKeyStroke( decreaseRadiusKey, CHANGE_A_BIT_KEY );
 	private KeyStroke toggleLinkingModeKeystroke = KeyStroke.getKeyStroke( KeyEvent.VK_L, 0);
 
-	private JFrame mamutPanelFrame;
-
 	private SetupAssignments setupAssignments;
 	private NewBrightnessDialog brightnessDialog;
 	/** The model shown and edited by this plugin. */
@@ -167,14 +166,16 @@ public class MaMuT implements ModelChangeListener {
 	/**  If true, the next added spot will be automatically linked to the previously created one, given that 
 	 * the new spot is created in a subsequent frame. */
 	private boolean isLinkingMode = false;
+	
 	/** The color map for painting the spots. It is centralized here and is used in the 
 	 * {@link MamutOverlay}s.  */
 	private SpotColorGenerator spotColorProvider;
-	private TrackColorGenerator trackColorProvider;
+	private PerTrackFeatureColorGenerator trackColorProvider;
+	private PerEdgeFeatureColorGenerator edgeColorProvider;
+	
 	private SourceSettings settings;
 	private SelectionModel selectionModel;
 	private TrackMateGUIModel guimodel;
-	private MamutControlPanel panel;
 	private SourceSpotImageUpdater<?> thumbnailUpdater;
 	private static File mamutFile;
 	private static File imageFile;
@@ -276,6 +277,7 @@ public class MaMuT implements ModelChangeListener {
 
 		spotColorProvider = new SpotColorGenerator(model);
 		trackColorProvider = new PerTrackFeatureColorGenerator(model, TrackIndexAnalyzer.TRACK_ID);
+		edgeColorProvider = new PerEdgeFeatureColorGenerator(model, EdgeVelocityAnalyzer.VELOCITY);
 
 		/*
 		 * GUI model
@@ -284,6 +286,19 @@ public class MaMuT implements ModelChangeListener {
 		guimodel = new TrackMateGUIModel();
 		guimodel.setDisplaySettings(createDisplaySettings(model));
 
+		/*
+		 * Control Panel
+		 */
+
+		MamutGUI gui = launchPanel(); 
+
+		/*
+		 * Brightness
+		 */
+
+		brightnessDialog = new NewBrightnessDialog(gui, setupAssignments);
+
+		
 		/*
 		 * Read and render views
 		 */
@@ -324,18 +339,7 @@ public class MaMuT implements ModelChangeListener {
 			guimodel.addView(view);
 		}
 
-		/*
-		 * Control Panel
-		 */
-
-		launchPanel(); 
-
-		/*
-		 * Brightness
-		 */
-
-		brightnessDialog = new NewBrightnessDialog(mamutPanelFrame, setupAssignments);
-
+		
 	}
 
 
@@ -409,6 +413,7 @@ public class MaMuT implements ModelChangeListener {
 
 		spotColorProvider = new SpotColorGenerator(model);
 		trackColorProvider = new PerTrackFeatureColorGenerator(model, TrackIndexAnalyzer.TRACK_ID);
+		edgeColorProvider = new PerEdgeFeatureColorGenerator(model, EdgeVelocityAnalyzer.VELOCITY);
 
 		/*
 		 * GUI model
@@ -421,13 +426,13 @@ public class MaMuT implements ModelChangeListener {
 		 * Control Panel
 		 */
 
-		launchPanel();
+		MamutGUI gui = launchPanel();
 
 		/*
 		 * Brightness
 		 */
 
-		brightnessDialog = new NewBrightnessDialog(mamutPanelFrame, setupAssignments);
+		brightnessDialog = new NewBrightnessDialog(gui, setupAssignments);
 	}
 	
 	@Override
@@ -439,22 +444,27 @@ public class MaMuT implements ModelChangeListener {
 	 * PRIVATE METHODS
 	 */
 	
-	private void launchPanel() {
+	private MamutGUI launchPanel() {
 
-		panel = new MamutControlPanel(model);
-		panel.addActionListener(new ActionListener() {
+		MamutGUI mamutPanelFrame = new MamutGUI(model);
+		final MamutControlPanel viewPanel = mamutPanelFrame.getViewPanel();
+		viewPanel.setTrackColorGenerator(trackColorProvider);
+		viewPanel.setEdgeColorGenerator(edgeColorProvider);
+		viewPanel.setSpotColorGenerator(spotColorProvider);
+		
+		viewPanel.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent event) {
-				if (event == panel.TRACK_SCHEME_BUTTON_PRESSED) {
-					launchTrackScheme();
+				if (event == viewPanel.TRACK_SCHEME_BUTTON_PRESSED) {
+					launchTrackScheme(viewPanel.getTrackSchemeButton());
 
-				} else if (event == panel.DO_ANALYSIS_BUTTON_PRESSED) {
+				} else if (event == viewPanel.DO_ANALYSIS_BUTTON_PRESSED) {
 					launchDoAnalysis();
 
-				} else if (event == panel.MAMUT_VIEWER_BUTTON_PRESSED) {
+				} else if (event == viewPanel.MAMUT_VIEWER_BUTTON_PRESSED) {
 					newViewer();
 
-				} else if (event == panel.MAMUT_SAVE_BUTTON_PRESSED) {
+				} else if (event == viewPanel.MAMUT_SAVE_BUTTON_PRESSED) {
 					save();
 
 				} else {
@@ -463,7 +473,7 @@ public class MaMuT implements ModelChangeListener {
 			}
 
 		});
-		panel.addDisplaySettingsChangeListener(new DisplaySettingsListener() {
+		viewPanel.addDisplaySettingsChangeListener(new DisplaySettingsListener() {
 			@Override
 			public void displaySettingsChanged(DisplaySettingsEvent event) {
 				guimodel.getDisplaySettings().put(event.getKey(), event.getNewValue());
@@ -473,13 +483,9 @@ public class MaMuT implements ModelChangeListener {
 				}
 			}
 		});
+		
+		return mamutPanelFrame;
 
-		mamutPanelFrame = new JFrame(PLUGIN_NAME + " v" + PLUGIN_VERSION);
-		mamutPanelFrame.setIconImage(MAMUT_ICON.getImage());
-		mamutPanelFrame.setSize(300, 530);
-		mamutPanelFrame.getContentPane().add(panel);
-		mamutPanelFrame.setResizable(false);
-		mamutPanelFrame.setVisible(true);
 
 	}
 	
@@ -952,8 +958,7 @@ public class MaMuT implements ModelChangeListener {
 
 	}
 
-	private void launchTrackScheme() {
-		final JButton button = panel.getTrackSchemeButton();
+	private void launchTrackScheme(final JButton button) {
 		button.setEnabled(false);
 		new Thread("Launching TrackScheme thread") {
 

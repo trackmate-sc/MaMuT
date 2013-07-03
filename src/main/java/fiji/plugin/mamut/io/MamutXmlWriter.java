@@ -29,7 +29,7 @@ public class MamutXmlWriter extends TmXmlWriter {
 	/**
 	 * Appends the content of a {@link Settings} object to the document.
 	 * @param settings  the {@link Settings} to write. It must be a {@link SourceSettings} instance,
-	 * otherwise an excpetion is thrown. 
+	 * otherwise an exception is thrown. 
 	 * @param detectorProvider the {@link DetectorProvider}, required to marshall the 
 	 * selected detector and its settings. If <code>null</code>, they won't be 
 	 * appended.

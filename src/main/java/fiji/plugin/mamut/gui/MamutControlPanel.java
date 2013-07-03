@@ -1,4 +1,4 @@
-package fiji.plugin.mamut;
+package fiji.plugin.mamut.gui;
 
 import static fiji.plugin.trackmate.gui.TrackMateWizard.SMALL_FONT;
 
@@ -11,14 +11,15 @@ import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 
+import fiji.plugin.mamut.MaMuT;
 import fiji.plugin.trackmate.Model;
 import fiji.plugin.trackmate.gui.panels.ConfigureViewsPanel;
 
 public class MamutControlPanel extends ConfigureViewsPanel {
 
 	private static final long serialVersionUID = 1L;
-	private static final ImageIcon MAMUT_ICON = new ImageIcon(MamutControlPanel.class.getResource("mammouth-16x16.png"));
-	private static final Icon SAVE_ICON = new ImageIcon(MamutControlPanel.class.getResource("page_save.png"));
+	private static final ImageIcon MAMUT_ICON = new ImageIcon(MaMuT.class.getResource("mammouth-16x16.png"));
+	private static final Icon SAVE_ICON = new ImageIcon(MaMuT.class.getResource("page_save.png"));
 	private JButton jButtonMamutViewer;
 	private JButton jButtonSaveButton;
 	public final ActionEvent MAMUT_VIEWER_BUTTON_PRESSED = new ActionEvent(this, 2, "MamutViewerButtonPushed");
