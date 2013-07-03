@@ -217,6 +217,7 @@ public class MaMuT implements ModelChangeListener {
 		 */
 
 		model = reader.getModel();
+		MamutSpotFeatures.declareFeatures(model.getFeatureModel());
 		model.addModelChangeListener(this);
 
 		/*
@@ -356,6 +357,7 @@ public class MaMuT implements ModelChangeListener {
 		 */
 
 		model = new Model();
+		MamutSpotFeatures.declareFeatures(model.getFeatureModel());
 		model.addModelChangeListener(this);
 
 		/*
