@@ -1080,7 +1080,7 @@ public class MaMuT implements ModelChangeListener {
 	}
 
 	/**
-	 * Adds a new spot at the mouse current location.
+	 * Remove spot at the mouse current location (if there is one).
 	 * @param viewer  the viewer in which the delete spot request was made.
 	 */
 	private void deleteSpot(final MamutViewer viewer) {
