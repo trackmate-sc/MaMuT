@@ -138,7 +138,7 @@ public class SourceSemiAutoTracker<T extends RealType<T>  & NativeType<T>> exten
 		 */
 
 		double dx = Utils.extractScale(sourceToGlobal, 0);
-		double dy = dx;
+		double dy = Utils.extractScale(sourceToGlobal, 1);
 		double dz = Utils.extractScale(sourceToGlobal, 2);
 
 		/*
@@ -154,7 +154,7 @@ public class SourceSemiAutoTracker<T extends RealType<T>  & NativeType<T>> exten
 		long z = roundedSourcePos.getLongPosition(2);
 		long r = (long) Math.ceil(neighborhoodFactor * radius / dx);
 		long rz = (long) Math.ceil(neighborhoodFactor * radius / dz);
-
+		
 		/*
 		 * Ensure quality
 		 */
@@ -192,22 +192,27 @@ public class SourceSemiAutoTracker<T extends RealType<T>  & NativeType<T>> exten
 		long[] max = new long[] { x1, y1, z1 };
 		Img<T> cropimg = new CropImgView<T>(rai, min, max, new ArrayImgFactory<T>());
 
-		/*
-		 * Give it a calibration
-		 */
-
 		AxisType[] axes = new AxisType[] { Axes.X, Axes.Y, Axes.Z };
 		double[] cal = new double[] { dx, dy, dz };
 		ImgPlus<T> imgplus = new ImgPlus<T>(cropimg, "crop", axes, cal);
 		
+		/*
+		 * Build the transformation that will put back the found spot in the global coordinate system
+		 */
+
+		AffineTransform3D scale = new AffineTransform3D();
+		for (int i = 0; i < 3; i++) {
+			scale.set(1/cal[i], i, i);
+		}
+		AffineTransform3D translate = new AffineTransform3D();
+		for (int i = 0; i < 3; i++) {
+			translate.set(min[i], i, 3);
+		}
+		
+		AffineTransform3D transform = sourceToGlobal.copy().concatenate(translate).concatenate(scale);
 		SpotNeighborhood<T> sn = new SpotNeighborhood<T>();
 		sn.neighborhood = imgplus;
-		sn.topLeftCorner = min;
-		sn.calibration = cal;
-		
+		sn.transform = transform;
 		return sn;
 	}
-
-
-
 }
