@@ -13,7 +13,7 @@ import fiji.plugin.trackmate.features.spot.SpotAnalyzerFactory;
 
 /**
  * Definition of additional spot features used in MaMuT.
- *
+ * 
  * @author Tobias Pietzsch <tobias.pietzsch@gmail.com>
  */
 public class SpotSourceIdAnalyzerFactory<T extends RealType<T> & NativeType<T>> implements SpotAnalyzerFactory<T> {

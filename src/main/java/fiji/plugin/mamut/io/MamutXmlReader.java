@@ -25,10 +25,12 @@ public class MamutXmlReader extends TmXmlReader {
 	}
 
 	/**
-	 * Returns the collection of views that were saved in this file. The views returned
-	 * <b>will be rendered</b>.
-	 * @param provider  the {@link ViewProvider} to instantiate the view. Each saved 
-	 * view must be known by the specified provider.
+	 * Returns the collection of views that were saved in this file. The views
+	 * returned <b>will be rendered</b>.
+	 * 
+	 * @param provider
+	 *        the {@link ViewProvider} to instantiate the view. Each saved view
+	 *        must be known by the specified provider.
 	 * @return the collection of views.
 	 * @see TrackMateModelView#render()
 	 */
@@ -42,12 +44,12 @@ public class MamutXmlReader extends TmXmlReader {
 			for (final Element child : children) {
 				final String viewKey = child.getAttributeValue(GUI_VIEW_ATTRIBUTE);
 				if (null == viewKey) {
-					logger.error("Could not find view key attribute for element " + child +".\n");
+					logger.error("Could not find view key attribute for element " + child + ".\n");
 					ok = false;
 				} else {
 					final TrackMateModelView view = provider.getView(viewKey);
 					if (null == view) {
-						logger.error("Unknown view for key " + viewKey +".\n");
+						logger.error("Unknown view for key " + viewKey + ".\n");
 						ok = false;
 					} else {
 						views.add(view);
@@ -57,8 +59,8 @@ public class MamutXmlReader extends TmXmlReader {
 
 								if (viewKey.equals(MamutViewer.KEY)) {
 									MamutViewer mv = (MamutViewer) view;
-//									mv.render();
-									
+									// mv.render();
+
 									try {
 										int mvx = child.getAttribute(GUI_VIEW_ATTRIBUTE_POSITION_X).getIntValue();
 										int mvy = child.getAttribute(GUI_VIEW_ATTRIBUTE_POSITION_Y).getIntValue();
@@ -72,8 +74,8 @@ public class MamutXmlReader extends TmXmlReader {
 
 								} else if (viewKey.equals(TrackScheme.KEY)) {
 									TrackScheme ts = (TrackScheme) view;
-//									ts.render();
-									
+									// ts.render();
+
 									try {
 										int mvx = child.getAttribute(GUI_VIEW_ATTRIBUTE_POSITION_X).getIntValue();
 										int mvy = child.getAttribute(GUI_VIEW_ATTRIBUTE_POSITION_Y).getIntValue();

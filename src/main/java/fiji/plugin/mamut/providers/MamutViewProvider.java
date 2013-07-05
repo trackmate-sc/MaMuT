@@ -25,26 +25,25 @@ public class MamutViewProvider extends ViewProvider {
 		}
 		this.ss = (SourceSettings) settings;
 	}
-	
+
 	@Override
 	protected void registerViews() {
 		names = new ArrayList<String>(2);
 		names.add(TrackScheme.KEY);
 		names.add(MamutViewer.KEY);
 	}
-	
+
 	@Override
 	public TrackMateModelView getView(String key) {
 		TrackMateModelView val = super.getView(key);
 		if (null == val) {
 			if (key.equals(MamutViewer.KEY)) {
-				
+
 				Collection<SourceAndConverter<?>> sources = ss.getSources();
-				val = new MamutViewer(MaMuT.DEFAULT_WIDTH, MaMuT.DEFAULT_HEIGHT, 
-						sources, ss.nframes, model, selectionModel);
+				val = new MamutViewer(MaMuT.DEFAULT_WIDTH, MaMuT.DEFAULT_HEIGHT, sources, ss.nframes, model, selectionModel);
 			}
 		}
-		
+
 		return val;
 	}
 

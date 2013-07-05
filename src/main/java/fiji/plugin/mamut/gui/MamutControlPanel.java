@@ -27,12 +27,12 @@ public class MamutControlPanel extends ConfigureViewsPanel {
 
 	public MamutControlPanel(Model model) {
 		super(model);
-		
+
 		// Move trackscheme button
 		Point btp = jButtonShowTrackScheme.getLocation();
 		jButtonShowTrackScheme.setLocation(btp.x, btp.y + 50);
 		Dimension btd = jButtonShowTrackScheme.getSize();
-		
+
 		// New Mamut viewer button
 		jButtonMamutViewer = new JButton("Viewer", MAMUT_ICON);
 		jButtonMamutViewer.setFont(SMALL_FONT);
@@ -45,7 +45,7 @@ public class MamutControlPanel extends ConfigureViewsPanel {
 			}
 		});
 		add(jButtonMamutViewer);
-		
+
 		// Save button
 		Point atp = jButtonDoAnalysis.getLocation();
 		jButtonSaveButton = new JButton("Save", SAVE_ICON);
