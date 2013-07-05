@@ -81,12 +81,14 @@ import viewer.render.SourceAndConverter;
 import viewer.render.SourceState;
 import viewer.render.ViewerState;
 import fiji.plugin.mamut.detection.SourceSemiAutoTracker;
+import fiji.plugin.mamut.feature.spot.SpotSourceIdAnalyzerFactory;
 import fiji.plugin.mamut.gui.AnnotationPanel;
 import fiji.plugin.mamut.gui.MamutControlPanel;
 import fiji.plugin.mamut.gui.MamutGUI;
 import fiji.plugin.mamut.gui.MamutGUIModel;
 import fiji.plugin.mamut.io.MamutXmlReader;
 import fiji.plugin.mamut.io.MamutXmlWriter;
+import fiji.plugin.mamut.providers.MamutSpotAnalyzerProvider;
 import fiji.plugin.mamut.providers.MamutViewProvider;
 import fiji.plugin.mamut.util.SourceSpotImageUpdater;
 import fiji.plugin.mamut.viewer.MamutOverlay;
@@ -108,7 +110,6 @@ import fiji.plugin.trackmate.gui.DisplaySettingsEvent;
 import fiji.plugin.trackmate.gui.DisplaySettingsListener;
 import fiji.plugin.trackmate.io.IOUtils;
 import fiji.plugin.trackmate.providers.EdgeAnalyzerProvider;
-import fiji.plugin.trackmate.providers.SpotAnalyzerProvider;
 import fiji.plugin.trackmate.providers.TrackAnalyzerProvider;
 import fiji.plugin.trackmate.util.ModelTools;
 import fiji.plugin.trackmate.visualization.PerEdgeFeatureColorGenerator;
@@ -221,7 +222,6 @@ public class MaMuT implements ModelChangeListener {
 		 */
 
 		model = reader.getModel();
-		MamutSpotFeatures.declareFeatures(model.getFeatureModel());
 		model.addModelChangeListener(this);
 
 		/*
@@ -244,8 +244,8 @@ public class MaMuT implements ModelChangeListener {
 		 */
 
 		settings = new SourceSettings();
-		reader.readSettings(settings, null, null, 
-				new SpotAnalyzerProvider(model), new EdgeAnalyzerProvider(model), new TrackAnalyzerProvider(model));
+		reader.readSettings(settings, null, null,
+				new MamutSpotAnalyzerProvider(model), new EdgeAnalyzerProvider(model), new TrackAnalyzerProvider(model));
 
 		/*
 		 * Read image source
@@ -364,7 +364,6 @@ public class MaMuT implements ModelChangeListener {
 		 */
 
 		model = new Model();
-		MamutSpotFeatures.declareFeatures(model.getFeatureModel());
 		model.addModelChangeListener(this);
 
 		/*
@@ -1072,7 +1071,7 @@ public class MaMuT implements ModelChangeListener {
 		spot.putFeature(Spot.RADIUS, radius );
 		spot.putFeature(Spot.QUALITY, -1d);
 		spot.putFeature(Spot.POSITION_T, Double.valueOf(frame) );
-		spot.putFeature(MamutSpotFeatures.SOURCE_ID, Double.valueOf(sourceId));
+		spot.putFeature(SpotSourceIdAnalyzerFactory.SOURCE_ID, Double.valueOf(sourceId));
 
 		model.beginUpdate();
 		try {
