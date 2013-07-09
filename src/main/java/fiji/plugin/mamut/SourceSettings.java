@@ -10,13 +10,15 @@ import viewer.render.SourceAndConverter;
 import fiji.plugin.trackmate.Settings;
 
 public class SourceSettings extends Settings {
-
+	
 	private List<SourceAndConverter<?>> sources;
+
 
 	@Override
 	public void setFrom(ImagePlus imp) {
 		throw new UnsupportedOperationException("Cannot use ImagePlus with SourceSettings.");
 	}
+	
 
 	public void setFrom(List<SourceAndConverter<?>> sources, File file, int numTimePoints) {
 		this.sources = sources;
@@ -24,7 +26,7 @@ public class SourceSettings extends Settings {
 		// File info
 		this.imageFileName = file.getName();
 		this.imageFolder = file.getParent();
-
+		
 		// Image size
 		SourceAndConverter<?> firstSource = sources.get(0);
 		RandomAccessibleInterval<?> firstStack = firstSource.getSpimSource().getSource(0, 0);
@@ -39,14 +41,14 @@ public class SourceSettings extends Settings {
 
 		// Crop cube
 		this.xstart = 0;
-		this.xend = width - 1;
+		this.xend = width-1;
 		this.ystart = 0;
-		this.yend = height - 1;
+		this.yend = height-1;
 		this.polygon = null;
 	}
-
+	
 	public List<SourceAndConverter<?>> getSources() {
 		return sources;
 	}
-
+	
 }

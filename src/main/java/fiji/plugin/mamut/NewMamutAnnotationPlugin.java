@@ -22,17 +22,17 @@ public class NewMamutAnnotationPlugin implements PlugIn {
 
 	@Override
 	public void run(String arg0) {
-
+		
 		Logger logger = Logger.IJ_LOGGER;
 		if (null == file) {
 			File folder = new File(System.getProperty("user.dir")).getParentFile().getParentFile();
 			file = new File(folder.getPath() + File.separator + "data.xml");
 		}
-		file = IOUtils.askForFileForLoading(file, "Open a hdf5/xml file", IJ.getInstance(), logger);
+		file = IOUtils.askForFileForLoading(file, "Open a hdf5/xml file", IJ.getInstance(), logger );
 		if (null == file) {
 			return;
 		}
-
+		
 		MaMuT mamut = new MaMuT();
 		try {
 			mamut.launch(file);
@@ -63,10 +63,11 @@ public class NewMamutAnnotationPlugin implements PlugIn {
 		}
 
 	}
-
+	
+	
 	public static void main(String[] args) {
 		ImageJ.main(args);
-
+		
 		NewMamutAnnotationPlugin plugin = new NewMamutAnnotationPlugin();
 		plugin.run(null);
 	}

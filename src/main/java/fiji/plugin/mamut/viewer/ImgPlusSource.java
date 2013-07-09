@@ -15,7 +15,7 @@ import viewer.render.Interpolation;
 import viewer.render.Source;
 
 public class ImgPlusSource<T extends NumericType<T>> implements Source<T> {
-
+	
 	private final ImgPlus<T> img;
 
 	public ImgPlusSource(ImgPlus<T> img) {
@@ -24,7 +24,7 @@ public class ImgPlusSource<T extends NumericType<T>> implements Source<T> {
 
 	@Override
 	public boolean isPresent(int t) {
-		return t >= 0 && t < img.dimension(3);
+		return t>=0 && t < img.dimension(3) ;
 	}
 
 	@Override
@@ -34,7 +34,7 @@ public class ImgPlusSource<T extends NumericType<T>> implements Source<T> {
 
 	@Override
 	public RealRandomAccessible<T> getInterpolatedSource(int t, int level, Interpolation method) {
-		InterpolatorFactory<T, RandomAccessible<T>> factory;
+		InterpolatorFactory<T, RandomAccessible< T >> factory;
 		switch (method) {
 		default:
 		case NEARESTNEIGHBOR:
@@ -46,7 +46,7 @@ public class ImgPlusSource<T extends NumericType<T>> implements Source<T> {
 		}
 		T zero = img.firstElement().createVariable();
 		zero.setZero();
-		return Views.interpolate(Views.extendValue(getSource(t, level), zero), factory);
+		return Views.interpolate(Views.extendValue(getSource(t, level), zero ), factory);
 	}
 
 	@Override

@@ -9,8 +9,7 @@ import fiji.plugin.trackmate.features.spot.SpotAnalyzerFactory;
 import fiji.plugin.trackmate.providers.SpotAnalyzerProvider;
 
 /**
- * A provider for the spot analyzer factories containing for default TrackMate
- * and MaMuT factories.
+ * A provider for the spot analyzer factories containing for default TrackMate and MaMuT factories.
  */
 public class MamutSpotAnalyzerProvider extends SpotAnalyzerProvider {
 	public MamutSpotAnalyzerProvider(final Model model) {

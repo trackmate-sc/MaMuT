@@ -19,17 +19,17 @@ public class LoadMamutAnnotationPlugin implements PlugIn {
 
 	@Override
 	public void run(String arg0) {
-
+		
 		Logger logger = Logger.IJ_LOGGER;
 		if (null == file) {
 			File folder = new File(System.getProperty("user.dir")).getParentFile().getParentFile();
 			file = new File(folder.getPath() + File.separator + "data.xml");
 		}
-		file = IOUtils.askForFileForLoading(file, "Open a MaMuT xml file", IJ.getInstance(), logger);
+		file = IOUtils.askForFileForLoading(file, "Open a MaMuT xml file", IJ.getInstance(), logger );
 		if (null == file) {
 			return;
 		}
-
+		
 		MaMuT mamut = new MaMuT();
 		try {
 			mamut.load(file);
@@ -53,10 +53,11 @@ public class LoadMamutAnnotationPlugin implements PlugIn {
 			e.printStackTrace();
 		}
 	}
-
+	
+	
 	public static void main(String[] args) {
 		ImageJ.main(args);
-
+		
 		LoadMamutAnnotationPlugin plugin = new LoadMamutAnnotationPlugin();
 		plugin.run(null);
 	}
