@@ -13,8 +13,14 @@ import java.awt.Dimension;
 import java.awt.Point;
 import java.io.File;
 
-import org.jdom2.Element;
+import javax.xml.parsers.ParserConfigurationException;
 
+import mpicbg.spim.data.XmlHelpers;
+
+import org.jdom2.Element;
+import org.jdom2.input.DOMBuilder;
+
+import viewer.gui.brightness.SetupAssignments;
 import fiji.plugin.mamut.SourceSettings;
 import fiji.plugin.mamut.viewer.MamutViewer;
 import fiji.plugin.trackmate.Settings;
@@ -86,7 +92,7 @@ public class MamutXmlWriter extends TmXmlWriter {
 		root.addContent(settingsElement);
 	}
 
-	public void appendMamutState(final TrackMateGUIModel guimodel) {
+	public void appendMamutState(final TrackMateGUIModel guimodel, final SetupAssignments setupAssignments) {
 		final Element guiel = new Element(GUI_STATE_ELEMENT_KEY);
 		// views
 		for (final TrackMateModelView view : guimodel.getViews()) {
@@ -113,9 +119,17 @@ public class MamutXmlWriter extends TmXmlWriter {
 				viewel.setAttribute(GUI_VIEW_ATTRIBUTE_POSITION_HEIGHT, "" + size.height);
 			}
 		}
+		// brightness & color settings
+		try {
+			final org.w3c.dom.Element elem = setupAssignments.toXml(XmlHelpers.newXmlDocument());
+			final Element sael = new DOMBuilder().build(elem);
+			sael.detach();
+			guiel.addContent( sael );
+		} catch (final ParserConfigurationException e) {
+			e.printStackTrace( logger );
+		}
 
 		root.addContent(guiel);
 		logger.log("  Added GUI current state.\n");
 	}
-
 }

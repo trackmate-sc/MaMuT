@@ -256,6 +256,7 @@ public class MaMuT implements ModelChangeListener {
 
 		imageFile = new File(settings.imageFolder, settings.imageFileName);
 		prepareSources(imageFile);
+		reader.getSetupAssignments(setupAssignments);
 
 		/*
 		 * Update settings
@@ -663,7 +664,7 @@ public class MaMuT implements ModelChangeListener {
 		final MamutXmlWriter writer = new MamutXmlWriter(mamutFile);
 		writer.appendModel(model);
 		writer.appendSettings(settings, null, null);
-		writer.appendMamutState(guimodel);
+		writer.appendMamutState(guimodel, setupAssignments);
 		try {
 			writer.writeToFile();
 		} catch (final FileNotFoundException e) {
