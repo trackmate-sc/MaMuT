@@ -18,47 +18,46 @@ public class LoadMamutAnnotationPlugin implements PlugIn {
 	private static File file;
 
 	@Override
-	public void run(String arg0) {
-		
-		Logger logger = Logger.IJ_LOGGER;
+	public void run(final String arg0) {
+
+		final Logger logger = Logger.IJ_LOGGER;
 		if (null == file) {
-			File folder = new File(System.getProperty("user.dir")).getParentFile().getParentFile();
+			final File folder = new File(System.getProperty("user.dir")).getParentFile().getParentFile();
 			file = new File(folder.getPath() + File.separator + "data.xml");
 		}
-		file = IOUtils.askForFileForLoading(file, "Open a MaMuT xml file", IJ.getInstance(), logger );
+		file = IOUtils.askForFileForLoading(file, "Open a MaMuT xml file", IJ.getInstance(), logger);
 		if (null == file) {
 			return;
 		}
-		
-		MaMuT mamut = new MaMuT();
+
+		final MaMuT mamut = new MaMuT();
 		try {
 			mamut.load(file);
-		} catch (ParserConfigurationException e) {
+		} catch (final ParserConfigurationException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		} catch (SAXException e) {
+		} catch (final SAXException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		} catch (InstantiationException e) {
+		} catch (final InstantiationException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		} catch (IllegalAccessException e) {
+		} catch (final IllegalAccessException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		} catch (ClassNotFoundException e) {
+		} catch (final ClassNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
-	
-	
-	public static void main(String[] args) {
+
+	public static void main(final String[] args) {
 		ImageJ.main(args);
-		
-		LoadMamutAnnotationPlugin plugin = new LoadMamutAnnotationPlugin();
+
+		final LoadMamutAnnotationPlugin plugin = new LoadMamutAnnotationPlugin();
 		plugin.run(null);
 	}
 

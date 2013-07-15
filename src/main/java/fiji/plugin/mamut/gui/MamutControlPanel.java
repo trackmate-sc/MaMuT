@@ -20,19 +20,19 @@ public class MamutControlPanel extends ConfigureViewsPanel {
 	private static final long serialVersionUID = 1L;
 	private static final ImageIcon MAMUT_ICON = new ImageIcon(MaMuT.class.getResource("mammouth-16x16.png"));
 	private static final Icon SAVE_ICON = new ImageIcon(MaMuT.class.getResource("page_save.png"));
-	private JButton jButtonMamutViewer;
-	private JButton jButtonSaveButton;
+	private final JButton jButtonMamutViewer;
+	private final JButton jButtonSaveButton;
 	public final ActionEvent MAMUT_VIEWER_BUTTON_PRESSED = new ActionEvent(this, 2, "MamutViewerButtonPushed");
 	public final ActionEvent MAMUT_SAVE_BUTTON_PRESSED = new ActionEvent(this, 3, "MamutSaveButtonPushed");
 
-	public MamutControlPanel(Model model) {
+	public MamutControlPanel(final Model model) {
 		super(model);
-		
+
 		// Move trackscheme button
-		Point btp = jButtonShowTrackScheme.getLocation();
+		final Point btp = jButtonShowTrackScheme.getLocation();
 		jButtonShowTrackScheme.setLocation(btp.x, btp.y + 50);
-		Dimension btd = jButtonShowTrackScheme.getSize();
-		
+		final Dimension btd = jButtonShowTrackScheme.getSize();
+
 		// New Mamut viewer button
 		jButtonMamutViewer = new JButton("Viewer", MAMUT_ICON);
 		jButtonMamutViewer.setFont(SMALL_FONT);
@@ -40,21 +40,21 @@ public class MamutControlPanel extends ConfigureViewsPanel {
 		jButtonMamutViewer.setSize(btd);
 		jButtonMamutViewer.addActionListener(new ActionListener() {
 			@Override
-			public void actionPerformed(ActionEvent arg0) {
+			public void actionPerformed(final ActionEvent arg0) {
 				fireAction(MAMUT_VIEWER_BUTTON_PRESSED);
 			}
 		});
 		add(jButtonMamutViewer);
-		
+
 		// Save button
-		Point atp = jButtonDoAnalysis.getLocation();
+		final Point atp = jButtonDoAnalysis.getLocation();
 		jButtonSaveButton = new JButton("Save", SAVE_ICON);
 		jButtonSaveButton.setFont(SMALL_FONT);
 		jButtonSaveButton.setLocation(atp.x, atp.y + 50);
 		jButtonSaveButton.setSize(btd);
 		jButtonSaveButton.addActionListener(new ActionListener() {
 			@Override
-			public void actionPerformed(ActionEvent arg0) {
+			public void actionPerformed(final ActionEvent arg0) {
 				fireAction(MAMUT_SAVE_BUTTON_PRESSED);
 			}
 		});

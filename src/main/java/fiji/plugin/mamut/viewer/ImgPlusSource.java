@@ -10,31 +10,31 @@ import net.imglib2.interpolation.randomaccess.NearestNeighborInterpolatorFactory
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.NumericType;
 import net.imglib2.view.Views;
-import fiji.plugin.mamut.util.TransformUtils;
 import viewer.render.Interpolation;
 import viewer.render.Source;
+import fiji.plugin.mamut.util.TransformUtils;
 
 public class ImgPlusSource<T extends NumericType<T>> implements Source<T> {
-	
+
 	private final ImgPlus<T> img;
 
-	public ImgPlusSource(ImgPlus<T> img) {
+	public ImgPlusSource(final ImgPlus<T> img) {
 		this.img = img;
 	}
 
 	@Override
-	public boolean isPresent(int t) {
-		return t>=0 && t < img.dimension(3) ;
+	public boolean isPresent(final int t) {
+		return t >= 0 && t < img.dimension(3);
 	}
 
 	@Override
-	public RandomAccessibleInterval<T> getSource(int t, int level) {
+	public RandomAccessibleInterval<T> getSource(final int t, final int level) {
 		return Views.hyperSlice(img, 3, t);
 	}
 
 	@Override
-	public RealRandomAccessible<T> getInterpolatedSource(int t, int level, Interpolation method) {
-		InterpolatorFactory<T, RandomAccessible< T >> factory;
+	public RealRandomAccessible<T> getInterpolatedSource(final int t, final int level, final Interpolation method) {
+		InterpolatorFactory<T, RandomAccessible<T>> factory;
 		switch (method) {
 		default:
 		case NEARESTNEIGHBOR:
@@ -44,14 +44,14 @@ public class ImgPlusSource<T extends NumericType<T>> implements Source<T> {
 			factory = new NLinearInterpolatorFactory<T>();
 			break;
 		}
-		T zero = img.firstElement().createVariable();
+		final T zero = img.firstElement().createVariable();
 		zero.setZero();
-		return Views.interpolate(Views.extendValue(getSource(t, level), zero ), factory);
+		return Views.interpolate(Views.extendValue(getSource(t, level), zero), factory);
 	}
 
 	@Override
-	public AffineTransform3D getSourceTransform(int t, int level) {
-		AffineTransform3D identity = TransformUtils.getTransformFromCalibration(img).inverse();
+	public AffineTransform3D getSourceTransform(final int t, final int level) {
+		final AffineTransform3D identity = TransformUtils.getTransformFromCalibration(img).inverse();
 		return identity;
 	}
 

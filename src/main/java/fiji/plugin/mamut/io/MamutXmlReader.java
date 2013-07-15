@@ -1,7 +1,11 @@
 package fiji.plugin.mamut.io;
 
-import static fiji.plugin.trackmate.io.TmXmlKeys.*;
+import static fiji.plugin.trackmate.io.TmXmlKeys.GUI_STATE_ELEMENT_KEY;
 import static fiji.plugin.trackmate.io.TmXmlKeys.GUI_VIEW_ATTRIBUTE;
+import static fiji.plugin.trackmate.io.TmXmlKeys.GUI_VIEW_ATTRIBUTE_POSITION_HEIGHT;
+import static fiji.plugin.trackmate.io.TmXmlKeys.GUI_VIEW_ATTRIBUTE_POSITION_WIDTH;
+import static fiji.plugin.trackmate.io.TmXmlKeys.GUI_VIEW_ATTRIBUTE_POSITION_X;
+import static fiji.plugin.trackmate.io.TmXmlKeys.GUI_VIEW_ATTRIBUTE_POSITION_Y;
 import static fiji.plugin.trackmate.io.TmXmlKeys.GUI_VIEW_ELEMENT_KEY;
 
 import java.io.File;
@@ -20,68 +24,72 @@ import fiji.plugin.trackmate.visualization.trackscheme.TrackScheme;
 
 public class MamutXmlReader extends TmXmlReader {
 
-	public MamutXmlReader(File file) {
+	public MamutXmlReader(final File file) {
 		super(file);
 	}
 
 	/**
-	 * Returns the collection of views that were saved in this file. The views returned
-	 * <b>will be rendered</b>.
-	 * @param provider  the {@link ViewProvider} to instantiate the view. Each saved 
-	 * view must be known by the specified provider.
+	 * Returns the collection of views that were saved in this file. The views
+	 * returned <b>will be rendered</b>.
+	 *
+	 * @param provider
+	 *            the {@link ViewProvider} to instantiate the view. Each saved
+	 *            view must be known by the specified provider.
 	 * @return the collection of views.
 	 * @see TrackMateModelView#render()
 	 */
-	public Collection<TrackMateModelView> getViews(ViewProvider provider) {
-		Element guiel = root.getChild(GUI_STATE_ELEMENT_KEY);
+	@Override
+	public Collection<TrackMateModelView> getViews(final ViewProvider provider) {
+		final Element guiel = root.getChild(GUI_STATE_ELEMENT_KEY);
 		if (null != guiel) {
 
-			List<Element> children = guiel.getChildren(GUI_VIEW_ELEMENT_KEY);
-			Collection<TrackMateModelView> views = new ArrayList<TrackMateModelView>(children.size());
+			final List<Element> children = guiel.getChildren(GUI_VIEW_ELEMENT_KEY);
+			final Collection<TrackMateModelView> views = new ArrayList<TrackMateModelView>(children.size());
 
 			for (final Element child : children) {
 				final String viewKey = child.getAttributeValue(GUI_VIEW_ATTRIBUTE);
 				if (null == viewKey) {
-					logger.error("Could not find view key attribute for element " + child +".\n");
+					logger.error("Could not find view key attribute for element " + child + ".\n");
 					ok = false;
 				} else {
 					final TrackMateModelView view = provider.getView(viewKey);
 					if (null == view) {
-						logger.error("Unknown view for key " + viewKey +".\n");
+						logger.error("Unknown view for key " + viewKey + ".\n");
 						ok = false;
 					} else {
 						views.add(view);
 
 						new Thread("MaMuT view rendering thread") {
+							@Override
 							public void run() {
 
 								if (viewKey.equals(MamutViewer.KEY)) {
-									MamutViewer mv = (MamutViewer) view;
+									final MamutViewer mv = (MamutViewer) view;
 //									mv.render();
-									
+
 									try {
-										int mvx = child.getAttribute(GUI_VIEW_ATTRIBUTE_POSITION_X).getIntValue();
-										int mvy = child.getAttribute(GUI_VIEW_ATTRIBUTE_POSITION_Y).getIntValue();
-										int mvwidth = child.getAttribute(GUI_VIEW_ATTRIBUTE_POSITION_WIDTH).getIntValue();
-										int mvheight = child.getAttribute(GUI_VIEW_ATTRIBUTE_POSITION_HEIGHT).getIntValue();
+										final int mvx = child.getAttribute(GUI_VIEW_ATTRIBUTE_POSITION_X).getIntValue();
+										final int mvy = child.getAttribute(GUI_VIEW_ATTRIBUTE_POSITION_Y).getIntValue();
+										final int mvwidth = child.getAttribute(GUI_VIEW_ATTRIBUTE_POSITION_WIDTH).getIntValue();
+										final int mvheight = child.getAttribute(GUI_VIEW_ATTRIBUTE_POSITION_HEIGHT).getIntValue();
 										mv.getFrame().setLocation(mvx, mvy);
 										mv.getFrame().setSize(mvwidth, mvheight);
-									} catch (DataConversionException e) {
+									} catch (final DataConversionException e) {
 										e.printStackTrace();
 									}
 
 								} else if (viewKey.equals(TrackScheme.KEY)) {
-									TrackScheme ts = (TrackScheme) view;
+									final TrackScheme ts = (TrackScheme) view;
 //									ts.render();
-									
+
 									try {
-										int mvx = child.getAttribute(GUI_VIEW_ATTRIBUTE_POSITION_X).getIntValue();
-										int mvy = child.getAttribute(GUI_VIEW_ATTRIBUTE_POSITION_Y).getIntValue();
-										int mvwidth = child.getAttribute(GUI_VIEW_ATTRIBUTE_POSITION_WIDTH).getIntValue();
-										int mvheight = child.getAttribute(GUI_VIEW_ATTRIBUTE_POSITION_HEIGHT).getIntValue();
+										final int mvx = child.getAttribute(GUI_VIEW_ATTRIBUTE_POSITION_X).getIntValue();
+										final int mvy = child.getAttribute(GUI_VIEW_ATTRIBUTE_POSITION_Y).getIntValue();
+										final int mvwidth = child.getAttribute(GUI_VIEW_ATTRIBUTE_POSITION_WIDTH).getIntValue();
+										final int mvheight = child.getAttribute(GUI_VIEW_ATTRIBUTE_POSITION_HEIGHT).getIntValue();
 										ts.getGUI().setLocation(mvx, mvy);
 										ts.getGUI().setSize(mvwidth, mvheight);
-									} catch (DataConversionException e) {
+									} catch (final DataConversionException e) {
 										e.printStackTrace();
 									}
 								}
