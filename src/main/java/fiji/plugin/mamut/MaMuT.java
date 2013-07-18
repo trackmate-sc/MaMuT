@@ -351,7 +351,6 @@ public class MaMuT implements ModelChangeListener {
 				});
 
 				initTransform(viewer, viewer.getFrame().getWidth(), viewer.getFrame().getHeight());
-				initBrightness(viewer, 0.001, 0.999);
 
 			} else if (view.getKey().equals(TrackScheme.KEY)) {
 				final TrackScheme trackscheme = (TrackScheme) view;
