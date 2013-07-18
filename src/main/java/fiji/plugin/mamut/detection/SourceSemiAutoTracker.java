@@ -16,6 +16,7 @@ import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 import viewer.render.Source;
 import viewer.render.SourceAndConverter;
+import fiji.plugin.mamut.feature.spot.SpotSourceIdAnalyzerFactory;
 import fiji.plugin.mamut.util.Utils;
 import fiji.plugin.trackmate.Logger;
 import fiji.plugin.trackmate.Model;
@@ -44,11 +45,12 @@ import fiji.plugin.trackmate.util.CropImgView;
  * <li>spots of high quality are found, but too far from the initial spot;
  * <li>the source has no time-point left.
  * </ul>
- *
+ * 
  * @param <T>
  *            the type of the source. Must extend {@link RealType} and
- *            {@link NativeType} to use with most TrackMate {@link SpotDetector}s.
- *
+ *            {@link NativeType} to use with most TrackMate {@link SpotDetector}
+ *            s.
+ * 
  * @author Jean-Yves Tinevez - 2013
  */
 public class SourceSemiAutoTracker<T extends RealType<T> & NativeType<T>> extends AbstractSemiAutoTracker<T> {
@@ -91,11 +93,16 @@ public class SourceSemiAutoTracker<T extends RealType<T> & NativeType<T>> extend
 		 * Source, rai and transform
 		 */
 
-		final int sourceIndex = 0; // TODO when Tobias will have saved the source index origin as a spot feature, use it.
+		final Double so = spot.getFeature(SpotSourceIdAnalyzerFactory.SOURCE_ID);
+		if (null == so) {
+			logger.log("Spot: " + spot + ": The source index of given spot is not set.");
+			return null;
+		}
+		final int sourceIndex = so.intValue();
 		final Source<T> source = sources.get(sourceIndex).getSpimSource();
 
 		if (!source.isPresent(frame)) {
-			logger.log("Spot: " + spot + ": Target source has exhausted its time points");
+			logger.log("Spot: " + spot + ": Target source has exhausted its-time points.");
 			return null;
 		}
 
@@ -199,7 +206,7 @@ public class SourceSemiAutoTracker<T extends RealType<T> & NativeType<T>> extend
 
 		/*
 		 * Build the transformation that will put back the found spot in the
-		 * global coordinate system
+		 * global coordinate system.
 		 */
 
 		final AffineTransform3D scale = new AffineTransform3D();
@@ -216,5 +223,12 @@ public class SourceSemiAutoTracker<T extends RealType<T> & NativeType<T>> extend
 		sn.neighborhood = imgplus;
 		sn.transform = transform;
 		return sn;
+	}
+
+	@Override
+	protected void exposeSpot(final Spot newSpot, final Spot previousSpot) {
+		// We just copy the SOURCE_INDEX value from the old spot to the new spot.
+		final Double sourceIndex = previousSpot.getFeature(SpotSourceIdAnalyzerFactory.SOURCE_ID);
+		newSpot.putFeature(SpotSourceIdAnalyzerFactory.SOURCE_ID, sourceIndex);
 	}
 }
