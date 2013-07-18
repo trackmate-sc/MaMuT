@@ -4,6 +4,7 @@ import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.List;
 
 import javax.imageio.ImageIO;
 
@@ -23,9 +24,11 @@ import net.imglib2.util.Intervals;
 import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
 import viewer.render.Source;
+import viewer.render.SourceAndConverter;
 
 import com.mxgraph.util.mxBase64;
 
+import fiji.plugin.mamut.feature.spot.SpotSourceIdAnalyzerFactory;
 import fiji.plugin.trackmate.Settings;
 import fiji.plugin.trackmate.Spot;
 import fiji.plugin.trackmate.visualization.trackscheme.SpotImageUpdater;
@@ -34,14 +37,12 @@ public class SourceSpotImageUpdater<T extends RealType<T>> extends SpotImageUpda
 
 	/** How much extra we capture around spot radius. */
 	private static final double RADIUS_FACTOR = 1.1;
-	private final Source<T> source;
+	private final List<SourceAndConverter<T>> sources;
 	private final ThreadGroup threadGroup;
-	private Integer previousFrame = -1; // TODO: remove and make super.previousFrame protected?
-	private RandomAccessibleInterval<T> img;
 
-	public SourceSpotImageUpdater(final Settings settings, final Source<T> source) {
+	public SourceSpotImageUpdater(final Settings settings, final List<SourceAndConverter<T>> sources) {
 		super(settings);
-		this.source = source;
+		this.sources = sources;
 		this.threadGroup = new ThreadGroup("Source spot image grabber threads");
 	}
 
@@ -60,18 +61,17 @@ public class SourceSpotImageUpdater<T extends RealType<T>> extends SpotImageUpda
 			@Override
 			public void run() {
 
-				final Integer frame = spot.getFeature(Spot.FRAME).intValue();
-				if (null == frame) {
+				// Retrieve frame
+				final int frame = spot.getFeature(Spot.FRAME).intValue();
+				// Retrieve source ID
+				final Double si = spot.getFeature(SpotSourceIdAnalyzerFactory.SOURCE_ID);
+				if (null == si) {
 					return;
 				}
-				if (frame == previousFrame) {
-					// Keep the same image than in memory
-				} else {
-					img = source.getSource(frame, 0);
-					previousFrame = frame;
-				}
 
-				// TODO?: Currently calibration[] is not used
+				final int sourceID = si.intValue();
+				final Source<T> source = sources.get(sourceID).getSpimSource();
+				final RandomAccessibleInterval<T> img = source.getSource(frame, 0);
 
 				// Get spot coords
 				final AffineTransform3D sourceToGlobal = source.getSourceTransform(frame, 0);

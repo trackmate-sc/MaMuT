@@ -275,7 +275,7 @@ public class MaMuT implements ModelChangeListener {
 		 * Thumbnail updater
 		 */
 
-		thumbnailUpdater = new SourceSpotImageUpdater(settings, sources.get(0).getSpimSource());
+		thumbnailUpdater = new SourceSpotImageUpdater(settings, sources);
 
 		/*
 		 * Color provider
@@ -362,7 +362,7 @@ public class MaMuT implements ModelChangeListener {
 		 * Thumbnail updater
 		 */
 
-		thumbnailUpdater = new SourceSpotImageUpdater(settings, sources.get(0).getSpimSource());
+		thumbnailUpdater = new SourceSpotImageUpdater(settings, sources);
 
 		/*
 		 * Settings
