@@ -28,6 +28,7 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
@@ -274,7 +275,7 @@ public class MaMuT implements ModelChangeListener {
 		 * Thumbnail updater
 		 */
 
-		thumbnailUpdater = new SourceSpotImageUpdater(settings, sources.get(0).getSpimSource());
+		thumbnailUpdater = new SourceSpotImageUpdater(settings, sources);
 
 		/*
 		 * Color provider
@@ -319,31 +320,7 @@ public class MaMuT implements ModelChangeListener {
 				installKeyBindings(viewer);
 				installMouseListeners(viewer);
 
-				viewer.getFrame().addWindowListener(new WindowListener() {
-					@Override
-					public void windowOpened(final WindowEvent arg0) {
-					}
-
-					@Override
-					public void windowIconified(final WindowEvent arg0) {
-					}
-
-					@Override
-					public void windowDeiconified(final WindowEvent arg0) {
-					}
-
-					@Override
-					public void windowDeactivated(final WindowEvent arg0) {
-					}
-
-					@Override
-					public void windowClosing(final WindowEvent arg0) {
-					}
-
-					@Override
-					public void windowActivated(final WindowEvent arg0) {
-					}
-
+				viewer.getFrame().addWindowListener(new WindowAdapter() {
 					@Override
 					public void windowClosed(final WindowEvent arg0) {
 						guimodel.getViews().remove(viewer);
@@ -385,7 +362,7 @@ public class MaMuT implements ModelChangeListener {
 		 * Thumbnail updater
 		 */
 
-		thumbnailUpdater = new SourceSpotImageUpdater(settings, sources.get(0).getSpimSource());
+		thumbnailUpdater = new SourceSpotImageUpdater(settings, sources);
 
 		/*
 		 * Settings
@@ -393,6 +370,7 @@ public class MaMuT implements ModelChangeListener {
 
 		settings = new SourceSettings();
 		settings.setFrom(sources, file, nTimepoints);
+		settings.addSpotAnalyzerFactory(new SpotSourceIdAnalyzerFactory()); // We need this to have the SOURCE_ID feature
 		settings.addTrackAnalyzer(new TrackIndexAnalyzer(model)); // we need at least this one
 		settings.addEdgeAnalyzer(new EdgeVelocityAnalyzer(model)); // this one is for fun
 		settings.addEdgeAnalyzer(new EdgeTargetAnalyzer(model)); // we CANNOT load & save without this one
@@ -599,28 +577,22 @@ public class MaMuT implements ModelChangeListener {
 		viewer.getFrame().setIconImage(MAMUT_ICON.getImage());
 		viewer.getFrame().addWindowListener(new WindowListener() {
 			@Override
-			public void windowOpened(final WindowEvent arg0) {
-			}
+			public void windowOpened(final WindowEvent arg0) {}
 
 			@Override
-			public void windowIconified(final WindowEvent arg0) {
-			}
+			public void windowIconified(final WindowEvent arg0) {}
 
 			@Override
-			public void windowDeiconified(final WindowEvent arg0) {
-			}
+			public void windowDeiconified(final WindowEvent arg0) {}
 
 			@Override
-			public void windowDeactivated(final WindowEvent arg0) {
-			}
+			public void windowDeactivated(final WindowEvent arg0) {}
 
 			@Override
-			public void windowClosing(final WindowEvent arg0) {
-			}
+			public void windowClosing(final WindowEvent arg0) {}
 
 			@Override
-			public void windowActivated(final WindowEvent arg0) {
-			}
+			public void windowActivated(final WindowEvent arg0) {}
 
 			@Override
 			public void windowClosed(final WindowEvent arg0) {
@@ -772,7 +744,7 @@ public class MaMuT implements ModelChangeListener {
 
 	/**
 	 * Configures the specified {@link MamutViewer} with key bindings.
-	 *
+	 * 
 	 * @param the
 	 *            {@link MamutViewer} to configure.
 	 */
@@ -924,8 +896,7 @@ public class MaMuT implements ModelChangeListener {
 		viewer.addHandler(new KeyListener() {
 
 			@Override
-			public void keyTyped(final KeyEvent event) {
-			}
+			public void keyTyped(final KeyEvent event) {}
 
 			@Override
 			public void keyReleased(final KeyEvent event) {
@@ -958,7 +929,7 @@ public class MaMuT implements ModelChangeListener {
 
 	/**
 	 * Configures the specified {@link MamutViewer} with mouse listeners.
-	 *
+	 * 
 	 * @param viewer
 	 *            the {@link MamutViewer} to configure.
 	 */
@@ -979,27 +950,22 @@ public class MaMuT implements ModelChangeListener {
 			}
 
 			@Override
-			public void mouseDragged(final MouseEvent arg0) {
-			}
+			public void mouseDragged(final MouseEvent arg0) {}
 		});
 
 		viewer.addHandler(new MouseListener() {
 
 			@Override
-			public void mouseReleased(final MouseEvent arg0) {
-			}
+			public void mouseReleased(final MouseEvent arg0) {}
 
 			@Override
-			public void mousePressed(final MouseEvent arg0) {
-			}
+			public void mousePressed(final MouseEvent arg0) {}
 
 			@Override
-			public void mouseExited(final MouseEvent arg0) {
-			}
+			public void mouseExited(final MouseEvent arg0) {}
 
 			@Override
-			public void mouseEntered(final MouseEvent arg0) {
-			}
+			public void mouseEntered(final MouseEvent arg0) {}
 
 			@Override
 			public void mouseClicked(final MouseEvent event) {
@@ -1101,7 +1067,7 @@ public class MaMuT implements ModelChangeListener {
 
 	/**
 	 * Adds a new spot at the mouse current location.
-	 *
+	 * 
 	 * @param viewer
 	 *            the viewer in which the add spot request was made.
 	 */
@@ -1168,7 +1134,7 @@ public class MaMuT implements ModelChangeListener {
 
 	/**
 	 * Remove spot at the mouse current location (if there is one).
-	 *
+	 * 
 	 * @param viewer
 	 *            the viewer in which the delete spot request was made.
 	 */
@@ -1190,7 +1156,7 @@ public class MaMuT implements ModelChangeListener {
 
 	/**
 	 * Increases (or decreases) the neighbor spot radius.
-	 *
+	 * 
 	 * @param viewer
 	 *            the viewer in which the change radius was made.
 	 * @param factor
@@ -1232,7 +1198,7 @@ public class MaMuT implements ModelChangeListener {
 	 * location, and for which the current location is within its radius, or
 	 * <code>null</code> if there is no such spot. In other words: returns the
 	 * spot in which the mouse pointer is.
-	 *
+	 * 
 	 * @param viewer
 	 *            the viewer to inspect.
 	 * @return the closest spot within radius.
@@ -1273,7 +1239,7 @@ public class MaMuT implements ModelChangeListener {
 	/**
 	 * Returns the starting display settings that will be passed to any new view
 	 * registered within this GUI.
-	 *
+	 * 
 	 * @param model
 	 *            the model this GUI will configure; might be required by some
 	 *            display settings.
