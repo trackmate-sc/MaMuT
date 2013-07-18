@@ -16,7 +16,7 @@ import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 import viewer.render.Source;
 import viewer.render.SourceAndConverter;
-import fiji.plugin.mamut.util.Utils;
+import viewer.util.Affine3DHelpers;
 import fiji.plugin.trackmate.Logger;
 import fiji.plugin.trackmate.Model;
 import fiji.plugin.trackmate.SelectionModel;
@@ -116,9 +116,9 @@ public class SourceSemiAutoTracker<T extends RealType<T> & NativeType<T>> extend
 			 */
 
 			final AffineTransform3D sourceToGlobal = source.getSourceTransform(frame, level);
-			double scale = Utils.extractScale(sourceToGlobal, 0);
+			double scale = Affine3DHelpers.extractScale(sourceToGlobal, 0);
 			for (int axis = 1; axis < sourceToGlobal.numDimensions(); axis++) {
-				final double sc = Utils.extractScale(sourceToGlobal, axis);
+				final double sc = Affine3DHelpers.extractScale(sourceToGlobal, axis);
 				if (sc > scale) {
 					scale = sc;
 				}
@@ -138,9 +138,9 @@ public class SourceSemiAutoTracker<T extends RealType<T> & NativeType<T>> extend
 		 * Extract scales
 		 */
 
-		final double dx = Utils.extractScale(sourceToGlobal, 0);
-		final double dy = Utils.extractScale(sourceToGlobal, 1);
-		final double dz = Utils.extractScale(sourceToGlobal, 2);
+		final double dx = Affine3DHelpers.extractScale(sourceToGlobal, 0);
+		final double dy = Affine3DHelpers.extractScale(sourceToGlobal, 1);
+		final double dz = Affine3DHelpers.extractScale(sourceToGlobal, 2);
 
 		/*
 		 * Extract source coords

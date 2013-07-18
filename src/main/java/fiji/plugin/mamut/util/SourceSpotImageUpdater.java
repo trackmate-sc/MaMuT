@@ -23,6 +23,7 @@ import net.imglib2.util.Intervals;
 import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
 import viewer.render.Source;
+import viewer.util.Affine3DHelpers;
 
 import com.mxgraph.util.mxBase64;
 
@@ -80,7 +81,7 @@ public class SourceSpotImageUpdater<T extends RealType<T>> extends SpotImageUpda
 				final long x = roundedSourcePos.getLongPosition(0);
 				final long y = roundedSourcePos.getLongPosition(1);
 				final long z = roundedSourcePos.getLongPosition(2);
-				final long r = (long) Math.ceil(RADIUS_FACTOR * spot.getFeature(Spot.RADIUS).doubleValue() / Utils.extractScale(sourceToGlobal, 0));
+				final long r = (long) Math.ceil(RADIUS_FACTOR * spot.getFeature(Spot.RADIUS).doubleValue() / Affine3DHelpers.extractScale(sourceToGlobal, 0));
 
 				// Extract central slice
 				final IntervalView<T> slice = Views.hyperSlice(img, 2, z);
