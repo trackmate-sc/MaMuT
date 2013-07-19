@@ -123,7 +123,7 @@ public class MaMuT implements ModelChangeListener {
 
 	public static final ImageIcon MAMUT_ICON = new ImageIcon(MaMuT.class.getResource("mammouth-256x256.png"));
 	public static final String PLUGIN_NAME = "MaMuT";
-	public static final String PLUGIN_VERSION = "0.6.1";
+	public static final String PLUGIN_VERSION = "0.7.0";
 	private static final double DEFAULT_RADIUS = 10;
 	/**
 	 * By how portion of the current radius we change this radius for every
