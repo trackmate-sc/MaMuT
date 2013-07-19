@@ -17,7 +17,7 @@ import net.imglib2.type.numeric.RealType;
 import viewer.render.Source;
 import viewer.render.SourceAndConverter;
 import fiji.plugin.mamut.feature.spot.SpotSourceIdAnalyzerFactory;
-import fiji.plugin.mamut.util.Utils;
+import viewer.util.Affine3DHelpers;
 import fiji.plugin.trackmate.Logger;
 import fiji.plugin.trackmate.Model;
 import fiji.plugin.trackmate.SelectionModel;
@@ -45,12 +45,11 @@ import fiji.plugin.trackmate.util.CropImgView;
  * <li>spots of high quality are found, but too far from the initial spot;
  * <li>the source has no time-point left.
  * </ul>
- * 
+ *
  * @param <T>
  *            the type of the source. Must extend {@link RealType} and
- *            {@link NativeType} to use with most TrackMate {@link SpotDetector}
- *            s.
- * 
+ *            {@link NativeType} to use with most TrackMate {@link SpotDetector}s.
+ *
  * @author Jean-Yves Tinevez - 2013
  */
 public class SourceSemiAutoTracker<T extends RealType<T> & NativeType<T>> extends AbstractSemiAutoTracker<T> {
@@ -102,7 +101,7 @@ public class SourceSemiAutoTracker<T extends RealType<T> & NativeType<T>> extend
 		final Source<T> source = sources.get(sourceIndex).getSpimSource();
 
 		if (!source.isPresent(frame)) {
-			logger.log("Spot: " + spot + ": Target source has exhausted its-time points.");
+			logger.log("Spot: " + spot + ": Target source has exhausted its time points.");
 			return null;
 		}
 
@@ -123,9 +122,9 @@ public class SourceSemiAutoTracker<T extends RealType<T> & NativeType<T>> extend
 			 */
 
 			final AffineTransform3D sourceToGlobal = source.getSourceTransform(frame, level);
-			double scale = Utils.extractScale(sourceToGlobal, 0);
+			double scale = Affine3DHelpers.extractScale(sourceToGlobal, 0);
 			for (int axis = 1; axis < sourceToGlobal.numDimensions(); axis++) {
-				final double sc = Utils.extractScale(sourceToGlobal, axis);
+				final double sc = Affine3DHelpers.extractScale(sourceToGlobal, axis);
 				if (sc > scale) {
 					scale = sc;
 				}
@@ -145,9 +144,9 @@ public class SourceSemiAutoTracker<T extends RealType<T> & NativeType<T>> extend
 		 * Extract scales
 		 */
 
-		final double dx = Utils.extractScale(sourceToGlobal, 0);
-		final double dy = Utils.extractScale(sourceToGlobal, 1);
-		final double dz = Utils.extractScale(sourceToGlobal, 2);
+		final double dx = Affine3DHelpers.extractScale(sourceToGlobal, 0);
+		final double dy = Affine3DHelpers.extractScale(sourceToGlobal, 1);
+		final double dz = Affine3DHelpers.extractScale(sourceToGlobal, 2);
 
 		/*
 		 * Extract source coords
