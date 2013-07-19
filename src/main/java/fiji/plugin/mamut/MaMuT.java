@@ -256,6 +256,11 @@ public class MaMuT implements ModelChangeListener {
 		 */
 
 		imageFile = new File(settings.imageFolder, settings.imageFileName);
+		if (!imageFile.exists()) {
+			// Then try relative path
+			imageFile = new File(mamutfile.getParent(), settings.imageFileName);
+		}
+
 		prepareSources(imageFile);
 		reader.getSetupAssignments(setupAssignments);
 
@@ -342,7 +347,6 @@ public class MaMuT implements ModelChangeListener {
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public void launch(final File file) throws ImgIOException, FormatException, IOException, ParserConfigurationException, SAXException, InstantiationException, IllegalAccessException, ClassNotFoundException {
-
 		MaMuT.imageFile = file;
 
 		/*
