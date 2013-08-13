@@ -90,7 +90,7 @@ public class SourceSpotImageUpdater<T extends RealType<T>> extends SpotImageUpda
 				final Interval cropInterval = Intervals.intersect(slice, Intervals.createMinMax(x - r, y - r, x + r, y + r));
 
 				final BufferedImage image;
-				if (Intervals.isEmpty(cropInterval))
+				if (isEmpty(cropInterval))
 					image = new BufferedImage(1, 1, BufferedImage.TYPE_BYTE_GRAY);
 				else {
 					final IntervalView<T> crop = Views.zeroMin(Views.interval(slice, cropInterval));
@@ -115,6 +115,7 @@ public class SourceSpotImageUpdater<T extends RealType<T>> extends SpotImageUpda
 				}
 				str.append(baf);
 			}
+
 		};
 
 		th.start();
@@ -125,4 +126,13 @@ public class SourceSpotImageUpdater<T extends RealType<T>> extends SpotImageUpda
 		}
 		return str.toString();
 	}
+
+	private static final boolean isEmpty(final Interval interval) {
+		final int n = interval.numDimensions();
+		for (int d = 0; d < n; ++d)
+			if (interval.min(d) > interval.max(d))
+				return true;
+		return false;
+	}
+
 }
