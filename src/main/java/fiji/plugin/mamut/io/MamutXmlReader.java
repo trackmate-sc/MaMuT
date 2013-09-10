@@ -15,8 +15,6 @@ import java.util.List;
 
 import org.jdom2.DataConversionException;
 import org.jdom2.Element;
-import org.jdom2.JDOMException;
-import org.jdom2.output.DOMOutputter;
 
 import viewer.gui.brightness.SetupAssignments;
 import fiji.plugin.mamut.viewer.MamutViewer;
@@ -34,7 +32,7 @@ public class MamutXmlReader extends TmXmlReader {
 	/**
 	 * Returns the collection of views that were saved in this file. The views
 	 * returned <b>will be rendered</b>.
-	 *
+	 * 
 	 * @param provider
 	 *            the {@link ViewProvider} to instantiate the view. Each saved
 	 *            view must be known by the specified provider.
@@ -46,13 +44,17 @@ public class MamutXmlReader extends TmXmlReader {
 		final Element guiel = root.getChild(GUI_STATE_ELEMENT_KEY);
 		if (null != guiel) {
 
-			final List<Element> children = guiel.getChildren(GUI_VIEW_ELEMENT_KEY);
-			final Collection<TrackMateModelView> views = new ArrayList<TrackMateModelView>(children.size());
+			final List<Element> children = guiel
+					.getChildren(GUI_VIEW_ELEMENT_KEY);
+			final Collection<TrackMateModelView> views = new ArrayList<TrackMateModelView>(
+					children.size());
 
 			for (final Element child : children) {
-				final String viewKey = child.getAttributeValue(GUI_VIEW_ATTRIBUTE);
+				final String viewKey = child
+						.getAttributeValue(GUI_VIEW_ATTRIBUTE);
 				if (null == viewKey) {
-					logger.error("Could not find view key attribute for element " + child + ".\n");
+					logger.error("Could not find view key attribute for element "
+							+ child + ".\n");
 					ok = false;
 				} else {
 					final TrackMateModelView view = provider.getView(viewKey);
@@ -68,28 +70,49 @@ public class MamutXmlReader extends TmXmlReader {
 
 								if (viewKey.equals(MamutViewer.KEY)) {
 									final MamutViewer mv = (MamutViewer) view;
-//									mv.render();
+									// mv.render();
 
 									try {
-										final int mvx = child.getAttribute(GUI_VIEW_ATTRIBUTE_POSITION_X).getIntValue();
-										final int mvy = child.getAttribute(GUI_VIEW_ATTRIBUTE_POSITION_Y).getIntValue();
-										final int mvwidth = child.getAttribute(GUI_VIEW_ATTRIBUTE_POSITION_WIDTH).getIntValue();
-										final int mvheight = child.getAttribute(GUI_VIEW_ATTRIBUTE_POSITION_HEIGHT).getIntValue();
+										final int mvx = child.getAttribute(
+												GUI_VIEW_ATTRIBUTE_POSITION_X)
+												.getIntValue();
+										final int mvy = child.getAttribute(
+												GUI_VIEW_ATTRIBUTE_POSITION_Y)
+												.getIntValue();
+										final int mvwidth = child
+												.getAttribute(
+														GUI_VIEW_ATTRIBUTE_POSITION_WIDTH)
+												.getIntValue();
+										final int mvheight = child
+												.getAttribute(
+														GUI_VIEW_ATTRIBUTE_POSITION_HEIGHT)
+												.getIntValue();
 										mv.getFrame().setLocation(mvx, mvy);
-										mv.getFrame().setSize(mvwidth, mvheight);
+										mv.getFrame()
+												.setSize(mvwidth, mvheight);
 									} catch (final DataConversionException e) {
 										e.printStackTrace();
 									}
 
 								} else if (viewKey.equals(TrackScheme.KEY)) {
 									final TrackScheme ts = (TrackScheme) view;
-//									ts.render();
+									// ts.render();
 
 									try {
-										final int mvx = child.getAttribute(GUI_VIEW_ATTRIBUTE_POSITION_X).getIntValue();
-										final int mvy = child.getAttribute(GUI_VIEW_ATTRIBUTE_POSITION_Y).getIntValue();
-										final int mvwidth = child.getAttribute(GUI_VIEW_ATTRIBUTE_POSITION_WIDTH).getIntValue();
-										final int mvheight = child.getAttribute(GUI_VIEW_ATTRIBUTE_POSITION_HEIGHT).getIntValue();
+										final int mvx = child.getAttribute(
+												GUI_VIEW_ATTRIBUTE_POSITION_X)
+												.getIntValue();
+										final int mvy = child.getAttribute(
+												GUI_VIEW_ATTRIBUTE_POSITION_Y)
+												.getIntValue();
+										final int mvwidth = child
+												.getAttribute(
+														GUI_VIEW_ATTRIBUTE_POSITION_WIDTH)
+												.getIntValue();
+										final int mvheight = child
+												.getAttribute(
+														GUI_VIEW_ATTRIBUTE_POSITION_HEIGHT)
+												.getIntValue();
 										ts.getGUI().setLocation(mvx, mvy);
 										ts.getGUI().setSize(mvwidth, mvheight);
 									} catch (final DataConversionException e) {
@@ -114,15 +137,11 @@ public class MamutXmlReader extends TmXmlReader {
 		final Element guiel = root.getChild(GUI_STATE_ELEMENT_KEY);
 		if (null != guiel) {
 			// brightness & color settings
-			final List<Element> children = guiel.getChildren("SetupAssignments");
+			final List<Element> children = guiel
+					.getChildren("SetupAssignments");
 			if (!children.isEmpty()) {
-				try {
-					final Element child = children.get(0);
-					final org.w3c.dom.Element sael = new DOMOutputter().output(child);
-					setupAssignments.restoreFromXml(sael);
-				} catch (final JDOMException e) {
-					e.printStackTrace( logger );
-				}
+				final Element child = children.get(0);
+				setupAssignments.restoreFromXml(child);
 			} else {
 				logger.error("Could not find SetupAssignments element.\n");
 			}

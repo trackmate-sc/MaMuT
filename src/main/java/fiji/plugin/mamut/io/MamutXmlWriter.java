@@ -13,12 +13,7 @@ import java.awt.Dimension;
 import java.awt.Point;
 import java.io.File;
 
-import javax.xml.parsers.ParserConfigurationException;
-
-import mpicbg.spim.data.XmlHelpers;
-
 import org.jdom2.Element;
-import org.jdom2.input.DOMBuilder;
 
 import viewer.gui.brightness.SetupAssignments;
 import fiji.plugin.mamut.SourceSettings;
@@ -39,7 +34,7 @@ public class MamutXmlWriter extends TmXmlWriter {
 
 	/**
 	 * Appends the content of a {@link Settings} object to the document.
-	 *
+	 * 
 	 * @param settings
 	 *            the {@link Settings} to write. It must be a
 	 *            {@link SourceSettings} instance, otherwise an exception is
@@ -54,10 +49,13 @@ public class MamutXmlWriter extends TmXmlWriter {
 	 *            appended.
 	 */
 	@Override
-	public void appendSettings(final Settings settings, final DetectorProvider detectorProvider, final TrackerProvider trackerProvider) {
+	public void appendSettings(final Settings settings,
+			final DetectorProvider detectorProvider,
+			final TrackerProvider trackerProvider) {
 
 		if (!(settings instanceof SourceSettings)) {
-			throw new IllegalArgumentException("The settings must be a SourceSettings instance.");
+			throw new IllegalArgumentException(
+					"The settings must be a SourceSettings instance.");
 		}
 
 		final SourceSettings ss = (SourceSettings) settings;
@@ -68,7 +66,8 @@ public class MamutXmlWriter extends TmXmlWriter {
 		settingsElement.addContent(imageInfoElement);
 
 		if (null != detectorProvider) {
-			final Element detectorElement = echoDetectorSettings(settings, detectorProvider);
+			final Element detectorElement = echoDetectorSettings(settings,
+					detectorProvider);
 			settingsElement.addContent(detectorElement);
 		}
 
@@ -79,7 +78,8 @@ public class MamutXmlWriter extends TmXmlWriter {
 		settingsElement.addContent(spotFiltersElement);
 
 		if (null != trackerProvider) {
-			final Element trackerElement = echoTrackerSettings(settings, trackerProvider);
+			final Element trackerElement = echoTrackerSettings(settings,
+					trackerProvider);
 			settingsElement.addContent(trackerElement);
 		}
 
@@ -92,7 +92,8 @@ public class MamutXmlWriter extends TmXmlWriter {
 		root.addContent(settingsElement);
 	}
 
-	public void appendMamutState(final TrackMateGUIModel guimodel, final SetupAssignments setupAssignments) {
+	public void appendMamutState(final TrackMateGUIModel guimodel,
+			final SetupAssignments setupAssignments) {
 		final Element guiel = new Element(GUI_STATE_ELEMENT_KEY);
 		// views
 		for (final TrackMateModelView view : guimodel.getViews()) {
@@ -104,30 +105,31 @@ public class MamutXmlWriter extends TmXmlWriter {
 				final MamutViewer mv = (MamutViewer) view;
 				final Point location = mv.getFrame().getLocation();
 				final Dimension size = mv.getFrame().getSize();
-				viewel.setAttribute(GUI_VIEW_ATTRIBUTE_POSITION_X, "" + location.x);
-				viewel.setAttribute(GUI_VIEW_ATTRIBUTE_POSITION_Y, "" + location.y);
-				viewel.setAttribute(GUI_VIEW_ATTRIBUTE_POSITION_WIDTH, "" + size.width);
-				viewel.setAttribute(GUI_VIEW_ATTRIBUTE_POSITION_HEIGHT, "" + size.height);
+				viewel.setAttribute(GUI_VIEW_ATTRIBUTE_POSITION_X, ""
+						+ location.x);
+				viewel.setAttribute(GUI_VIEW_ATTRIBUTE_POSITION_Y, ""
+						+ location.y);
+				viewel.setAttribute(GUI_VIEW_ATTRIBUTE_POSITION_WIDTH, ""
+						+ size.width);
+				viewel.setAttribute(GUI_VIEW_ATTRIBUTE_POSITION_HEIGHT, ""
+						+ size.height);
 
 			} else if (view.getKey().equals(TrackScheme.KEY)) {
 				final TrackScheme ts = (TrackScheme) view;
 				final Point location = ts.getGUI().getLocation();
 				final Dimension size = ts.getGUI().getSize();
-				viewel.setAttribute(GUI_VIEW_ATTRIBUTE_POSITION_X, "" + location.x);
-				viewel.setAttribute(GUI_VIEW_ATTRIBUTE_POSITION_Y, "" + location.y);
-				viewel.setAttribute(GUI_VIEW_ATTRIBUTE_POSITION_WIDTH, "" + size.width);
-				viewel.setAttribute(GUI_VIEW_ATTRIBUTE_POSITION_HEIGHT, "" + size.height);
+				viewel.setAttribute(GUI_VIEW_ATTRIBUTE_POSITION_X, ""
+						+ location.x);
+				viewel.setAttribute(GUI_VIEW_ATTRIBUTE_POSITION_Y, ""
+						+ location.y);
+				viewel.setAttribute(GUI_VIEW_ATTRIBUTE_POSITION_WIDTH, ""
+						+ size.width);
+				viewel.setAttribute(GUI_VIEW_ATTRIBUTE_POSITION_HEIGHT, ""
+						+ size.height);
 			}
 		}
-		// brightness & color settings
-		try {
-			final org.w3c.dom.Element elem = setupAssignments.toXml(XmlHelpers.newXmlDocument());
-			final Element sael = new DOMBuilder().build(elem);
-			sael.detach();
-			guiel.addContent( sael );
-		} catch (final ParserConfigurationException e) {
-			e.printStackTrace( logger );
-		}
+		final Element elem = setupAssignments.toXml();
+		guiel.addContent(elem);
 
 		root.addContent(guiel);
 		logger.log("  Added GUI current state.\n");
