@@ -1,7 +1,7 @@
 package fiji.plugin.mamut.providers;
 
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.List;
 
 import viewer.render.SourceAndConverter;
 import fiji.plugin.mamut.MaMuT;
@@ -14,33 +14,37 @@ import fiji.plugin.trackmate.providers.ViewProvider;
 import fiji.plugin.trackmate.visualization.TrackMateModelView;
 import fiji.plugin.trackmate.visualization.trackscheme.TrackScheme;
 
-public class MamutViewProvider extends ViewProvider {
+public class MamutViewProvider extends ViewProvider
+{
 
 	private final SourceSettings ss;
 
-	public MamutViewProvider(final Model model, final Settings settings, final SelectionModel selectionModel) {
-		super(model, settings, selectionModel);
-		if (!(settings instanceof SourceSettings)) {
-			throw new IllegalArgumentException("Settings must be an instance of SourceSettings.");
-		}
-		this.ss = (SourceSettings) settings;
+	public MamutViewProvider( final Model model, final Settings settings, final SelectionModel selectionModel )
+	{
+		super( model, settings, selectionModel );
+		if ( !( settings instanceof SourceSettings ) ) { throw new IllegalArgumentException( "Settings must be an instance of SourceSettings." ); }
+		this.ss = ( SourceSettings ) settings;
 	}
 
 	@Override
-	protected void registerViews() {
-		names = new ArrayList<String>(2);
-		names.add(TrackScheme.KEY);
-		names.add(MamutViewer.KEY);
+	protected void registerViews()
+	{
+		names = new ArrayList< String >( 2 );
+		names.add( TrackScheme.KEY );
+		names.add( MamutViewer.KEY );
 	}
 
 	@Override
-	public TrackMateModelView getView(final String key) {
-		TrackMateModelView val = super.getView(key);
-		if (null == val) {
-			if (key.equals(MamutViewer.KEY)) {
+	public TrackMateModelView getView( final String key )
+	{
+		TrackMateModelView val = super.getView( key );
+		if ( null == val )
+		{
+			if ( key.equals( MamutViewer.KEY ) )
+			{
 
-				final Collection<SourceAndConverter<?>> sources = ss.getSources();
-				val = new MamutViewer(MaMuT.DEFAULT_WIDTH, MaMuT.DEFAULT_HEIGHT, sources, ss.nframes, model, selectionModel);
+				final List< SourceAndConverter< ? >> sources = ss.getSources();
+				val = new MamutViewer( MaMuT.DEFAULT_WIDTH, MaMuT.DEFAULT_HEIGHT, sources, ss.nframes, model, selectionModel );
 			}
 		}
 

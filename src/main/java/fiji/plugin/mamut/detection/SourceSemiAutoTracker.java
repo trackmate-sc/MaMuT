@@ -6,18 +6,18 @@ import net.imglib2.Point;
 import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.img.Img;
-import net.imglib2.img.ImgPlus;
 import net.imglib2.img.array.ArrayImgFactory;
 import net.imglib2.meta.Axes;
 import net.imglib2.meta.AxisType;
+import net.imglib2.meta.ImgPlus;
 import net.imglib2.position.transform.Round;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 import viewer.render.Source;
 import viewer.render.SourceAndConverter;
-import fiji.plugin.mamut.feature.spot.SpotSourceIdAnalyzerFactory;
 import viewer.util.Affine3DHelpers;
+import fiji.plugin.mamut.feature.spot.SpotSourceIdAnalyzerFactory;
 import fiji.plugin.trackmate.Logger;
 import fiji.plugin.trackmate.Model;
 import fiji.plugin.trackmate.SelectionModel;
@@ -45,25 +45,29 @@ import fiji.plugin.trackmate.util.CropImgView;
  * <li>spots of high quality are found, but too far from the initial spot;
  * <li>the source has no time-point left.
  * </ul>
- *
+ * 
  * @param <T>
  *            the type of the source. Must extend {@link RealType} and
- *            {@link NativeType} to use with most TrackMate {@link SpotDetector}s.
- *
+ *            {@link NativeType} to use with most TrackMate {@link SpotDetector}
+ *            s.
+ * 
  * @author Jean-Yves Tinevez - 2013
  */
-public class SourceSemiAutoTracker<T extends RealType<T> & NativeType<T>> extends AbstractSemiAutoTracker<T> {
+public class SourceSemiAutoTracker< T extends RealType< T > & NativeType< T >> extends AbstractSemiAutoTracker< T >
+{
 
 	/** The minimal diameter size, in pixel, under which we stop down-sampling. */
 	private static final double MIN_SPOT_PIXEL_SIZE = 5d;
-	private final List<SourceAndConverter<T>> sources;
+
+	private final List< SourceAndConverter< T >> sources;
 
 	/*
 	 * CONSTRUCTOR
 	 */
 
-	public SourceSemiAutoTracker(final Model model, final SelectionModel selectionModel, final List<SourceAndConverter<T>> sources, final Logger logger) {
-		super(model, selectionModel, logger);
+	public SourceSemiAutoTracker( final Model model, final SelectionModel selectionModel, final List< SourceAndConverter< T >> sources, final Logger logger )
+	{
+		super( model, selectionModel, logger );
 		this.sources = sources;
 	}
 
@@ -72,11 +76,11 @@ public class SourceSemiAutoTracker<T extends RealType<T> & NativeType<T>> extend
 	 */
 
 	@Override
-	public boolean checkInput() {
-		if (!super.checkInput()) {
-			return false;
-		}
-		if (sources == null) {
+	public boolean checkInput()
+	{
+		if ( !super.checkInput() ) { return false; }
+		if ( sources == null )
+		{
 			errorMessage = BASE_ERROR_MESSAGE + "source is null.";
 			return false;
 		}
@@ -84,24 +88,27 @@ public class SourceSemiAutoTracker<T extends RealType<T> & NativeType<T>> extend
 	}
 
 	@Override
-	protected SpotNeighborhood<T> getNeighborhood(final Spot spot, final int frame) {
+	protected SpotNeighborhood< T > getNeighborhood( final Spot spot, final int frame )
+	{
 
-		final double radius = spot.getFeature(Spot.RADIUS);
+		final double radius = spot.getFeature( Spot.RADIUS );
 
 		/*
 		 * Source, rai and transform
 		 */
 
-		final Double so = spot.getFeature(SpotSourceIdAnalyzerFactory.SOURCE_ID);
-		if (null == so) {
-			logger.log("Spot: " + spot + ": The source index of given spot is not set.");
+		final Double so = spot.getFeature( SpotSourceIdAnalyzerFactory.SOURCE_ID );
+		if ( null == so )
+		{
+			logger.log( "Spot: " + spot + ": The source index of given spot is not set." );
 			return null;
 		}
 		final int sourceIndex = so.intValue();
-		final Source<T> source = sources.get(sourceIndex).getSpimSource();
+		final Source< T > source = sources.get( sourceIndex ).getSpimSource();
 
-		if (!source.isPresent(frame)) {
-			logger.log("Spot: " + spot + ": Target source has exhausted its time points.");
+		if ( !source.isPresent( frame ) )
+		{
+			logger.log( "Spot: " + spot + ": Target source has exhausted its time points." );
 			return null;
 		}
 
@@ -114,68 +121,74 @@ public class SourceSemiAutoTracker<T extends RealType<T> & NativeType<T>> extend
 		 */
 
 		int level = 0;
-		while (level < source.getNumMipmapLevels() - 1) {
+		while ( level < source.getNumMipmapLevels() - 1 )
+		{
 
 			/*
 			 * Scan all axes. The "worst" one is the one with the largest scale.
 			 * If at this scale the spot is too small, then we stop.
 			 */
 
-			final AffineTransform3D sourceToGlobal = source.getSourceTransform(frame, level);
-			double scale = Affine3DHelpers.extractScale(sourceToGlobal, 0);
-			for (int axis = 1; axis < sourceToGlobal.numDimensions(); axis++) {
-				final double sc = Affine3DHelpers.extractScale(sourceToGlobal, axis);
-				if (sc > scale) {
+			final AffineTransform3D sourceToGlobal = source.getSourceTransform( frame, level );
+			double scale = Affine3DHelpers.extractScale( sourceToGlobal, 0 );
+			for ( int axis = 1; axis < sourceToGlobal.numDimensions(); axis++ )
+			{
+				final double sc = Affine3DHelpers.extractScale( sourceToGlobal, axis );
+				if ( sc > scale )
+				{
 					scale = sc;
 				}
 			}
 
 			final double diameterInPix = 2 * radius / scale;
-			if (diameterInPix < MIN_SPOT_PIXEL_SIZE) {
+			if ( diameterInPix < MIN_SPOT_PIXEL_SIZE )
+			{
 				break;
 			}
 			level++;
 		}
 
-		final AffineTransform3D sourceToGlobal = source.getSourceTransform(frame, level);
-		final RandomAccessibleInterval<T> rai = source.getSource(frame, level);
+		final AffineTransform3D sourceToGlobal = source.getSourceTransform( frame, level );
+		final RandomAccessibleInterval< T > rai = source.getSource( frame, level );
 
 		/*
 		 * Extract scales
 		 */
 
-		final double dx = Affine3DHelpers.extractScale(sourceToGlobal, 0);
-		final double dy = Affine3DHelpers.extractScale(sourceToGlobal, 1);
-		final double dz = Affine3DHelpers.extractScale(sourceToGlobal, 2);
+		final double dx = Affine3DHelpers.extractScale( sourceToGlobal, 0 );
+		final double dy = Affine3DHelpers.extractScale( sourceToGlobal, 1 );
+		final double dz = Affine3DHelpers.extractScale( sourceToGlobal, 2 );
 
 		/*
 		 * Extract source coords
 		 */
 
-		final double neighborhoodFactor = Math.max(NEIGHBORHOOD_FACTOR, distanceTolerance + 1);
+		final double neighborhoodFactor = Math.max( NEIGHBORHOOD_FACTOR, distanceTolerance + 1 );
 
-		final Point roundedSourcePos = new Point(3);
-		sourceToGlobal.applyInverse(new Round<Point>(roundedSourcePos), spot);
-		final long x = roundedSourcePos.getLongPosition(0);
-		final long y = roundedSourcePos.getLongPosition(1);
-		final long z = roundedSourcePos.getLongPosition(2);
-		final long r = (long) Math.ceil(neighborhoodFactor * radius / dx);
-		final long rz = (long) Math.ceil(neighborhoodFactor * radius / dz);
+		final Point roundedSourcePos = new Point( 3 );
+		sourceToGlobal.applyInverse( new Round< Point >( roundedSourcePos ), spot );
+		final long x = roundedSourcePos.getLongPosition( 0 );
+		final long y = roundedSourcePos.getLongPosition( 1 );
+		final long z = roundedSourcePos.getLongPosition( 2 );
+		final long r = ( long ) Math.ceil( neighborhoodFactor * radius / dx );
+		final long rz = ( long ) Math.ceil( neighborhoodFactor * radius / dz );
 
 		/*
 		 * Ensure quality
 		 */
 
-		final Double qf = spot.getFeature(Spot.QUALITY);
-		if (null == qf) {
+		final Double qf = spot.getFeature( Spot.QUALITY );
+		if ( null == qf )
+		{
 			ok = false;
-			logger.error("Spot: " + spot + " Bad spot: has a null QUALITY feature.");
+			logger.error( "Spot: " + spot + " Bad spot: has a null QUALITY feature." );
 			return null;
 		}
 		double quality = qf.doubleValue();
-		if (quality < 0) {
-			final RandomAccess<T> ra = rai.randomAccess();
-			ra.setPosition(roundedSourcePos);
+		if ( quality < 0 )
+		{
+			final RandomAccess< T > ra = rai.randomAccess();
+			ra.setPosition( roundedSourcePos );
 			quality = ra.get().getRealDouble();
 		}
 
@@ -183,25 +196,25 @@ public class SourceSemiAutoTracker<T extends RealType<T> & NativeType<T>> extend
 		 * Extract crop cube
 		 */
 
-		final long width = rai.dimension(0);
-		final long height = rai.dimension(1);
-		final long depth = rai.dimension(2);
+		final long width = rai.dimension( 0 );
+		final long height = rai.dimension( 1 );
+		final long depth = rai.dimension( 2 );
 
-		final long x0 = Math.max(0, x - r);
-		final long y0 = Math.max(0, y - r);
-		final long z0 = Math.max(0, z - rz);
+		final long x0 = Math.max( 0, x - r );
+		final long y0 = Math.max( 0, y - r );
+		final long z0 = Math.max( 0, z - rz );
 
-		final long x1 = Math.min(width - 1, x + r);
-		final long y1 = Math.min(height - 1, y + r);
-		final long z1 = Math.min(depth - 1, z + rz);
+		final long x1 = Math.min( width - 1, x + r );
+		final long y1 = Math.min( height - 1, y + r );
+		final long z1 = Math.min( depth - 1, z + rz );
 
 		final long[] min = new long[] { x0, y0, z0 };
 		final long[] max = new long[] { x1, y1, z1 };
-		final Img<T> cropimg = new CropImgView<T>(rai, min, max, new ArrayImgFactory<T>());
+		final Img< T > cropimg = new CropImgView< T >( rai, min, max, new ArrayImgFactory< T >() );
 
 		final AxisType[] axes = new AxisType[] { Axes.X, Axes.Y, Axes.Z };
 		final double[] cal = new double[] { dx, dy, dz };
-		final ImgPlus<T> imgplus = new ImgPlus<T>(cropimg, "crop", axes, cal);
+		final ImgPlus< T > imgplus = new ImgPlus< T >( cropimg, "crop", axes, cal );
 
 		/*
 		 * Build the transformation that will put back the found spot in the
@@ -209,25 +222,29 @@ public class SourceSemiAutoTracker<T extends RealType<T> & NativeType<T>> extend
 		 */
 
 		final AffineTransform3D scale = new AffineTransform3D();
-		for (int i = 0; i < 3; i++) {
-			scale.set(1 / cal[i], i, i);
+		for ( int i = 0; i < 3; i++ )
+		{
+			scale.set( 1 / cal[ i ], i, i );
 		}
 		final AffineTransform3D translate = new AffineTransform3D();
-		for (int i = 0; i < 3; i++) {
-			translate.set(min[i], i, 3);
+		for ( int i = 0; i < 3; i++ )
+		{
+			translate.set( min[ i ], i, 3 );
 		}
 
-		final AffineTransform3D transform = sourceToGlobal.copy().concatenate(translate).concatenate(scale);
-		final SpotNeighborhood<T> sn = new SpotNeighborhood<T>();
+		final AffineTransform3D transform = sourceToGlobal.copy().concatenate( translate ).concatenate( scale );
+		final SpotNeighborhood< T > sn = new SpotNeighborhood< T >();
 		sn.neighborhood = imgplus;
 		sn.transform = transform;
 		return sn;
 	}
 
 	@Override
-	protected void exposeSpot(final Spot newSpot, final Spot previousSpot) {
-		// We just copy the SOURCE_INDEX value from the old spot to the new spot.
-		final Double sourceIndex = previousSpot.getFeature(SpotSourceIdAnalyzerFactory.SOURCE_ID);
-		newSpot.putFeature(SpotSourceIdAnalyzerFactory.SOURCE_ID, sourceIndex);
+	protected void exposeSpot( final Spot newSpot, final Spot previousSpot )
+	{
+		// We just copy the SOURCE_INDEX value from the old spot to the new
+		// spot.
+		final Double sourceIndex = previousSpot.getFeature( SpotSourceIdAnalyzerFactory.SOURCE_ID );
+		newSpot.putFeature( SpotSourceIdAnalyzerFactory.SOURCE_ID, sourceIndex );
 	}
 }
