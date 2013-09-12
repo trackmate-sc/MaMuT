@@ -21,44 +21,52 @@ public class NewMamutAnnotationPlugin implements PlugIn {
 	private static File file;
 
 	@Override
-	public void run(final String arg0) {
+	public void run(final String fileStr) {
 
 		final Logger logger = Logger.IJ_LOGGER;
-		if (null == file) {
-			final File folder = new File(System.getProperty("user.dir")).getParentFile().getParentFile();
-			file = new File(folder.getPath() + File.separator + "data.xml");
-		}
-		file = IOUtils.askForFileForLoading(file, "Open a hdf5/xml file", IJ.getInstance(), logger);
-		if (null == file) {
-			return;
+
+		if (null != fileStr && fileStr.length() > 0) {
+			// Skip dialog
+			file = new File(fileStr);
+
+		} else {
+
+			if (null == file) {
+				final File folder = new File(System.getProperty("user.dir")).getParentFile().getParentFile();
+				file = new File(folder.getPath() + File.separator + "data.xml");
+			}
+			file = IOUtils.askForFileForLoading(file, "Open a hdf5/xml file", IJ.getInstance(), logger);
+			if (null == file) {
+				return;
+			}
 		}
 
 		final MaMuT mamut = new MaMuT();
 		try {
 			mamut.launch(file);
 		} catch (final ImgIOException e) {
-			// TODO Auto-generated catch block
+			IJ.log(e.getMessage());
 			e.printStackTrace();
 		} catch (final FormatException e) {
-			// TODO Auto-generated catch block
+			IJ.log(e.getMessage());
 			e.printStackTrace();
 		} catch (final IOException e) {
-			// TODO Auto-generated catch block
+			IJ.log(e.getMessage());
 			e.printStackTrace();
 		} catch (final ParserConfigurationException e) {
-			// TODO Auto-generated catch block
+			IJ.log(e.getMessage());
 			e.printStackTrace();
 		} catch (final SAXException e) {
-			// TODO Auto-generated catch block
+			IJ.log(e.getMessage());
 			e.printStackTrace();
 		} catch (final InstantiationException e) {
-			// TODO Auto-generated catch block
+			IJ.log(e.getMessage());
 			e.printStackTrace();
 		} catch (final IllegalAccessException e) {
-			// TODO Auto-generated catch block
+			IJ.log(e.getMessage());
 			e.printStackTrace();
 		} catch (final ClassNotFoundException e) {
-			// TODO Auto-generated catch block
+			IJ.log(e.getMessage());
 			e.printStackTrace();
 		}
 
@@ -68,7 +76,7 @@ public class NewMamutAnnotationPlugin implements PlugIn {
 		ImageJ.main(args);
 
 		final NewMamutAnnotationPlugin plugin = new NewMamutAnnotationPlugin();
-		plugin.run(null);
+		plugin.run("/Users/tinevez/Desktop/Data/Mamut/parhyale-crop/parhyale-crop-2.xml");
 	}
 
 }

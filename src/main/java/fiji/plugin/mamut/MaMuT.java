@@ -88,6 +88,7 @@ import fiji.plugin.mamut.gui.AnnotationPanel;
 import fiji.plugin.mamut.gui.MamutControlPanel;
 import fiji.plugin.mamut.gui.MamutGUI;
 import fiji.plugin.mamut.gui.MamutGUIModel;
+import fiji.plugin.mamut.gui.MamutKeyboardHandler;
 import fiji.plugin.mamut.io.MamutXmlReader;
 import fiji.plugin.mamut.io.MamutXmlWriter;
 import fiji.plugin.mamut.providers.MamutSpotAnalyzerProvider;
@@ -122,8 +123,7 @@ import fiji.plugin.trackmate.visualization.trackscheme.TrackScheme;
 
 public class MaMuT implements ModelChangeListener {
 
-	public static final ImageIcon MAMUT_ICON = new ImageIcon(
-			MaMuT.class.getResource("mammouth-256x256.png"));
+	public static final ImageIcon MAMUT_ICON = new ImageIcon(MaMuT.class.getResource("mammouth-256x256.png"));
 
 	public static final String PLUGIN_NAME = "MaMuT";
 
@@ -147,48 +147,35 @@ public class MaMuT implements ModelChangeListener {
 	/** The default height for new image viewers. */
 	public static final int DEFAULT_HEIGHT = 600;
 
-	private final KeyStroke brightnessKeystroke = KeyStroke.getKeyStroke(
-			KeyEvent.VK_B, 0);
+	private final KeyStroke brightnessKeystroke = KeyStroke.getKeyStroke(KeyEvent.VK_B, 0);
 
-	private final KeyStroke helpKeystroke = KeyStroke.getKeyStroke(
-			KeyEvent.VK_F1, 0);
+	private final KeyStroke helpKeystroke = KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0);
 
-	private final KeyStroke addSpotKeystroke = KeyStroke.getKeyStroke(
-			KeyEvent.VK_A, 0);
+	private final KeyStroke addSpotKeystroke = KeyStroke.getKeyStroke(KeyEvent.VK_A, 0);
 
-	private final KeyStroke semiAutoAddSpotKeystroke = KeyStroke.getKeyStroke(
-			KeyEvent.VK_A, KeyEvent.SHIFT_DOWN_MASK);
+	private final KeyStroke semiAutoAddSpotKeystroke = KeyStroke.getKeyStroke(KeyEvent.VK_A, KeyEvent.SHIFT_DOWN_MASK);
 
-	private final KeyStroke deleteSpotKeystroke = KeyStroke.getKeyStroke(
-			KeyEvent.VK_D, 0);
+	private final KeyStroke deleteSpotKeystroke = KeyStroke.getKeyStroke(KeyEvent.VK_D, 0);
 
-	private final KeyStroke moveSpotKeystroke = KeyStroke.getKeyStroke(
-			KeyEvent.VK_SPACE, 0);
+	private final KeyStroke moveSpotKeystroke = KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0);
 
 	private final int increaseRadiusKey = KeyEvent.VK_E;
 
 	private final int decreaseRadiusKey = KeyEvent.VK_Q;
 
-	private final KeyStroke increaseRadiusKeystroke = KeyStroke.getKeyStroke(
-			increaseRadiusKey, 0);
+	private final KeyStroke increaseRadiusKeystroke = KeyStroke.getKeyStroke(increaseRadiusKey, 0);
 
-	private final KeyStroke decreaseRadiusKeystroke = KeyStroke.getKeyStroke(
-			decreaseRadiusKey, 0);
+	private final KeyStroke decreaseRadiusKeystroke = KeyStroke.getKeyStroke(decreaseRadiusKey, 0);
 
-	private final KeyStroke increaseRadiusALotKeystroke = KeyStroke
-			.getKeyStroke(increaseRadiusKey, CHANGE_A_LOT_KEY);
+	private final KeyStroke increaseRadiusALotKeystroke = KeyStroke.getKeyStroke(increaseRadiusKey, CHANGE_A_LOT_KEY);
 
-	private final KeyStroke decreaseRadiusALotKeystroke = KeyStroke
-			.getKeyStroke(decreaseRadiusKey, CHANGE_A_LOT_KEY);
+	private final KeyStroke decreaseRadiusALotKeystroke = KeyStroke.getKeyStroke(decreaseRadiusKey, CHANGE_A_LOT_KEY);
 
-	private final KeyStroke increaseRadiusABitKeystroke = KeyStroke
-			.getKeyStroke(increaseRadiusKey, CHANGE_A_BIT_KEY);
+	private final KeyStroke increaseRadiusABitKeystroke = KeyStroke.getKeyStroke(increaseRadiusKey, CHANGE_A_BIT_KEY);
 
-	private final KeyStroke decreaseRadiusABitKeystroke = KeyStroke
-			.getKeyStroke(decreaseRadiusKey, CHANGE_A_BIT_KEY);
+	private final KeyStroke decreaseRadiusABitKeystroke = KeyStroke.getKeyStroke(decreaseRadiusKey, CHANGE_A_BIT_KEY);
 
-	private final KeyStroke toggleLinkingModeKeystroke = KeyStroke
-			.getKeyStroke(KeyEvent.VK_L, 0);
+	private final KeyStroke toggleLinkingModeKeystroke = KeyStroke.getKeyStroke(KeyEvent.VK_L, 0);
 
 	private SetupAssignments setupAssignments;
 
@@ -250,8 +237,7 @@ public class MaMuT implements ModelChangeListener {
 		// (jeanyves.tinevez@gmail.com)
 		if (IJ.isMacOSX() || IJ.isWindows()) {
 			try {
-				UIManager.setLookAndFeel(UIManager
-						.getSystemLookAndFeelClassName());
+				UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 			} catch (final ClassNotFoundException e) {
 				e.printStackTrace();
 			} catch (final InstantiationException e) {
@@ -270,9 +256,7 @@ public class MaMuT implements ModelChangeListener {
 	 */
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public void load(final File mamutfile) throws ParserConfigurationException,
-			SAXException, IOException, InstantiationException,
-			IllegalAccessException, ClassNotFoundException {
+	public void load(final File mamutfile) throws ParserConfigurationException, SAXException, IOException, InstantiationException, IllegalAccessException, ClassNotFoundException {
 
 		MaMuT.mamutFile = mamutfile;
 
@@ -290,27 +274,22 @@ public class MaMuT implements ModelChangeListener {
 		 */
 
 		selectionModel = new SelectionModel(model);
-		selectionModel
-				.addSelectionChangeListener(new SelectionChangeListener() {
-					@Override
-					public void selectionChanged(
-							final SelectionChangeEvent event) {
-						refresh();
-						if (selectionModel.getSpotSelection().size() == 1) {
-							centerOnSpot(selectionModel.getSpotSelection()
-									.iterator().next());
-						}
-					}
-				});
+		selectionModel.addSelectionChangeListener(new SelectionChangeListener() {
+			@Override
+			public void selectionChanged(final SelectionChangeEvent event) {
+				refresh();
+				if (selectionModel.getSpotSelection().size() == 1) {
+					centerOnSpot(selectionModel.getSpotSelection().iterator().next());
+				}
+			}
+		});
 
 		/*
 		 * Read settings
 		 */
 
 		settings = new SourceSettings();
-		reader.readSettings(settings, null, null,
-				new MamutSpotAnalyzerProvider(model), new EdgeAnalyzerProvider(
-						model), new TrackAnalyzerProvider(model));
+		reader.readSettings(settings, null, null, new MamutSpotAnalyzerProvider(model), new EdgeAnalyzerProvider(model), new TrackAnalyzerProvider(model));
 
 		/*
 		 * Read image source
@@ -352,10 +331,8 @@ public class MaMuT implements ModelChangeListener {
 		 */
 
 		spotColorProvider = new SpotColorGenerator(model);
-		trackColorProvider = new PerTrackFeatureColorGenerator(model,
-				TrackIndexAnalyzer.TRACK_ID);
-		edgeColorProvider = new PerEdgeFeatureColorGenerator(model,
-				EdgeVelocityAnalyzer.VELOCITY);
+		trackColorProvider = new PerTrackFeatureColorGenerator(model, TrackIndexAnalyzer.TRACK_ID);
+		edgeColorProvider = new PerEdgeFeatureColorGenerator(model, EdgeVelocityAnalyzer.VELOCITY);
 
 		/*
 		 * GUI model
@@ -380,13 +357,11 @@ public class MaMuT implements ModelChangeListener {
 		 * Read and render views
 		 */
 
-		final MamutViewProvider provider = new MamutViewProvider(model,
-				settings, selectionModel);
+		final MamutViewProvider provider = new MamutViewProvider(model, settings, selectionModel);
 		final Collection<TrackMateModelView> views = reader.getViews(provider);
 		for (final TrackMateModelView view : views) {
 			for (final String key : guimodel.getDisplaySettings().keySet()) {
-				view.setDisplaySettings(key,
-						guimodel.getDisplaySettings().get(key));
+				view.setDisplaySettings(key, guimodel.getDisplaySettings().get(key));
 			}
 
 			if (view.getKey().equals(MamutViewer.KEY)) {
@@ -401,8 +376,7 @@ public class MaMuT implements ModelChangeListener {
 					}
 				});
 
-				initTransform(viewer, viewer.getFrame().getWidth(), viewer
-						.getFrame().getHeight());
+				initTransform(viewer, viewer.getFrame().getWidth(), viewer.getFrame().getHeight());
 
 			} else if (view.getKey().equals(TrackScheme.KEY)) {
 				final TrackScheme trackscheme = (TrackScheme) view;
@@ -416,10 +390,7 @@ public class MaMuT implements ModelChangeListener {
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public void launch(final File file) throws ImgIOException, FormatException,
-			IOException, ParserConfigurationException, SAXException,
-			InstantiationException, IllegalAccessException,
-			ClassNotFoundException {
+	public void launch(final File file) throws ImgIOException, FormatException, IOException, ParserConfigurationException, SAXException, InstantiationException, IllegalAccessException, ClassNotFoundException {
 		MaMuT.imageFile = file;
 
 		/*
@@ -494,28 +465,23 @@ public class MaMuT implements ModelChangeListener {
 		 */
 
 		selectionModel = new SelectionModel(model);
-		selectionModel
-				.addSelectionChangeListener(new SelectionChangeListener() {
-					@Override
-					public void selectionChanged(
-							final SelectionChangeEvent event) {
-						refresh();
-						if (selectionModel.getSpotSelection().size() == 1) {
-							centerOnSpot(selectionModel.getSpotSelection()
-									.iterator().next());
-						}
-					}
-				});
+		selectionModel.addSelectionChangeListener(new SelectionChangeListener() {
+			@Override
+			public void selectionChanged(final SelectionChangeEvent event) {
+				refresh();
+				if (selectionModel.getSpotSelection().size() == 1) {
+					centerOnSpot(selectionModel.getSpotSelection().iterator().next());
+				}
+			}
+		});
 
 		/*
 		 * Color provider
 		 */
 
 		spotColorProvider = new SpotColorGenerator(model);
-		trackColorProvider = new PerTrackFeatureColorGenerator(model,
-				TrackIndexAnalyzer.TRACK_ID);
-		edgeColorProvider = new PerEdgeFeatureColorGenerator(model,
-				EdgeVelocityAnalyzer.VELOCITY);
+		trackColorProvider = new PerTrackFeatureColorGenerator(model, TrackIndexAnalyzer.TRACK_ID);
+		edgeColorProvider = new PerEdgeFeatureColorGenerator(model, EdgeVelocityAnalyzer.VELOCITY);
 
 		/*
 		 * GUI model
@@ -571,27 +537,21 @@ public class MaMuT implements ModelChangeListener {
 					save();
 
 				} else {
-					System.out
-							.println("[MaMuT] Caught unknown event: " + event);
+					System.out.println("[MaMuT] Caught unknown event: " + event);
 				}
 			}
 
 		});
-		viewPanel
-				.addDisplaySettingsChangeListener(new DisplaySettingsListener() {
-					@Override
-					public void displaySettingsChanged(
-							final DisplaySettingsEvent event) {
-						guimodel.getDisplaySettings().put(event.getKey(),
-								event.getNewValue());
-						for (final TrackMateModelView view : guimodel
-								.getViews()) {
-							view.setDisplaySettings(event.getKey(),
-									event.getNewValue());
-							view.refresh();
-						}
-					}
-				});
+		viewPanel.addDisplaySettingsChangeListener(new DisplaySettingsListener() {
+			@Override
+			public void displaySettingsChanged(final DisplaySettingsEvent event) {
+				guimodel.getDisplaySettings().put(event.getKey(), event.getNewValue());
+				for (final TrackMateModelView view : guimodel.getViews()) {
+					view.setDisplaySettings(event.getKey(), event.getNewValue());
+					view.refresh();
+				}
+			}
+		});
 
 		final AnnotationPanel annotationPanel = mamutGUI.getAnnotationPanel();
 		logger = annotationPanel.getLogger();
@@ -612,8 +572,7 @@ public class MaMuT implements ModelChangeListener {
 					ModelTools.selectTrackUpward(selectionModel);
 
 				} else {
-					System.out
-							.println("[MaMuT] Caught unknown event: " + event);
+					System.out.println("[MaMuT] Caught unknown event: " + event);
 				}
 			}
 		});
@@ -622,23 +581,16 @@ public class MaMuT implements ModelChangeListener {
 
 	}
 
-	private void prepareSources(final File dataFile)
-			throws ParserConfigurationException, SAXException, IOException,
-			InstantiationException, IllegalAccessException,
-			ClassNotFoundException, JDOMException {
-		final SequenceViewsLoader loader = new SequenceViewsLoader(
-				dataFile.getAbsolutePath());
+	private void prepareSources(final File dataFile) throws ParserConfigurationException, SAXException, IOException, InstantiationException, IllegalAccessException, ClassNotFoundException, JDOMException {
+		final SequenceViewsLoader loader = new SequenceViewsLoader(dataFile.getAbsolutePath());
 		final SequenceDescription seq = loader.getSequenceDescription();
 		nTimepoints = seq.numTimepoints();
 		sources = new ArrayList<SourceAndConverter<?>>();
 		final ArrayList<ConverterSetup> converterSetups = new ArrayList<ConverterSetup>();
 		for (int setup = 0; setup < seq.numViewSetups(); ++setup) {
-			final RealARGBColorConverter<UnsignedShortType> converter = new RealARGBColorConverter<UnsignedShortType>(
-					0, 65535);
+			final RealARGBColorConverter<UnsignedShortType> converter = new RealARGBColorConverter<UnsignedShortType>(0, 65535);
 			converter.setColor(new ARGBType(ARGBType.rgba(255, 255, 255, 255)));
-			sources.add(new SourceAndConverter<UnsignedShortType>(
-					new SpimSource(loader, setup, "angle "
-							+ seq.setups.get(setup).getAngle()), converter));
+			sources.add(new SourceAndConverter<UnsignedShortType>(new SpimSource(loader, setup, "angle " + seq.setups.get(setup).getAngle()), converter));
 			final int id = setup;
 			converterSetups.add(new ConverterSetup() {
 				@Override
@@ -688,42 +640,35 @@ public class MaMuT implements ModelChangeListener {
 	}
 
 	private MamutViewer newViewer() {
-		final MamutViewer viewer = new MamutViewer(DEFAULT_WIDTH,
-				DEFAULT_HEIGHT, sources, nTimepoints, model, selectionModel);
+		final MamutViewer viewer = new MamutViewer(DEFAULT_WIDTH, DEFAULT_HEIGHT, sources, nTimepoints, model, selectionModel);
 
 		for (final String key : guimodel.getDisplaySettings().keySet()) {
-			viewer.setDisplaySettings(key,
-					guimodel.getDisplaySettings().get(key));
+			viewer.setDisplaySettings(key, guimodel.getDisplaySettings().get(key));
 		}
 
-		installKeyBindings(viewer);
+		new MamutKeyboardHandler(this, viewer); // TODO 
+		installKeyBindings(viewer); // TODO replace by line above
 		installMouseListeners(viewer);
 
 		viewer.getFrame().setIconImage(MAMUT_ICON.getImage());
 		viewer.getFrame().addWindowListener(new WindowListener() {
 			@Override
-			public void windowOpened(final WindowEvent arg0) {
-			}
+			public void windowOpened(final WindowEvent arg0) {}
 
 			@Override
-			public void windowIconified(final WindowEvent arg0) {
-			}
+			public void windowIconified(final WindowEvent arg0) {}
 
 			@Override
-			public void windowDeiconified(final WindowEvent arg0) {
-			}
+			public void windowDeiconified(final WindowEvent arg0) {}
 
 			@Override
-			public void windowDeactivated(final WindowEvent arg0) {
-			}
+			public void windowDeactivated(final WindowEvent arg0) {}
 
 			@Override
-			public void windowClosing(final WindowEvent arg0) {
-			}
+			public void windowClosing(final WindowEvent arg0) {}
 
 			@Override
-			public void windowActivated(final WindowEvent arg0) {
-			}
+			public void windowActivated(final WindowEvent arg0) {}
 
 			@Override
 			public void windowClosed(final WindowEvent arg0) {
@@ -731,8 +676,7 @@ public class MaMuT implements ModelChangeListener {
 			}
 		});
 
-		initTransform(viewer, viewer.getFrame().getWidth(), viewer.getFrame()
-				.getHeight());
+		initTransform(viewer, viewer.getFrame().getWidth(), viewer.getFrame().getHeight());
 		initBrightness(viewer, 0.001, 0.999);
 
 		viewer.render();
@@ -750,10 +694,8 @@ public class MaMuT implements ModelChangeListener {
 
 		final Logger logger = Logger.IJ_LOGGER;
 		if (null == imageFile) {
-			final File folder = new File(System.getProperty("user.dir"))
-					.getParentFile().getParentFile();
-			mamutFile = new File(folder.getPath() + File.separator
-					+ "MamutAnnotation.xml");
+			final File folder = new File(System.getProperty("user.dir")).getParentFile().getParentFile();
+			mamutFile = new File(folder.getPath() + File.separator + "MamutAnnotation.xml");
 		} else {
 			final String pf = imageFile.getParent();
 			String lf = imageFile.getName();
@@ -761,8 +703,7 @@ public class MaMuT implements ModelChangeListener {
 			mamutFile = new File(pf, lf);
 		}
 
-		mamutFile = IOUtils.askForFileForSaving(mamutFile, IJ.getInstance(),
-				logger);
+		mamutFile = IOUtils.askForFileForSaving(mamutFile, IJ.getInstance(), logger);
 		if (null == mamutFile) {
 			return;
 		}
@@ -793,20 +734,16 @@ public class MaMuT implements ModelChangeListener {
 		}
 	}
 
-	private void initTransform(final MamutViewer viewer, final int viewerWidth,
-			final int viewerHeight) {
+	private void initTransform(final MamutViewer viewer, final int viewerWidth, final int viewerHeight) {
 		final int cX = viewerWidth / 2;
 		final int cY = viewerHeight / 2;
 
 		final ViewerState state = viewer.getState();
-		final SourceState<?> source = state.getSources().get(
-				state.getCurrentSource());
+		final SourceState<?> source = state.getSources().get(state.getCurrentSource());
 		final int timepoint = state.getCurrentTimepoint();
-		final AffineTransform3D sourceTransform = source.getSpimSource()
-				.getSourceTransform(timepoint, 0);
+		final AffineTransform3D sourceTransform = source.getSpimSource().getSourceTransform(timepoint, 0);
 
-		final Interval sourceInterval = source.getSpimSource().getSource(
-				timepoint, 0);
+		final Interval sourceInterval = source.getSpimSource().getSource(timepoint, 0);
 		final double sX0 = sourceInterval.min(0);
 		final double sX1 = sourceInterval.max(0);
 		final double sY0 = sourceInterval.min(1);
@@ -822,8 +759,7 @@ public class MaMuT implements ModelChangeListener {
 		// rotation
 		final double[] qSource = new double[4];
 		final double[] qViewer = new double[4];
-		Affine3DHelpers.extractApproximateRotationAffine(sourceTransform,
-				qSource, 2);
+		Affine3DHelpers.extractApproximateRotationAffine(sourceTransform, qSource, 2);
 		LinAlgHelpers.quaternionInvert(qSource, qViewer);
 		LinAlgHelpers.quaternionToR(qViewer, m);
 
@@ -857,21 +793,15 @@ public class MaMuT implements ModelChangeListener {
 		viewer.setCurrentViewerTransform(viewerTransform);
 	}
 
-	private void initBrightness(final MamutViewer viewer,
-			final double cumulativeMinCutoff, final double cumulativeMaxCutoff) {
+	private void initBrightness(final MamutViewer viewer, final double cumulativeMinCutoff, final double cumulativeMaxCutoff) {
 		final ViewerState state = viewer.getState();
-		final Source<?> source = state.getSources()
-				.get(state.getCurrentSource()).getSpimSource();
+		final Source<?> source = state.getSources().get(state.getCurrentSource()).getSpimSource();
 		@SuppressWarnings({ "rawtypes", "unchecked" })
-		final RandomAccessibleInterval<UnsignedShortType> img = (RandomAccessibleInterval) source
-				.getSource(state.getCurrentTimepoint(),
-						source.getNumMipmapLevels() - 1);
+		final RandomAccessibleInterval<UnsignedShortType> img = (RandomAccessibleInterval) source.getSource(state.getCurrentTimepoint(), source.getNumMipmapLevels() - 1);
 		final long z = (img.min(2) + img.max(2) + 1) / 2;
 
 		final int numBins = 6535;
-		final Histogram1d<UnsignedShortType> histogram = new Histogram1d<UnsignedShortType>(
-				Views.iterable(Views.hyperSlice(img, 2, z)),
-				new Real1dBinMapper<UnsignedShortType>(0, 65535, numBins, false));
+		final Histogram1d<UnsignedShortType> histogram = new Histogram1d<UnsignedShortType>(Views.iterable(Views.hyperSlice(img, 2, z)), new Real1dBinMapper<UnsignedShortType>(0, 65535, numBins, false));
 		final DiscreteFrequencyDistribution dfd = histogram.dfd();
 		final long[] bin = new long[] { 0 };
 		double cumulative = 0;
@@ -914,8 +844,7 @@ public class MaMuT implements ModelChangeListener {
 		/*
 		 * Brightness dialog
 		 */
-		viewer.addKeyAction(brightnessKeystroke, new AbstractAction(
-				"brightness settings") {
+		viewer.addKeyAction(brightnessKeystroke, new AbstractAction("brightness settings") {
 			@Override
 			public void actionPerformed(final ActionEvent arg0) {
 				toggleBrightnessDialog();
@@ -941,8 +870,7 @@ public class MaMuT implements ModelChangeListener {
 		/*
 		 * Semi-auto find spots
 		 */
-		viewer.addKeyAction(semiAutoAddSpotKeystroke, new AbstractAction(
-				"semi-auto detect spot") {
+		viewer.addKeyAction(semiAutoAddSpotKeystroke, new AbstractAction("semi-auto detect spot") {
 
 			@Override
 			public void actionPerformed(final ActionEvent arg0) {
@@ -955,8 +883,7 @@ public class MaMuT implements ModelChangeListener {
 		/*
 		 * Delete spot
 		 */
-		viewer.addKeyAction(deleteSpotKeystroke, new AbstractAction(
-				"delete spot") {
+		viewer.addKeyAction(deleteSpotKeystroke, new AbstractAction("delete spot") {
 
 			@Override
 			public void actionPerformed(final ActionEvent arg0) {
@@ -969,8 +896,7 @@ public class MaMuT implements ModelChangeListener {
 		/*
 		 * Change radius
 		 */
-		viewer.addKeyAction(increaseRadiusKeystroke, new AbstractAction(
-				"increase spot radius") {
+		viewer.addKeyAction(increaseRadiusKeystroke, new AbstractAction("increase spot radius") {
 			@Override
 			public void actionPerformed(final ActionEvent arg0) {
 				increaseSpotRadius(viewer, 1d);
@@ -979,8 +905,7 @@ public class MaMuT implements ModelChangeListener {
 			private static final long serialVersionUID = 1L;
 		});
 
-		viewer.addKeyAction(increaseRadiusALotKeystroke, new AbstractAction(
-				"increase spot radius a lot") {
+		viewer.addKeyAction(increaseRadiusALotKeystroke, new AbstractAction("increase spot radius a lot") {
 			@Override
 			public void actionPerformed(final ActionEvent arg0) {
 				increaseSpotRadius(viewer, 10d);
@@ -989,8 +914,7 @@ public class MaMuT implements ModelChangeListener {
 			private static final long serialVersionUID = 1L;
 		});
 
-		viewer.addKeyAction(increaseRadiusABitKeystroke, new AbstractAction(
-				"increase spot radius a bit") {
+		viewer.addKeyAction(increaseRadiusABitKeystroke, new AbstractAction("increase spot radius a bit") {
 			@Override
 			public void actionPerformed(final ActionEvent arg0) {
 				increaseSpotRadius(viewer, 0.1d);
@@ -999,8 +923,7 @@ public class MaMuT implements ModelChangeListener {
 			private static final long serialVersionUID = 1L;
 		});
 
-		viewer.addKeyAction(decreaseRadiusKeystroke, new AbstractAction(
-				"decrease spot radius") {
+		viewer.addKeyAction(decreaseRadiusKeystroke, new AbstractAction("decrease spot radius") {
 			@Override
 			public void actionPerformed(final ActionEvent arg0) {
 				increaseSpotRadius(viewer, -1d);
@@ -1009,8 +932,7 @@ public class MaMuT implements ModelChangeListener {
 			private static final long serialVersionUID = 1L;
 		});
 
-		viewer.addKeyAction(decreaseRadiusALotKeystroke, new AbstractAction(
-				"decrease spot radius a lot") {
+		viewer.addKeyAction(decreaseRadiusALotKeystroke, new AbstractAction("decrease spot radius a lot") {
 			@Override
 			public void actionPerformed(final ActionEvent arg0) {
 				increaseSpotRadius(viewer, -5d);
@@ -1019,8 +941,7 @@ public class MaMuT implements ModelChangeListener {
 			private static final long serialVersionUID = 1L;
 		});
 
-		viewer.addKeyAction(decreaseRadiusABitKeystroke, new AbstractAction(
-				"decrease spot radius a bit") {
+		viewer.addKeyAction(decreaseRadiusABitKeystroke, new AbstractAction("decrease spot radius a bit") {
 			@Override
 			public void actionPerformed(final ActionEvent arg0) {
 				increaseSpotRadius(viewer, -0.1d);
@@ -1029,8 +950,7 @@ public class MaMuT implements ModelChangeListener {
 			private static final long serialVersionUID = 1L;
 		});
 
-		viewer.addKeyAction(decreaseRadiusABitKeystroke, new AbstractAction(
-				"decrease spot radius a bit") {
+		viewer.addKeyAction(decreaseRadiusABitKeystroke, new AbstractAction("decrease spot radius a bit") {
 			@Override
 			public void actionPerformed(final ActionEvent arg0) {
 				increaseSpotRadius(viewer, -0.1d);
@@ -1039,8 +959,7 @@ public class MaMuT implements ModelChangeListener {
 			private static final long serialVersionUID = 1L;
 		});
 
-		viewer.addKeyAction(toggleLinkingModeKeystroke, new AbstractAction(
-				"toggle linking mode") {
+		viewer.addKeyAction(toggleLinkingModeKeystroke, new AbstractAction("toggle linking mode") {
 			@Override
 			public void actionPerformed(final ActionEvent arg0) {
 				toggleLinkingMode(viewer);
@@ -1056,8 +975,7 @@ public class MaMuT implements ModelChangeListener {
 		viewer.addHandler(new KeyListener() {
 
 			@Override
-			public void keyTyped(final KeyEvent event) {
-			}
+			public void keyTyped(final KeyEvent event) {}
 
 			@Override
 			public void keyReleased(final KeyEvent event) {
@@ -1068,16 +986,7 @@ public class MaMuT implements ModelChangeListener {
 							model.updateFeatures(movedSpot);
 						} finally {
 							model.endUpdate();
-							final String str = String
-									.format("Moved spot "
-											+ movedSpot
-											+ " to location X = %.1f, Y = %.1f, Z = %.1f.",
-											movedSpot
-													.getFeature(Spot.POSITION_X),
-											movedSpot
-													.getFeature(Spot.POSITION_Y),
-											movedSpot
-													.getFeature(Spot.POSITION_Z));
+							final String str = String.format("Moved spot " + movedSpot + " to location X = %.1f, Y = %.1f, Z = %.1f.", movedSpot.getFeature(Spot.POSITION_X), movedSpot.getFeature(Spot.POSITION_Y), movedSpot.getFeature(Spot.POSITION_Z));
 							viewer.getLogger().log(str);
 							movedSpot = null;
 						}
@@ -1120,27 +1029,22 @@ public class MaMuT implements ModelChangeListener {
 			}
 
 			@Override
-			public void mouseDragged(final MouseEvent arg0) {
-			}
+			public void mouseDragged(final MouseEvent arg0) {}
 		});
 
 		viewer.addHandler(new MouseListener() {
 
 			@Override
-			public void mouseReleased(final MouseEvent arg0) {
-			}
+			public void mouseReleased(final MouseEvent arg0) {}
 
 			@Override
-			public void mousePressed(final MouseEvent arg0) {
-			}
+			public void mousePressed(final MouseEvent arg0) {}
 
 			@Override
-			public void mouseExited(final MouseEvent arg0) {
-			}
+			public void mouseExited(final MouseEvent arg0) {}
 
 			@Override
-			public void mouseEntered(final MouseEvent arg0) {
-			}
+			public void mouseEntered(final MouseEvent arg0) {}
 
 			@Override
 			public void mouseClicked(final MouseEvent event) {
@@ -1188,13 +1092,10 @@ public class MaMuT implements ModelChangeListener {
 
 			@Override
 			public void run() {
-				final TrackScheme trackscheme = new TrackScheme(model,
-						selectionModel);
+				final TrackScheme trackscheme = new TrackScheme(model, selectionModel);
 				trackscheme.setSpotImageUpdater(thumbnailUpdater);
-				for (final String settingKey : guimodel.getDisplaySettings()
-						.keySet()) {
-					trackscheme.setDisplaySettings(settingKey, guimodel
-							.getDisplaySettings().get(settingKey));
+				for (final String settingKey : guimodel.getDisplaySettings().keySet()) {
+					trackscheme.setDisplaySettings(settingKey, guimodel.getDisplaySettings().get(settingKey));
 				}
 				selectionModel.addSelectionChangeListener(trackscheme);
 				trackscheme.render();
@@ -1228,17 +1129,14 @@ public class MaMuT implements ModelChangeListener {
 	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private void semiAutoDetectSpot() {
-		final SourceSemiAutoTracker autotracker = new SourceSemiAutoTracker(
-				model, selectionModel, sources, logger);
+		final SourceSemiAutoTracker autotracker = new SourceSemiAutoTracker(model, selectionModel, sources, logger);
 		autotracker.setNumThreads(4);
-		autotracker.setParameters(guimodel.qualityThreshold,
-				guimodel.distanceTolerance);
+		autotracker.setParameters(guimodel.qualityThreshold, guimodel.distanceTolerance);
 
 		new Thread("MaMuT semi-automated tracking thread") {
 			@Override
 			public void run() {
-				final boolean ok = autotracker.checkInput()
-						&& autotracker.process();
+				final boolean ok = autotracker.checkInput() && autotracker.process();
 				if (!ok) {
 					logger.error(autotracker.getErrorMessage());
 				}
@@ -1252,17 +1150,13 @@ public class MaMuT implements ModelChangeListener {
 	 * @param viewer
 	 *            the viewer in which the add spot request was made.
 	 */
-	private void addSpot(final MamutViewer viewer) {
+	public void addSpot(final MamutViewer viewer) {
 
 		// Check if the mouse is not off-screen
-		final Point mouseScreenLocation = MouseInfo.getPointerInfo()
-				.getLocation();
+		final Point mouseScreenLocation = MouseInfo.getPointerInfo().getLocation();
 		final Point viewerPosition = viewer.getFrame().getLocationOnScreen();
 		final Dimension viewerSize = viewer.getFrame().getSize();
-		if (mouseScreenLocation.x < viewerPosition.x
-				|| mouseScreenLocation.y < viewerPosition.y
-				|| mouseScreenLocation.x > viewerPosition.x + viewerSize.width
-				|| mouseScreenLocation.y > viewerPosition.y + viewerSize.height) {
+		if (mouseScreenLocation.x < viewerPosition.x || mouseScreenLocation.y < viewerPosition.y || mouseScreenLocation.x > viewerPosition.x + viewerSize.width || mouseScreenLocation.y > viewerPosition.y + viewerSize.height) {
 			return;
 		}
 
@@ -1276,8 +1170,7 @@ public class MaMuT implements ModelChangeListener {
 		spot.putFeature(Spot.RADIUS, radius);
 		spot.putFeature(Spot.QUALITY, -1d);
 		spot.putFeature(Spot.POSITION_T, Double.valueOf(frame));
-		spot.putFeature(SpotSourceIdAnalyzerFactory.SOURCE_ID,
-				Double.valueOf(sourceId));
+		spot.putFeature(SpotSourceIdAnalyzerFactory.SOURCE_ID, Double.valueOf(sourceId));
 
 		model.beginUpdate();
 		try {
@@ -1286,11 +1179,7 @@ public class MaMuT implements ModelChangeListener {
 			model.endUpdate();
 		}
 
-		String message = String.format("Added spot " + spot
-				+ " at location X = %.1f, Y = %.1f, Z = %.1f, T = %.0f",
-				spot.getFeature(Spot.POSITION_X),
-				spot.getFeature(Spot.POSITION_Y),
-				spot.getFeature(Spot.POSITION_Z), spot.getFeature(Spot.FRAME));
+		String message = String.format("Added spot " + spot + " at location X = %.1f, Y = %.1f, Z = %.1f, T = %.0f", spot.getFeature(Spot.POSITION_X), spot.getFeature(Spot.POSITION_Y), spot.getFeature(Spot.POSITION_Z), spot.getFeature(Spot.FRAME));
 
 		// Then, possibly, the edge. We must do it in a subsequent update,
 		// otherwise the model gets confused.
@@ -1302,15 +1191,13 @@ public class MaMuT implements ModelChangeListener {
 															// spot in
 															// selection
 			final Spot targetSpot = spotSelection.iterator().next();
-			if (targetSpot.getFeature(Spot.FRAME).intValue() < spot.getFeature(
-					Spot.FRAME).intValue()) { // & if they are on different
-												// frames
+			if (targetSpot.getFeature(Spot.FRAME).intValue() < spot.getFeature(Spot.FRAME).intValue()) { // & if they are on different
+																											// frames
 				model.beginUpdate();
 				try {
 
 					// Create link
-					final DefaultWeightedEdge newedge = model.addEdge(
-							targetSpot, spot, -1);
+					final DefaultWeightedEdge newedge = model.addEdge(targetSpot, spot, -1);
 					selectionModel.clearEdgeSelection();
 					selectionModel.addEdgeToSelection(newedge);
 				} finally {
@@ -1361,8 +1248,7 @@ public class MaMuT implements ModelChangeListener {
 	 *            the factor by which to change the radius. Negative value are
 	 *            used to decrease the radius.
 	 */
-	private void increaseSpotRadius(final MamutViewer viewer,
-			final double factor) {
+	private void increaseSpotRadius(final MamutViewer viewer, final double factor) {
 		final Spot spot = getSpotWithinRadius(viewer);
 		if (null != spot) {
 			// Change the spot radius
@@ -1381,8 +1267,7 @@ public class MaMuT implements ModelChangeListener {
 				model.updateFeatures(spot);
 			} finally {
 				model.endUpdate();
-				final String str = String.format("Changed spot " + spot
-						+ " radius to R = %.1f.", spot.getFeature(Spot.RADIUS));
+				final String str = String.format("Changed spot " + spot + " radius to R = %.1f.", spot.getFeature(Spot.RADIUS));
 				viewer.getLogger().log(str);
 			}
 			refresh();
@@ -1413,8 +1298,7 @@ public class MaMuT implements ModelChangeListener {
 		final double[] coordinates = new double[3];
 		gPos.localize(coordinates);
 		final Spot location = new Spot(coordinates);
-		final Spot closestSpot = model.getSpots().getClosestSpot(location,
-				frame, true);
+		final Spot closestSpot = model.getSpots().getClosestSpot(location, frame, true);
 		if (null == closestSpot) {
 			return null;
 		}
@@ -1433,8 +1317,7 @@ public class MaMuT implements ModelChangeListener {
 
 	private void toggleLinkingMode(final MamutViewer viewer) {
 		this.isLinkingMode = !isLinkingMode;
-		final String str = "Switched auto-linking mode "
-				+ (isLinkingMode ? "on." : "off.");
+		final String str = "Switched auto-linking mode " + (isLinkingMode ? "on." : "off.");
 		viewer.getLogger().log(str);
 	}
 
@@ -1457,8 +1340,7 @@ public class MaMuT implements ModelChangeListener {
 		displaySettings.put(KEY_SPOT_RADIUS_RATIO, 1.0f);
 		displaySettings.put(KEY_TRACKS_VISIBLE, true);
 		displaySettings.put(KEY_TRACK_DISPLAY_MODE, DEFAULT_TRACK_DISPLAY_MODE);
-		displaySettings.put(KEY_TRACK_DISPLAY_DEPTH,
-				DEFAULT_TRACK_DISPLAY_DEPTH);
+		displaySettings.put(KEY_TRACK_DISPLAY_DEPTH, DEFAULT_TRACK_DISPLAY_DEPTH);
 		displaySettings.put(KEY_TRACK_COLORING, trackColorProvider);
 		displaySettings.put(KEY_SPOT_COLORING, spotColorProvider);
 		displaySettings.put(KEY_COLORMAP, DEFAULT_COLOR_MAP);
