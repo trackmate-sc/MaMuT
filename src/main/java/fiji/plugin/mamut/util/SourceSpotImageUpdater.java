@@ -80,7 +80,7 @@ public class SourceSpotImageUpdater<T extends RealType<T>> extends SpotImageUpda
 				sourceToGlobal.applyInverse(new Round<Point>(roundedSourcePos), spot);
 				final long x = roundedSourcePos.getLongPosition(0);
 				final long y = roundedSourcePos.getLongPosition(1);
-				final long z = roundedSourcePos.getLongPosition(2);
+				final long z = Math.max(img.min(2), Math.min(img.max(2), roundedSourcePos.getLongPosition(2)));
 				final long r = (long) Math.ceil(RADIUS_FACTOR * spot.getFeature(Spot.RADIUS).doubleValue() / Affine3DHelpers.extractScale(sourceToGlobal, 0));
 
 				// Extract central slice
