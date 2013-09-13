@@ -155,7 +155,7 @@ public class MaMuT implements ModelChangeListener {
 
 	/** The radius below which a spot cannot go. */
 	private final double minRadius = 2; // TODO change this when we have a
-										// physical calibration
+	// physical calibration
 
 	/** The spot currently moved under the mouse. */
 	private Spot movedSpot = null;
@@ -192,6 +192,13 @@ public class MaMuT implements ModelChangeListener {
 	private SourceSpotImageUpdater<?> thumbnailUpdater;
 
 	private Logger logger;
+
+	/**
+	 * If <code>true</code>, then each time a spot is manually created, we will
+	 * first test if it is not within the radius of an existing spot. If so,
+	 * then the new spot will not be added to the model.
+	 */
+	private boolean testWithinSpot = true;
 
 	private static File mamutFile;
 
@@ -389,31 +396,31 @@ public class MaMuT implements ModelChangeListener {
 		settings = new SourceSettings();
 		settings.setFrom(sources, file, nTimepoints);
 		settings.addSpotAnalyzerFactory(new SpotSourceIdAnalyzerFactory()); // We
-																			// need
-																			// this
-																			// to
-																			// have
-																			// the
-																			// SOURCE_ID
-																			// feature
+		// need
+		// this
+		// to
+		// have
+		// the
+		// SOURCE_ID
+		// feature
 		settings.addTrackAnalyzer(new TrackIndexAnalyzer(model)); // we need
-																	// at
-																	// least
-																	// this
-																	// one
+		// at
+		// least
+		// this
+		// one
 		settings.addEdgeAnalyzer(new EdgeVelocityAnalyzer(model)); // this
-																	// one
-																	// is
-																	// for
-																	// fun
+		// one
+		// is
+		// for
+		// fun
 		settings.addEdgeAnalyzer(new EdgeTargetAnalyzer(model)); // we
-																	// CANNOT
-																	// load
-																	// &
-																	// save
-																	// without
-																	// this
-																	// one
+		// CANNOT
+		// load
+		// &
+		// save
+		// without
+		// this
+		// one
 
 		/*
 		 * Autoupdate features & declare them
@@ -983,6 +990,19 @@ public class MaMuT implements ModelChangeListener {
 		viewer.getGlobalMouseCoordinates(RealPoint.wrap(coordinates));
 		final Spot spot = new Spot(coordinates);
 		spot.putFeature(Spot.RADIUS, radius);
+
+		if (testWithinSpot) {
+			final Spot closestSpot = model.getSpots().getClosestSpot(spot, frame, true);
+			if (null != closestSpot) {
+				final double closestRadius = closestSpot.getFeature(Spot.RADIUS).doubleValue();
+				if (closestSpot.squareDistanceTo(spot) < closestRadius * closestRadius) {
+					final String message = "Cannot create spot: it is too close to spot " + closestSpot + ".\n";
+					viewer.getLogger().log(message);
+					return;
+				}
+			}
+		}
+
 		spot.putFeature(Spot.QUALITY, -1d);
 		spot.putFeature(Spot.POSITION_T, Double.valueOf(frame));
 		spot.putFeature(SpotSourceIdAnalyzerFactory.SOURCE_ID, Double.valueOf(sourceId));
@@ -1001,13 +1021,13 @@ public class MaMuT implements ModelChangeListener {
 		final Set<Spot> spotSelection = selectionModel.getSpotSelection();
 
 		if (isLinkingMode && spotSelection.size() == 1) { // if we are in the
-															// right mode & if
-															// there is only one
-															// spot in
-															// selection
+			// right mode & if
+			// there is only one
+			// spot in
+			// selection
 			final Spot targetSpot = spotSelection.iterator().next();
 			if (targetSpot.getFeature(Spot.FRAME).intValue() < spot.getFeature(Spot.FRAME).intValue()) { // & if they are on different
-																											// frames
+				// frames
 				model.beginUpdate();
 				try {
 
@@ -1124,6 +1144,14 @@ public class MaMuT implements ModelChangeListener {
 			return null;
 		}
 
+	}
+
+	/**
+	 * Toggle the spot creation test on/off. If on, MaMuT will prevent a new
+	 * spot to be created within another one.
+	 */
+	public void toggleSpotCreationTest() {
+		testWithinSpot = !testWithinSpot;
 	}
 
 	public void toggleLinkingMode(final Logger logger) {
