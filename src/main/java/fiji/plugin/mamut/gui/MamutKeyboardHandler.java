@@ -1,6 +1,7 @@
 package fiji.plugin.mamut.gui;
 
-import java.awt.event.KeyEvent;
+import java.io.IOException;
+import java.util.Properties;
 
 import javax.swing.ActionMap;
 import javax.swing.InputMap;
@@ -13,46 +14,61 @@ import fiji.plugin.mamut.viewer.MamutViewer;
 
 public class MamutKeyboardHandler {
 
+	private static final Properties DEFAULT_KEYBINGS = new Properties();
+	static {
+		DEFAULT_KEYBINGS.setProperty("A", "add spot");
+		DEFAULT_KEYBINGS.setProperty("ENTER", "add spot");
+		DEFAULT_KEYBINGS.setProperty("D", "delete spot");
+		DEFAULT_KEYBINGS.setProperty("shift A", "semi-auto tracking");
+		DEFAULT_KEYBINGS.setProperty("shift L", "toggle linking mode");
+		DEFAULT_KEYBINGS.setProperty("E", "increase spot radius");
+		DEFAULT_KEYBINGS.setProperty("Q", "decrease spot radius");
+		DEFAULT_KEYBINGS.setProperty("shift E", "increase spot radius a lot");
+		DEFAULT_KEYBINGS.setProperty("shift Q", "decrease spot radius a lot");
+		DEFAULT_KEYBINGS.setProperty("control E", "increase spot radius a bit");
+		DEFAULT_KEYBINGS.setProperty("control Q", "decrease spot radius a bit");
+		DEFAULT_KEYBINGS.setProperty("F1", "show help");
+		DEFAULT_KEYBINGS.setProperty("S", "toggle brightness dialog");
+	}
 	private final MamutViewer viewer;
 	private final MaMuT mamut;
 
 	public MamutKeyboardHandler(final MaMuT mamut, final MamutViewer viewer) {
 		this.mamut = mamut;
 		this.viewer = viewer;
+
 		installKeyboardActions(viewer.getDisplay());
 	}
 
-	protected void installKeyboardActions(final JComponent graphComponent) {
-		InputMap inputMap = getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-		SwingUtilities.replaceUIInputMap(graphComponent, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT, inputMap);
+	protected InputMap readPropertyFile() {
+		Properties config = new Properties();
+		try {
+			config.load(this.getClass().getClassLoader().getResourceAsStream("mamut.properties"));
+		} catch (final IOException e) {
+			System.out.println("MaMuT: cannot find the config file. Using default key bindings.");
+			config = DEFAULT_KEYBINGS;
+			e.printStackTrace();
+		}
 
-		inputMap = getInputMap(JComponent.WHEN_FOCUSED);
-		SwingUtilities.replaceUIInputMap(graphComponent, JComponent.WHEN_FOCUSED, inputMap);
-		SwingUtilities.replaceUIActionMap(graphComponent, createActionMap());
+		return generateMapFrom(config);
 	}
 
-	protected InputMap getInputMap(final int condition) {
+	private InputMap generateMapFrom(final Properties config) {
 		final InputMap map = new InputMap();
-
-		map.put(KeyStroke.getKeyStroke("A"), "add spot");
-		map.put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0, false), "add spot");
-		map.put(KeyStroke.getKeyStroke("D"), "delete spot");
-		map.put(KeyStroke.getKeyStroke("E"), "increase spot radius");
-		map.put(KeyStroke.getKeyStroke("Q"), "decrease spot radius");
-		map.put(KeyStroke.getKeyStroke("shift E"), "increase spot radius a lot");
-		map.put(KeyStroke.getKeyStroke("shift Q"), "decrease spot radius a lot");
-		map.put(KeyStroke.getKeyStroke("control E"), "increase spot radius a bit");
-		map.put(KeyStroke.getKeyStroke("control Q"), "decrease spot radius a bit");
-
-		map.put(KeyStroke.getKeyStroke("shift A"), "semi-auto tracking");
-
-		map.put(KeyStroke.getKeyStroke("shift L"), "toggle linking mode");
-
-		map.put(KeyStroke.getKeyStroke("F1"), "show help");
-
-		map.put(KeyStroke.getKeyStroke("S"), "toggle brightness dialog");
-
+		for (final Object obj : config.keySet()) {
+			final String key = (String) obj;
+			final String command = config.getProperty(key);
+			map.put(KeyStroke.getKeyStroke(key), command);
+		}
 		return map;
+	}
+
+	protected void installKeyboardActions(final JComponent graphComponent) {
+		final InputMap inputMap = readPropertyFile();
+
+		SwingUtilities.replaceUIInputMap(graphComponent, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT, inputMap);
+		SwingUtilities.replaceUIInputMap(graphComponent, JComponent.WHEN_FOCUSED, inputMap);
+		SwingUtilities.replaceUIActionMap(graphComponent, createActionMap());
 	}
 
 	/**
@@ -79,5 +95,9 @@ public class MamutKeyboardHandler {
 		map.put("toggle brightness dialog", MamutActions.getToggleBrightnessDialogAction(mamut));
 
 		return map;
+	}
+
+	public static void main(final String[] args) {
+		new MamutKeyboardHandler(null, null);
 	}
 }

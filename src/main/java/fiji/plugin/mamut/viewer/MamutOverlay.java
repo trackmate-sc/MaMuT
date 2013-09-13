@@ -50,7 +50,7 @@ public class MamutOverlay {
 		this.viewer = viewer;
 	}
 
-	public synchronized void paint(final Graphics2D g) {
+	public void paint(final Graphics2D g) {
 
 		/*
 		 * Collect current view
@@ -114,11 +114,7 @@ public class MamutOverlay {
 				if (dz2 < rad * rad) {
 
 					final double arad = Math.sqrt(rad * rad - dz2);
-					g.drawOval(
-							(int) (viewerCoords[0] - arad),
-							(int) (viewerCoords[1] - arad),
-							(int) (2*arad),
-							(int) (2*arad));
+					g.drawOval((int) (viewerCoords[0] - arad), (int) (viewerCoords[1] - arad), (int) (2 * arad), (int) (2 * arad));
 
 					if (doDisplayNames) {
 						final int tx = (int) (viewerCoords[0] + arad + 5);
@@ -127,10 +123,7 @@ public class MamutOverlay {
 					}
 
 				} else {
-					g.fillOval(
-							(int) viewerCoords[0] - 2,
-							(int) viewerCoords[1] - 2,
-							4, 4);
+					g.fillOval((int) viewerCoords[0] - 2, (int) viewerCoords[1] - 2, 4, 4);
 				}
 			}
 
