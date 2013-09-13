@@ -41,7 +41,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.swing.AbstractAction;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.KeyStroke;
@@ -69,7 +68,6 @@ import org.jdom2.JDOMException;
 import org.jgrapht.graph.DefaultWeightedEdge;
 import org.xml.sax.SAXException;
 
-import viewer.HelpFrame;
 import viewer.SequenceViewsLoader;
 import viewer.SpimSource;
 import viewer.SpimViewer;
@@ -137,45 +135,13 @@ public class MaMuT implements ModelChangeListener {
 	 */
 	private static final double RADIUS_CHANGE_FACTOR = 0.1;
 
-	private static final int CHANGE_A_LOT_KEY = KeyEvent.SHIFT_DOWN_MASK;
-
-	private static final int CHANGE_A_BIT_KEY = KeyEvent.CTRL_DOWN_MASK;
-
 	/** The default width for new image viewers. */
 	public static final int DEFAULT_WIDTH = 800;
 
 	/** The default height for new image viewers. */
 	public static final int DEFAULT_HEIGHT = 600;
 
-	private final KeyStroke brightnessKeystroke = KeyStroke.getKeyStroke(KeyEvent.VK_B, 0);
-
-	private final KeyStroke helpKeystroke = KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0);
-
-	private final KeyStroke addSpotKeystroke = KeyStroke.getKeyStroke(KeyEvent.VK_A, 0);
-
-	private final KeyStroke semiAutoAddSpotKeystroke = KeyStroke.getKeyStroke(KeyEvent.VK_A, KeyEvent.SHIFT_DOWN_MASK);
-
-	private final KeyStroke deleteSpotKeystroke = KeyStroke.getKeyStroke(KeyEvent.VK_D, 0);
-
 	private final KeyStroke moveSpotKeystroke = KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0);
-
-	private final int increaseRadiusKey = KeyEvent.VK_E;
-
-	private final int decreaseRadiusKey = KeyEvent.VK_Q;
-
-	private final KeyStroke increaseRadiusKeystroke = KeyStroke.getKeyStroke(increaseRadiusKey, 0);
-
-	private final KeyStroke decreaseRadiusKeystroke = KeyStroke.getKeyStroke(decreaseRadiusKey, 0);
-
-	private final KeyStroke increaseRadiusALotKeystroke = KeyStroke.getKeyStroke(increaseRadiusKey, CHANGE_A_LOT_KEY);
-
-	private final KeyStroke decreaseRadiusALotKeystroke = KeyStroke.getKeyStroke(decreaseRadiusKey, CHANGE_A_LOT_KEY);
-
-	private final KeyStroke increaseRadiusABitKeystroke = KeyStroke.getKeyStroke(increaseRadiusKey, CHANGE_A_BIT_KEY);
-
-	private final KeyStroke decreaseRadiusABitKeystroke = KeyStroke.getKeyStroke(decreaseRadiusKey, CHANGE_A_BIT_KEY);
-
-	private final KeyStroke toggleLinkingModeKeystroke = KeyStroke.getKeyStroke(KeyEvent.VK_L, 0);
 
 	private SetupAssignments setupAssignments;
 
@@ -646,8 +612,7 @@ public class MaMuT implements ModelChangeListener {
 			viewer.setDisplaySettings(key, guimodel.getDisplaySettings().get(key));
 		}
 
-		new MamutKeyboardHandler(this, viewer); // TODO 
-		installKeyBindings(viewer); // TODO replace by line above
+		installKeyBindings(viewer);
 		installMouseListeners(viewer);
 
 		viewer.getFrame().setIconImage(MAMUT_ICON.getImage());
@@ -686,7 +651,7 @@ public class MaMuT implements ModelChangeListener {
 
 	}
 
-	private void toggleBrightnessDialog() {
+	public void toggleBrightnessDialog() {
 		brightnessDialog.setVisible(!brightnessDialog.isVisible());
 	}
 
@@ -829,144 +794,7 @@ public class MaMuT implements ModelChangeListener {
 	 */
 	private void installKeyBindings(final MamutViewer viewer) {
 
-		/*
-		 * Help window
-		 */
-		viewer.addKeyAction(helpKeystroke, new AbstractAction("help") {
-			@Override
-			public void actionPerformed(final ActionEvent arg0) {
-				showHelp();
-			}
-
-			private static final long serialVersionUID = 1L;
-		});
-
-		/*
-		 * Brightness dialog
-		 */
-		viewer.addKeyAction(brightnessKeystroke, new AbstractAction("brightness settings") {
-			@Override
-			public void actionPerformed(final ActionEvent arg0) {
-				toggleBrightnessDialog();
-			}
-
-			private static final long serialVersionUID = 1L;
-		});
-		viewer.installKeyActions(brightnessDialog);
-
-		/*
-		 * Add spot
-		 */
-		viewer.addKeyAction(addSpotKeystroke, new AbstractAction("add spot") {
-
-			@Override
-			public void actionPerformed(final ActionEvent arg0) {
-				addSpot(viewer);
-			}
-
-			private static final long serialVersionUID = 1L;
-		});
-
-		/*
-		 * Semi-auto find spots
-		 */
-		viewer.addKeyAction(semiAutoAddSpotKeystroke, new AbstractAction("semi-auto detect spot") {
-
-			@Override
-			public void actionPerformed(final ActionEvent arg0) {
-				semiAutoDetectSpot();
-			}
-
-			private static final long serialVersionUID = 1L;
-		});
-
-		/*
-		 * Delete spot
-		 */
-		viewer.addKeyAction(deleteSpotKeystroke, new AbstractAction("delete spot") {
-
-			@Override
-			public void actionPerformed(final ActionEvent arg0) {
-				deleteSpot(viewer);
-			}
-
-			private static final long serialVersionUID = 1L;
-		});
-
-		/*
-		 * Change radius
-		 */
-		viewer.addKeyAction(increaseRadiusKeystroke, new AbstractAction("increase spot radius") {
-			@Override
-			public void actionPerformed(final ActionEvent arg0) {
-				increaseSpotRadius(viewer, 1d);
-			}
-
-			private static final long serialVersionUID = 1L;
-		});
-
-		viewer.addKeyAction(increaseRadiusALotKeystroke, new AbstractAction("increase spot radius a lot") {
-			@Override
-			public void actionPerformed(final ActionEvent arg0) {
-				increaseSpotRadius(viewer, 10d);
-			}
-
-			private static final long serialVersionUID = 1L;
-		});
-
-		viewer.addKeyAction(increaseRadiusABitKeystroke, new AbstractAction("increase spot radius a bit") {
-			@Override
-			public void actionPerformed(final ActionEvent arg0) {
-				increaseSpotRadius(viewer, 0.1d);
-			}
-
-			private static final long serialVersionUID = 1L;
-		});
-
-		viewer.addKeyAction(decreaseRadiusKeystroke, new AbstractAction("decrease spot radius") {
-			@Override
-			public void actionPerformed(final ActionEvent arg0) {
-				increaseSpotRadius(viewer, -1d);
-			}
-
-			private static final long serialVersionUID = 1L;
-		});
-
-		viewer.addKeyAction(decreaseRadiusALotKeystroke, new AbstractAction("decrease spot radius a lot") {
-			@Override
-			public void actionPerformed(final ActionEvent arg0) {
-				increaseSpotRadius(viewer, -5d);
-			}
-
-			private static final long serialVersionUID = 1L;
-		});
-
-		viewer.addKeyAction(decreaseRadiusABitKeystroke, new AbstractAction("decrease spot radius a bit") {
-			@Override
-			public void actionPerformed(final ActionEvent arg0) {
-				increaseSpotRadius(viewer, -0.1d);
-			}
-
-			private static final long serialVersionUID = 1L;
-		});
-
-		viewer.addKeyAction(decreaseRadiusABitKeystroke, new AbstractAction("decrease spot radius a bit") {
-			@Override
-			public void actionPerformed(final ActionEvent arg0) {
-				increaseSpotRadius(viewer, -0.1d);
-			}
-
-			private static final long serialVersionUID = 1L;
-		});
-
-		viewer.addKeyAction(toggleLinkingModeKeystroke, new AbstractAction("toggle linking mode") {
-			@Override
-			public void actionPerformed(final ActionEvent arg0) {
-				toggleLinkingMode(viewer);
-			}
-
-			private static final long serialVersionUID = 1L;
-		});
+		new MamutKeyboardHandler(this, viewer);
 
 		/*
 		 * Custom key presses
@@ -1128,7 +956,7 @@ public class MaMuT implements ModelChangeListener {
 	 * work, exactly one spot must be in the selection.
 	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	private void semiAutoDetectSpot() {
+	public void semiAutoDetectSpot() {
 		final SourceSemiAutoTracker autotracker = new SourceSemiAutoTracker(model, selectionModel, sources, logger);
 		autotracker.setNumThreads(4);
 		autotracker.setParameters(guimodel.qualityThreshold, guimodel.distanceTolerance);
@@ -1223,7 +1051,7 @@ public class MaMuT implements ModelChangeListener {
 	 * @param viewer
 	 *            the viewer in which the delete spot request was made.
 	 */
-	private void deleteSpot(final MamutViewer viewer) {
+	public void deleteSpot(final MamutViewer viewer) {
 		final Spot spot = getSpotWithinRadius(viewer);
 		if (null != spot) {
 			// We can delete it
@@ -1248,7 +1076,7 @@ public class MaMuT implements ModelChangeListener {
 	 *            the factor by which to change the radius. Negative value are
 	 *            used to decrease the radius.
 	 */
-	private void increaseSpotRadius(final MamutViewer viewer, final double factor) {
+	public void increaseSpotRadius(final MamutViewer viewer, final double factor) {
 		final Spot spot = getSpotWithinRadius(viewer);
 		if (null != spot) {
 			// Change the spot radius
@@ -1272,10 +1100,6 @@ public class MaMuT implements ModelChangeListener {
 			}
 			refresh();
 		}
-	}
-
-	private void showHelp() {
-		new HelpFrame(MaMuT.class.getResource("Help.html"));
 	}
 
 	/**
@@ -1315,10 +1139,10 @@ public class MaMuT implements ModelChangeListener {
 
 	}
 
-	private void toggleLinkingMode(final MamutViewer viewer) {
+	public void toggleLinkingMode(final Logger logger) {
 		this.isLinkingMode = !isLinkingMode;
 		final String str = "Switched auto-linking mode " + (isLinkingMode ? "on." : "off.");
-		viewer.getLogger().log(str);
+		logger.log(str);
 	}
 
 	/**
