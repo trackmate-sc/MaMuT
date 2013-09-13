@@ -137,11 +137,8 @@ public class MamutXmlReader extends TmXmlReader {
 		final Element guiel = root.getChild(GUI_STATE_ELEMENT_KEY);
 		if (null != guiel) {
 			// brightness & color settings
-			final List<Element> children = guiel
-					.getChildren("SetupAssignments");
-			if (!children.isEmpty()) {
-				final Element child = children.get(0);
-				setupAssignments.restoreFromXml(child);
+			if (guiel.getChild("SetupAssignments") != null) {
+				setupAssignments.restoreFromXml( guiel );
 			} else {
 				logger.error("Could not find SetupAssignments element.\n");
 			}
