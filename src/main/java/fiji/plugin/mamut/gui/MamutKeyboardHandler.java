@@ -1,5 +1,7 @@
 package fiji.plugin.mamut.gui;
 
+import java.awt.event.KeyEvent;
+
 import javax.swing.ActionMap;
 import javax.swing.InputMap;
 import javax.swing.JComponent;
@@ -33,6 +35,7 @@ public class MamutKeyboardHandler {
 		final InputMap map = new InputMap();
 
 		map.put(KeyStroke.getKeyStroke("A"), "add spot");
+		map.put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0, false), "add spot");
 		map.put(KeyStroke.getKeyStroke("D"), "delete spot");
 		map.put(KeyStroke.getKeyStroke("E"), "increase spot radius");
 		map.put(KeyStroke.getKeyStroke("Q"), "decrease spot radius");

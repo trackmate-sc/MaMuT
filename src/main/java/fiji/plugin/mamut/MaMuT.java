@@ -25,8 +25,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -860,20 +860,7 @@ public class MaMuT implements ModelChangeListener {
 			public void mouseDragged(final MouseEvent arg0) {}
 		});
 
-		viewer.addHandler(new MouseListener() {
-
-			@Override
-			public void mouseReleased(final MouseEvent arg0) {}
-
-			@Override
-			public void mousePressed(final MouseEvent arg0) {}
-
-			@Override
-			public void mouseExited(final MouseEvent arg0) {}
-
-			@Override
-			public void mouseEntered(final MouseEvent arg0) {}
-
+		viewer.addHandler(new MouseAdapter() {
 			@Override
 			public void mouseClicked(final MouseEvent event) {
 
