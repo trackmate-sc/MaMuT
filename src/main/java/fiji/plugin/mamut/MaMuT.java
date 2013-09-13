@@ -332,7 +332,7 @@ public class MaMuT implements ModelChangeListener {
 
 		spotColorProvider = new SpotColorGenerator(model);
 		trackColorProvider = new PerTrackFeatureColorGenerator(model, TrackIndexAnalyzer.TRACK_ID);
-		edgeColorProvider = new PerEdgeFeatureColorGenerator(model, EdgeVelocityAnalyzer.VELOCITY);
+		edgeColorProvider = new PerEdgeFeatureColorGenerator(model, EdgeTargetAnalyzer.EDGE_COST);
 
 		/*
 		 * GUI model
