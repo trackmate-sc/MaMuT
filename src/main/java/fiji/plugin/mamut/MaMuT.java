@@ -25,8 +25,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -41,7 +41,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.swing.AbstractAction;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.KeyStroke;
@@ -69,7 +68,6 @@ import org.jdom2.JDOMException;
 import org.jgrapht.graph.DefaultWeightedEdge;
 import org.xml.sax.SAXException;
 
-import viewer.HelpFrame;
 import viewer.SequenceViewsLoader;
 import viewer.SpimSource;
 import viewer.SpimViewer;
@@ -137,45 +135,13 @@ public class MaMuT implements ModelChangeListener {
 	 */
 	private static final double RADIUS_CHANGE_FACTOR = 0.1;
 
-	private static final int CHANGE_A_LOT_KEY = KeyEvent.SHIFT_DOWN_MASK;
-
-	private static final int CHANGE_A_BIT_KEY = KeyEvent.CTRL_DOWN_MASK;
-
 	/** The default width for new image viewers. */
 	public static final int DEFAULT_WIDTH = 800;
 
 	/** The default height for new image viewers. */
 	public static final int DEFAULT_HEIGHT = 600;
 
-	private final KeyStroke brightnessKeystroke = KeyStroke.getKeyStroke(KeyEvent.VK_B, 0);
-
-	private final KeyStroke helpKeystroke = KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0);
-
-	private final KeyStroke addSpotKeystroke = KeyStroke.getKeyStroke(KeyEvent.VK_A, 0);
-
-	private final KeyStroke semiAutoAddSpotKeystroke = KeyStroke.getKeyStroke(KeyEvent.VK_A, KeyEvent.SHIFT_DOWN_MASK);
-
-	private final KeyStroke deleteSpotKeystroke = KeyStroke.getKeyStroke(KeyEvent.VK_D, 0);
-
 	private final KeyStroke moveSpotKeystroke = KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0);
-
-	private final int increaseRadiusKey = KeyEvent.VK_E;
-
-	private final int decreaseRadiusKey = KeyEvent.VK_Q;
-
-	private final KeyStroke increaseRadiusKeystroke = KeyStroke.getKeyStroke(increaseRadiusKey, 0);
-
-	private final KeyStroke decreaseRadiusKeystroke = KeyStroke.getKeyStroke(decreaseRadiusKey, 0);
-
-	private final KeyStroke increaseRadiusALotKeystroke = KeyStroke.getKeyStroke(increaseRadiusKey, CHANGE_A_LOT_KEY);
-
-	private final KeyStroke decreaseRadiusALotKeystroke = KeyStroke.getKeyStroke(decreaseRadiusKey, CHANGE_A_LOT_KEY);
-
-	private final KeyStroke increaseRadiusABitKeystroke = KeyStroke.getKeyStroke(increaseRadiusKey, CHANGE_A_BIT_KEY);
-
-	private final KeyStroke decreaseRadiusABitKeystroke = KeyStroke.getKeyStroke(decreaseRadiusKey, CHANGE_A_BIT_KEY);
-
-	private final KeyStroke toggleLinkingModeKeystroke = KeyStroke.getKeyStroke(KeyEvent.VK_L, 0);
 
 	private SetupAssignments setupAssignments;
 
@@ -189,7 +155,7 @@ public class MaMuT implements ModelChangeListener {
 
 	/** The radius below which a spot cannot go. */
 	private final double minRadius = 2; // TODO change this when we have a
-										// physical calibration
+	// physical calibration
 
 	/** The spot currently moved under the mouse. */
 	private Spot movedSpot = null;
@@ -226,6 +192,13 @@ public class MaMuT implements ModelChangeListener {
 	private SourceSpotImageUpdater<?> thumbnailUpdater;
 
 	private Logger logger;
+
+	/**
+	 * If <code>true</code>, then each time a spot is manually created, we will
+	 * first test if it is not within the radius of an existing spot. If so,
+	 * then the new spot will not be added to the model.
+	 */
+	private boolean testWithinSpot = true;
 
 	private static File mamutFile;
 
@@ -423,31 +396,31 @@ public class MaMuT implements ModelChangeListener {
 		settings = new SourceSettings();
 		settings.setFrom(sources, file, nTimepoints);
 		settings.addSpotAnalyzerFactory(new SpotSourceIdAnalyzerFactory()); // We
-																			// need
-																			// this
-																			// to
-																			// have
-																			// the
-																			// SOURCE_ID
-																			// feature
+		// need
+		// this
+		// to
+		// have
+		// the
+		// SOURCE_ID
+		// feature
 		settings.addTrackAnalyzer(new TrackIndexAnalyzer(model)); // we need
-																	// at
-																	// least
-																	// this
-																	// one
+		// at
+		// least
+		// this
+		// one
 		settings.addEdgeAnalyzer(new EdgeVelocityAnalyzer(model)); // this
-																	// one
-																	// is
-																	// for
-																	// fun
+		// one
+		// is
+		// for
+		// fun
 		settings.addEdgeAnalyzer(new EdgeTargetAnalyzer(model)); // we
-																	// CANNOT
-																	// load
-																	// &
-																	// save
-																	// without
-																	// this
-																	// one
+		// CANNOT
+		// load
+		// &
+		// save
+		// without
+		// this
+		// one
 
 		/*
 		 * Autoupdate features & declare them
@@ -646,8 +619,7 @@ public class MaMuT implements ModelChangeListener {
 			viewer.setDisplaySettings(key, guimodel.getDisplaySettings().get(key));
 		}
 
-		new MamutKeyboardHandler(this, viewer); // TODO 
-		installKeyBindings(viewer); // TODO replace by line above
+		installKeyBindings(viewer);
 		installMouseListeners(viewer);
 
 		viewer.getFrame().setIconImage(MAMUT_ICON.getImage());
@@ -686,7 +658,7 @@ public class MaMuT implements ModelChangeListener {
 
 	}
 
-	private void toggleBrightnessDialog() {
+	public void toggleBrightnessDialog() {
 		brightnessDialog.setVisible(!brightnessDialog.isVisible());
 	}
 
@@ -829,144 +801,7 @@ public class MaMuT implements ModelChangeListener {
 	 */
 	private void installKeyBindings(final MamutViewer viewer) {
 
-		/*
-		 * Help window
-		 */
-		viewer.addKeyAction(helpKeystroke, new AbstractAction("help") {
-			@Override
-			public void actionPerformed(final ActionEvent arg0) {
-				showHelp();
-			}
-
-			private static final long serialVersionUID = 1L;
-		});
-
-		/*
-		 * Brightness dialog
-		 */
-		viewer.addKeyAction(brightnessKeystroke, new AbstractAction("brightness settings") {
-			@Override
-			public void actionPerformed(final ActionEvent arg0) {
-				toggleBrightnessDialog();
-			}
-
-			private static final long serialVersionUID = 1L;
-		});
-		viewer.installKeyActions(brightnessDialog);
-
-		/*
-		 * Add spot
-		 */
-		viewer.addKeyAction(addSpotKeystroke, new AbstractAction("add spot") {
-
-			@Override
-			public void actionPerformed(final ActionEvent arg0) {
-				addSpot(viewer);
-			}
-
-			private static final long serialVersionUID = 1L;
-		});
-
-		/*
-		 * Semi-auto find spots
-		 */
-		viewer.addKeyAction(semiAutoAddSpotKeystroke, new AbstractAction("semi-auto detect spot") {
-
-			@Override
-			public void actionPerformed(final ActionEvent arg0) {
-				semiAutoDetectSpot();
-			}
-
-			private static final long serialVersionUID = 1L;
-		});
-
-		/*
-		 * Delete spot
-		 */
-		viewer.addKeyAction(deleteSpotKeystroke, new AbstractAction("delete spot") {
-
-			@Override
-			public void actionPerformed(final ActionEvent arg0) {
-				deleteSpot(viewer);
-			}
-
-			private static final long serialVersionUID = 1L;
-		});
-
-		/*
-		 * Change radius
-		 */
-		viewer.addKeyAction(increaseRadiusKeystroke, new AbstractAction("increase spot radius") {
-			@Override
-			public void actionPerformed(final ActionEvent arg0) {
-				increaseSpotRadius(viewer, 1d);
-			}
-
-			private static final long serialVersionUID = 1L;
-		});
-
-		viewer.addKeyAction(increaseRadiusALotKeystroke, new AbstractAction("increase spot radius a lot") {
-			@Override
-			public void actionPerformed(final ActionEvent arg0) {
-				increaseSpotRadius(viewer, 10d);
-			}
-
-			private static final long serialVersionUID = 1L;
-		});
-
-		viewer.addKeyAction(increaseRadiusABitKeystroke, new AbstractAction("increase spot radius a bit") {
-			@Override
-			public void actionPerformed(final ActionEvent arg0) {
-				increaseSpotRadius(viewer, 0.1d);
-			}
-
-			private static final long serialVersionUID = 1L;
-		});
-
-		viewer.addKeyAction(decreaseRadiusKeystroke, new AbstractAction("decrease spot radius") {
-			@Override
-			public void actionPerformed(final ActionEvent arg0) {
-				increaseSpotRadius(viewer, -1d);
-			}
-
-			private static final long serialVersionUID = 1L;
-		});
-
-		viewer.addKeyAction(decreaseRadiusALotKeystroke, new AbstractAction("decrease spot radius a lot") {
-			@Override
-			public void actionPerformed(final ActionEvent arg0) {
-				increaseSpotRadius(viewer, -5d);
-			}
-
-			private static final long serialVersionUID = 1L;
-		});
-
-		viewer.addKeyAction(decreaseRadiusABitKeystroke, new AbstractAction("decrease spot radius a bit") {
-			@Override
-			public void actionPerformed(final ActionEvent arg0) {
-				increaseSpotRadius(viewer, -0.1d);
-			}
-
-			private static final long serialVersionUID = 1L;
-		});
-
-		viewer.addKeyAction(decreaseRadiusABitKeystroke, new AbstractAction("decrease spot radius a bit") {
-			@Override
-			public void actionPerformed(final ActionEvent arg0) {
-				increaseSpotRadius(viewer, -0.1d);
-			}
-
-			private static final long serialVersionUID = 1L;
-		});
-
-		viewer.addKeyAction(toggleLinkingModeKeystroke, new AbstractAction("toggle linking mode") {
-			@Override
-			public void actionPerformed(final ActionEvent arg0) {
-				toggleLinkingMode(viewer);
-			}
-
-			private static final long serialVersionUID = 1L;
-		});
+		new MamutKeyboardHandler(this, viewer);
 
 		/*
 		 * Custom key presses
@@ -1032,20 +867,7 @@ public class MaMuT implements ModelChangeListener {
 			public void mouseDragged(final MouseEvent arg0) {}
 		});
 
-		viewer.addHandler(new MouseListener() {
-
-			@Override
-			public void mouseReleased(final MouseEvent arg0) {}
-
-			@Override
-			public void mousePressed(final MouseEvent arg0) {}
-
-			@Override
-			public void mouseExited(final MouseEvent arg0) {}
-
-			@Override
-			public void mouseEntered(final MouseEvent arg0) {}
-
+		viewer.addHandler(new MouseAdapter() {
 			@Override
 			public void mouseClicked(final MouseEvent event) {
 
@@ -1128,7 +950,7 @@ public class MaMuT implements ModelChangeListener {
 	 * work, exactly one spot must be in the selection.
 	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	private void semiAutoDetectSpot() {
+	public void semiAutoDetectSpot() {
 		final SourceSemiAutoTracker autotracker = new SourceSemiAutoTracker(model, selectionModel, sources, logger);
 		autotracker.setNumThreads(4);
 		autotracker.setParameters(guimodel.qualityThreshold, guimodel.distanceTolerance);
@@ -1168,6 +990,19 @@ public class MaMuT implements ModelChangeListener {
 		viewer.getGlobalMouseCoordinates(RealPoint.wrap(coordinates));
 		final Spot spot = new Spot(coordinates);
 		spot.putFeature(Spot.RADIUS, radius);
+
+		if (testWithinSpot) {
+			final Spot closestSpot = model.getSpots().getClosestSpot(spot, frame, true);
+			if (null != closestSpot) {
+				final double closestRadius = closestSpot.getFeature(Spot.RADIUS).doubleValue();
+				if (closestSpot.squareDistanceTo(spot) < closestRadius * closestRadius) {
+					final String message = "Cannot create spot: it is too close to spot " + closestSpot + ".\n";
+					viewer.getLogger().log(message);
+					return;
+				}
+			}
+		}
+
 		spot.putFeature(Spot.QUALITY, -1d);
 		spot.putFeature(Spot.POSITION_T, Double.valueOf(frame));
 		spot.putFeature(SpotSourceIdAnalyzerFactory.SOURCE_ID, Double.valueOf(sourceId));
@@ -1186,13 +1021,13 @@ public class MaMuT implements ModelChangeListener {
 		final Set<Spot> spotSelection = selectionModel.getSpotSelection();
 
 		if (isLinkingMode && spotSelection.size() == 1) { // if we are in the
-															// right mode & if
-															// there is only one
-															// spot in
-															// selection
+			// right mode & if
+			// there is only one
+			// spot in
+			// selection
 			final Spot targetSpot = spotSelection.iterator().next();
 			if (targetSpot.getFeature(Spot.FRAME).intValue() < spot.getFeature(Spot.FRAME).intValue()) { // & if they are on different
-																											// frames
+				// frames
 				model.beginUpdate();
 				try {
 
@@ -1223,7 +1058,7 @@ public class MaMuT implements ModelChangeListener {
 	 * @param viewer
 	 *            the viewer in which the delete spot request was made.
 	 */
-	private void deleteSpot(final MamutViewer viewer) {
+	public void deleteSpot(final MamutViewer viewer) {
 		final Spot spot = getSpotWithinRadius(viewer);
 		if (null != spot) {
 			// We can delete it
@@ -1248,7 +1083,7 @@ public class MaMuT implements ModelChangeListener {
 	 *            the factor by which to change the radius. Negative value are
 	 *            used to decrease the radius.
 	 */
-	private void increaseSpotRadius(final MamutViewer viewer, final double factor) {
+	public void increaseSpotRadius(final MamutViewer viewer, final double factor) {
 		final Spot spot = getSpotWithinRadius(viewer);
 		if (null != spot) {
 			// Change the spot radius
@@ -1272,10 +1107,6 @@ public class MaMuT implements ModelChangeListener {
 			}
 			refresh();
 		}
-	}
-
-	private void showHelp() {
-		new HelpFrame(MaMuT.class.getResource("Help.html"));
 	}
 
 	/**
@@ -1315,10 +1146,18 @@ public class MaMuT implements ModelChangeListener {
 
 	}
 
-	private void toggleLinkingMode(final MamutViewer viewer) {
+	/**
+	 * Toggle the spot creation test on/off. If on, MaMuT will prevent a new
+	 * spot to be created within another one.
+	 */
+	public void toggleSpotCreationTest() {
+		testWithinSpot = !testWithinSpot;
+	}
+
+	public void toggleLinkingMode(final Logger logger) {
 		this.isLinkingMode = !isLinkingMode;
 		final String str = "Switched auto-linking mode " + (isLinkingMode ? "on." : "off.");
-		viewer.getLogger().log(str);
+		logger.log(str);
 	}
 
 	/**
