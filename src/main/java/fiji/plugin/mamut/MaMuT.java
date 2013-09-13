@@ -30,7 +30,6 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -623,25 +622,7 @@ public class MaMuT implements ModelChangeListener {
 		installMouseListeners(viewer);
 
 		viewer.getFrame().setIconImage(MAMUT_ICON.getImage());
-		viewer.getFrame().addWindowListener(new WindowListener() {
-			@Override
-			public void windowOpened(final WindowEvent arg0) {}
-
-			@Override
-			public void windowIconified(final WindowEvent arg0) {}
-
-			@Override
-			public void windowDeiconified(final WindowEvent arg0) {}
-
-			@Override
-			public void windowDeactivated(final WindowEvent arg0) {}
-
-			@Override
-			public void windowClosing(final WindowEvent arg0) {}
-
-			@Override
-			public void windowActivated(final WindowEvent arg0) {}
-
+		viewer.getFrame().addWindowListener(new WindowAdapter() {
 			@Override
 			public void windowClosed(final WindowEvent arg0) {
 				guimodel.getViews().remove(viewer);
