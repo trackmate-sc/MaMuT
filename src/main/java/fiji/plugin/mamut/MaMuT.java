@@ -121,6 +121,7 @@ import fiji.plugin.trackmate.visualization.trackscheme.TrackScheme;
 public class MaMuT implements ModelChangeListener {
 
 	public static final ImageIcon MAMUT_ICON = new ImageIcon(MaMuT.class.getResource("mammouth-256x256.png"));
+	//	public static final ImageIcon MAMUT_ICON = new ImageIcon(MaMuT.class.getResource("mammouth-32x32.png"));
 
 	public static final String PLUGIN_NAME = "MaMuT";
 

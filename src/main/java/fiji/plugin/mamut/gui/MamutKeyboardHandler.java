@@ -52,8 +52,8 @@ public class MamutKeyboardHandler {
 			config.load(stream);
 		} catch (final IOException e) {
 			System.out.println("MaMuT: cannot find the config file. Using default key bindings.");
+			System.out.println(e.getMessage());
 			config = DEFAULT_KEYBINGS;
-			e.printStackTrace();
 		}
 
 		return generateMapFrom(config);
