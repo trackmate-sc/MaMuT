@@ -12,9 +12,8 @@ import javax.swing.JFrame;
 
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.ui.TransformEventHandler;
+import viewer.MessageOverlayAnimator;
 import viewer.SpimViewer;
-import viewer.TextOverlayAnimator;
-import viewer.TextOverlayAnimator.TextPosition;
 import viewer.TranslationAnimator;
 import viewer.render.SourceAndConverter;
 import fiji.plugin.trackmate.Logger;
@@ -27,20 +26,13 @@ import fiji.plugin.trackmate.visualization.TrackMateModelView;
 
 public class MamutViewer extends SpimViewer implements TrackMateModelView
 {
-
-	/*
-	 * LOGGER L&F PARAMS
-	 */
-
 	private static final long DEFAULT_TEXT_DISPLAY_DURATION = 3000;
-
-	private static final TextPosition DEFAULT_POSITION = TextPosition.BOTTOM_RIGHT;
 
 	private static final double DEFAULT_FADEINTIME = 0;
 
 	private static final double DEFAULT_FADEOUTTIME = 0.5;
 
-	private static final Font DEFAULT_FONT = new Font( "SansSerif", Font.PLAIN, 14 );
+	private static final Font DEFAULT_FONT = new Font("SansSerif", Font.PLAIN, 14);
 
 	private static final String INFO_TEXT = "A viewer based on Tobias Pietzsch SPIM Viewer";
 
@@ -48,9 +40,6 @@ public class MamutViewer extends SpimViewer implements TrackMateModelView
 
 	/** The overlay on which the {@link TrackMateModel} will be painted. */
 	private MamutOverlay overlay;
-
-	/** The animated text overlay that will be used to log MaMuT messages. */
-	private TextOverlayAnimator loggerOverlay = null;
 
 	/** The logger instance that echoes message on this view. */
 	private final Logger logger;
@@ -77,6 +66,8 @@ public class MamutViewer extends SpimViewer implements TrackMateModelView
 		this.model = model;
 		this.selectionModel = selectionModel;
 		this.logger = new MamutViewerLogger();
+		this.msgOverlay = new MessageOverlayAnimator(DEFAULT_TEXT_DISPLAY_DURATION, DEFAULT_FADEINTIME, DEFAULT_FADEOUTTIME, DEFAULT_FONT);
+
 	}
 
 	/*
@@ -103,15 +94,6 @@ public class MamutViewer extends SpimViewer implements TrackMateModelView
 		{
 			overlay.setViewerState( state );
 			overlay.paint( ( Graphics2D ) g );
-		}
-
-		if ( loggerOverlay != null )
-		{
-			loggerOverlay.paint( ( Graphics2D ) g, System.currentTimeMillis() );
-			if ( loggerOverlay.isComplete() )
-				loggerOverlay = null;
-			else
-				display.repaint();
 		}
 	}
 
@@ -259,25 +241,22 @@ public class MamutViewer extends SpimViewer implements TrackMateModelView
 		@Override
 		public void setStatus( final String status )
 		{
-			loggerOverlay = new TextOverlayAnimator( status, DEFAULT_TEXT_DISPLAY_DURATION, DEFAULT_POSITION, DEFAULT_FADEINTIME, DEFAULT_FADEOUTTIME, DEFAULT_FONT );
+			showMessage(status);
 		}
 
 		@Override
-		public void setProgress( final double val )
-		{
-			loggerOverlay = new TextOverlayAnimator( String.format( "%3d", Math.round( val ) ), DEFAULT_TEXT_DISPLAY_DURATION, DEFAULT_POSITION, DEFAULT_FADEINTIME, DEFAULT_FADEOUTTIME, DEFAULT_FONT );
-		}
+		public void setProgress(final double val) {}
 
 		@Override
 		public void log( final String message, final Color color )
 		{
-			loggerOverlay = new TextOverlayAnimator( message, DEFAULT_TEXT_DISPLAY_DURATION, DEFAULT_POSITION, DEFAULT_FADEINTIME, DEFAULT_FADEOUTTIME, DEFAULT_FONT );
+			showMessage(message);
 		}
 
 		@Override
 		public void error( final String message )
 		{
-			loggerOverlay = new TextOverlayAnimator( message, DEFAULT_TEXT_DISPLAY_DURATION, DEFAULT_POSITION, DEFAULT_FADEINTIME, DEFAULT_FADEOUTTIME, DEFAULT_FONT.deriveFont( Font.BOLD ) );
+			showMessage(message);
 		}
 
 	}
