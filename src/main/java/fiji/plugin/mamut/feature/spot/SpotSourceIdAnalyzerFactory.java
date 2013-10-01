@@ -5,9 +5,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import net.imglib2.meta.ImgPlus;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 import fiji.plugin.trackmate.Dimension;
+import fiji.plugin.trackmate.Model;
 import fiji.plugin.trackmate.features.spot.SpotAnalyzer;
 import fiji.plugin.trackmate.features.spot.SpotAnalyzerFactory;
 
@@ -84,7 +86,7 @@ public class SpotSourceIdAnalyzerFactory<T extends RealType<T> & NativeType<T>> 
 	};
 
 	@Override
-	public SpotAnalyzer<T> getAnalyzer(final int frame, final int channel) {
+	public SpotAnalyzer<T> getAnalyzer(final Model model, final ImgPlus<T> img, final int frame, final int channel) {
 		return dummyAnalyzer;
 	}
 }

@@ -262,7 +262,7 @@ public class MaMuT implements ModelChangeListener {
 		 */
 
 		settings = new SourceSettings();
-		reader.readSettings(settings, null, null, new MamutSpotAnalyzerProvider(model), new EdgeAnalyzerProvider(model), new TrackAnalyzerProvider(model));
+		reader.readSettings(settings, null, null, new MamutSpotAnalyzerProvider(), new EdgeAnalyzerProvider(), new TrackAnalyzerProvider());
 
 		/*
 		 * Read image source
@@ -330,8 +330,8 @@ public class MaMuT implements ModelChangeListener {
 		 * Read and render views
 		 */
 
-		final MamutViewProvider provider = new MamutViewProvider(model, settings, selectionModel);
-		final Collection<TrackMateModelView> views = reader.getViews(provider);
+		final MamutViewProvider provider = new MamutViewProvider();
+		final Collection<TrackMateModelView> views = reader.getViews(provider, model, settings, selectionModel);
 		for (final TrackMateModelView view : views) {
 			for (final String key : guimodel.getDisplaySettings().keySet()) {
 				view.setDisplaySettings(key, guimodel.getDisplaySettings().get(key));
@@ -395,32 +395,14 @@ public class MaMuT implements ModelChangeListener {
 
 		settings = new SourceSettings();
 		settings.setFrom(sources, file, nTimepoints);
-		settings.addSpotAnalyzerFactory(new SpotSourceIdAnalyzerFactory()); // We
-		// need
-		// this
-		// to
-		// have
-		// the
-		// SOURCE_ID
-		// feature
-		settings.addTrackAnalyzer(new TrackIndexAnalyzer(model)); // we need
-		// at
-		// least
-		// this
-		// one
-		settings.addEdgeAnalyzer(new EdgeVelocityAnalyzer(model)); // this
-		// one
-		// is
-		// for
-		// fun
-		settings.addEdgeAnalyzer(new EdgeTargetAnalyzer(model)); // we
-		// CANNOT
-		// load
-		// &
-		// save
-		// without
-		// this
-		// one
+		// We need this to have the SOURCE_ID feature
+		settings.addSpotAnalyzerFactory(new SpotSourceIdAnalyzerFactory());
+		// we need at least this one
+		settings.addTrackAnalyzer(new TrackIndexAnalyzer());
+		// this one is for fun
+		settings.addEdgeAnalyzer(new EdgeVelocityAnalyzer());
+		// we CANNOT load & save without this one
+		settings.addEdgeAnalyzer(new EdgeTargetAnalyzer());
 
 		/*
 		 * Autoupdate features & declare them
@@ -777,7 +759,7 @@ public class MaMuT implements ModelChangeListener {
 
 	/**
 	 * Configures the specified {@link MamutViewer} with key bindings.
-	 * 
+	 *
 	 * @param the
 	 *            {@link MamutViewer} to configure.
 	 */
@@ -825,7 +807,7 @@ public class MaMuT implements ModelChangeListener {
 
 	/**
 	 * Configures the specified {@link MamutViewer} with mouse listeners.
-	 * 
+	 *
 	 * @param viewer
 	 *            the {@link MamutViewer} to configure.
 	 */
@@ -950,7 +932,7 @@ public class MaMuT implements ModelChangeListener {
 
 	/**
 	 * Adds a new spot at the mouse current location.
-	 * 
+	 *
 	 * @param viewer
 	 *            the viewer in which the add spot request was made.
 	 */
@@ -1036,7 +1018,7 @@ public class MaMuT implements ModelChangeListener {
 
 	/**
 	 * Remove spot at the mouse current location (if there is one).
-	 * 
+	 *
 	 * @param viewer
 	 *            the viewer in which the delete spot request was made.
 	 */
@@ -1058,7 +1040,7 @@ public class MaMuT implements ModelChangeListener {
 
 	/**
 	 * Increases (or decreases) the neighbor spot radius.
-	 * 
+	 *
 	 * @param viewer
 	 *            the viewer in which the change radius was made.
 	 * @param factor
@@ -1096,7 +1078,7 @@ public class MaMuT implements ModelChangeListener {
 	 * location, and for which the current location is within its radius, or
 	 * <code>null</code> if there is no such spot. In other words: returns the
 	 * spot in which the mouse pointer is.
-	 * 
+	 *
 	 * @param viewer
 	 *            the viewer to inspect.
 	 * @return the closest spot within radius.
@@ -1145,7 +1127,7 @@ public class MaMuT implements ModelChangeListener {
 	/**
 	 * Returns the starting display settings that will be passed to any new view
 	 * registered within this GUI.
-	 * 
+	 *
 	 * @param model
 	 *            the model this GUI will configure; might be required by some
 	 *            display settings.

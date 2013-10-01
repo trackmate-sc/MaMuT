@@ -10,7 +10,6 @@ import javax.swing.ActionMap;
 import javax.swing.InputMap;
 import javax.swing.JComponent;
 import javax.swing.KeyStroke;
-import javax.swing.SwingUtilities;
 
 import fiji.FijiTools;
 import fiji.plugin.mamut.MaMuT;
@@ -71,10 +70,10 @@ public class MamutKeyboardHandler {
 
 	protected void installKeyboardActions(final JComponent graphComponent) {
 		final InputMap inputMap = readPropertyFile();
+		final ActionMap actionMap = createActionMap();
 
-		SwingUtilities.replaceUIInputMap(graphComponent, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT, inputMap);
-		SwingUtilities.replaceUIInputMap(graphComponent, JComponent.WHEN_FOCUSED, inputMap);
-		SwingUtilities.replaceUIActionMap(graphComponent, createActionMap());
+		viewer.getKeybindings().addActionMap("all", actionMap);
+		viewer.getKeybindings().addInputMap("all", inputMap);
 	}
 
 	/**

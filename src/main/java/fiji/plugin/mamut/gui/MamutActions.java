@@ -62,6 +62,7 @@ public class MamutActions {
 		return new ToggleLinkingModeAction(mamut, logger);
 	}
 
+
 	/*
 	 * INNER CLASSES
 	 */

@@ -4,19 +4,14 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.event.KeyEvent;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.swing.Action;
 import javax.swing.JFrame;
-import javax.swing.KeyStroke;
 
-import net.imglib2.Pair;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.ui.TransformEventHandler;
-import net.imglib2.util.ValuePair;
 import viewer.SpimViewer;
 import viewer.TextOverlayAnimator;
 import viewer.TextOverlayAnimator.TextPosition;
@@ -91,7 +86,7 @@ public class MamutViewer extends SpimViewer implements TrackMateModelView
 	/**
 	 * Returns the {@link Logger} object that will echo any message to this
 	 * {@link MamutViewer} window.
-	 * 
+	 *
 	 * @return this {@link MamutViewer} logger.
 	 */
 	public Logger getLogger()
@@ -122,9 +117,10 @@ public class MamutViewer extends SpimViewer implements TrackMateModelView
 
 	/**
 	 * Returns the {@link JFrame} component that is the parent to this viewer.
-	 * 
+	 *
 	 * @return the parent JFrame.
 	 */
+	@Override
 	public JFrame getFrame()
 	{
 		return frame;
@@ -132,7 +128,7 @@ public class MamutViewer extends SpimViewer implements TrackMateModelView
 
 	/**
 	 * Returns the time-point currently displayed in this viewer.
-	 * 
+	 *
 	 * @return the time-point currently displayed.
 	 */
 	public int getCurrentTimepoint()
@@ -251,37 +247,6 @@ public class MamutViewer extends SpimViewer implements TrackMateModelView
 	{
 		return model;
 
-	}
-
-	/**
-	 * Overriden so that we can remove and remap some key bindings.
-	 */
-	@Override
-	protected void createKeyActions()
-	{
-		super.createKeyActions();
-		/*
-		 * Remove Shift+A to align XZ
-		 */
-		Pair< KeyStroke, Action > keyBinding = null;
-		final KeyStroke shiftA = KeyStroke.getKeyStroke( KeyEvent.VK_A, KeyEvent.SHIFT_DOWN_MASK );
-		for ( final Pair< KeyStroke, Action > ka : keysActions )
-		{
-			if ( ka.getA().equals( shiftA ) )
-			{
-				keyBinding = ka;
-				break;
-			}
-		}
-		if ( null != keyBinding )
-		{
-			keysActions.remove( keyBinding );
-			/*
-			 * And replace it with Shift+C
-			 */
-			final KeyStroke key = KeyStroke.getKeyStroke( KeyEvent.VK_C, KeyEvent.SHIFT_DOWN_MASK );
-			keysActions.add( new ValuePair< KeyStroke, Action >( key, keyBinding.getB() ) );
-		}
 	}
 
 	/*

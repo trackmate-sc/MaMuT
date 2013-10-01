@@ -18,6 +18,9 @@ import org.jdom2.Element;
 
 import viewer.gui.brightness.SetupAssignments;
 import fiji.plugin.mamut.viewer.MamutViewer;
+import fiji.plugin.trackmate.Model;
+import fiji.plugin.trackmate.SelectionModel;
+import fiji.plugin.trackmate.Settings;
 import fiji.plugin.trackmate.io.TmXmlReader;
 import fiji.plugin.trackmate.providers.ViewProvider;
 import fiji.plugin.trackmate.visualization.TrackMateModelView;
@@ -32,7 +35,7 @@ public class MamutXmlReader extends TmXmlReader {
 	/**
 	 * Returns the collection of views that were saved in this file. The views
 	 * returned <b>will be rendered</b>.
-	 * 
+	 *
 	 * @param provider
 	 *            the {@link ViewProvider} to instantiate the view. Each saved
 	 *            view must be known by the specified provider.
@@ -40,7 +43,7 @@ public class MamutXmlReader extends TmXmlReader {
 	 * @see TrackMateModelView#render()
 	 */
 	@Override
-	public Collection<TrackMateModelView> getViews(final ViewProvider provider) {
+	public Collection<TrackMateModelView> getViews(final ViewProvider provider, final Model model, final Settings settings, final SelectionModel selectionModel) {
 		final Element guiel = root.getChild(GUI_STATE_ELEMENT_KEY);
 		if (null != guiel) {
 
@@ -57,7 +60,7 @@ public class MamutXmlReader extends TmXmlReader {
 							+ child + ".\n");
 					ok = false;
 				} else {
-					final TrackMateModelView view = provider.getView(viewKey);
+					final TrackMateModelView view = provider.getView(viewKey, model, settings, selectionModel);
 					if (null == view) {
 						logger.error("Unknown view for key " + viewKey + ".\n");
 						ok = false;

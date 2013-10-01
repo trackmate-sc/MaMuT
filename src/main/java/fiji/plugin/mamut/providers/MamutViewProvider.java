@@ -17,13 +17,9 @@ import fiji.plugin.trackmate.visualization.trackscheme.TrackScheme;
 public class MamutViewProvider extends ViewProvider
 {
 
-	private final SourceSettings ss;
-
-	public MamutViewProvider( final Model model, final Settings settings, final SelectionModel selectionModel )
+	public MamutViewProvider()
 	{
-		super( model, settings, selectionModel );
-		if ( !( settings instanceof SourceSettings ) ) { throw new IllegalArgumentException( "Settings must be an instance of SourceSettings." ); }
-		this.ss = ( SourceSettings ) settings;
+		super();
 	}
 
 	@Override
@@ -35,14 +31,17 @@ public class MamutViewProvider extends ViewProvider
 	}
 
 	@Override
-	public TrackMateModelView getView( final String key )
+	public TrackMateModelView getView(final String key, final Model model, final Settings settings, final SelectionModel selectionModel)
 	{
-		TrackMateModelView val = super.getView( key );
+		TrackMateModelView val = super.getView(key, model, settings, selectionModel);
 		if ( null == val )
 		{
 			if ( key.equals( MamutViewer.KEY ) )
 			{
-
+				if (!(settings instanceof SourceSettings)) {
+					throw new IllegalArgumentException("Settings must be an instance of SourceSettings.");
+				}
+				final SourceSettings ss = (SourceSettings) settings;
 				final List< SourceAndConverter< ? >> sources = ss.getSources();
 				val = new MamutViewer( MaMuT.DEFAULT_WIDTH, MaMuT.DEFAULT_HEIGHT, sources, ss.nframes, model, selectionModel );
 			}
