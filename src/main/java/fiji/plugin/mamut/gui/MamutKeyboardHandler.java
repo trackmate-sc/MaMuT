@@ -32,6 +32,26 @@ public class MamutKeyboardHandler {
 		DEFAULT_KEYBINGS.setProperty("control Q", "decrease spot radius a bit");
 		DEFAULT_KEYBINGS.setProperty("F1", "show help");
 		DEFAULT_KEYBINGS.setProperty("S", "toggle brightness dialog");
+
+		DEFAULT_KEYBINGS.setProperty("I", "toggle interpolation");
+		DEFAULT_KEYBINGS.setProperty("F", "toggle fused mode");
+		DEFAULT_KEYBINGS.setProperty("G", "toggle grouping");
+
+		final String[] numkeys = new String[] { "1", "2", "3", "4", "5", "6", "7", "8", "9", "0" };
+		for (int i = 0; i < numkeys.length; ++i) {
+			DEFAULT_KEYBINGS.setProperty(numkeys[i], "set current source " + i);
+			DEFAULT_KEYBINGS.setProperty("shift " + numkeys[i], "toggle source visibility " + i);
+		}
+
+		DEFAULT_KEYBINGS.setProperty("shift Z", "align XY plane");
+		DEFAULT_KEYBINGS.setProperty("shift X", "align ZY plane");
+		DEFAULT_KEYBINGS.setProperty("shift Y", "align XZ plane");
+		DEFAULT_KEYBINGS.setProperty("shift C", "align XZ plane");
+
+		DEFAULT_KEYBINGS.setProperty("CLOSE_BRACKET", "next timepoint");
+		DEFAULT_KEYBINGS.setProperty("M", "next timepoint");
+		DEFAULT_KEYBINGS.setProperty("OPEN_BRACKET", "previous timepoint");
+		DEFAULT_KEYBINGS.setProperty("N", "previous timepoint");
 	}
 	private final MamutViewer viewer;
 	private final MaMuT mamut;
@@ -69,11 +89,15 @@ public class MamutKeyboardHandler {
 	}
 
 	protected void installKeyboardActions(final JComponent graphComponent) {
+		// Remove old input map for navigation and put new one.
+		viewer.getKeybindings().removeInputMap("navigation");
+
 		final InputMap inputMap = readPropertyFile();
 		final ActionMap actionMap = createActionMap();
 
 		viewer.getKeybindings().addActionMap("all", actionMap);
 		viewer.getKeybindings().addInputMap("all", inputMap);
+
 	}
 
 	/**
@@ -102,7 +126,4 @@ public class MamutKeyboardHandler {
 		return map;
 	}
 
-	public static void main(final String[] args) {
-		new MamutKeyboardHandler(null, null);
-	}
 }
