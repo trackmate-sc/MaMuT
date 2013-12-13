@@ -104,7 +104,10 @@ public class TransformUtils
 	{
 		final AffineTransform3D transform = new AffineTransform3D();
 		final double[] calibration = Util.getArrayFromValue( 1d, 3 );
-		img.calibration( calibration );
+		for ( int d = 0; d < calibration.length; d++ )
+		{
+			calibration[ d ] = img.averageScale( d );
+		}
 		transform.set( 1 / calibration[ 0 ], 0, 0, 0, 0, 1 / calibration[ 1 ], 0, 0, 0, 0, 1 / calibration[ 2 ], 0 );
 		return transform;
 	}

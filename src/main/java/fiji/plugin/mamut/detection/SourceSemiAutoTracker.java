@@ -2,14 +2,11 @@ package fiji.plugin.mamut.detection;
 
 import java.util.List;
 
+import net.imglib2.FinalInterval;
+import net.imglib2.Interval;
 import net.imglib2.Point;
 import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessibleInterval;
-import net.imglib2.img.Img;
-import net.imglib2.img.array.ArrayImgFactory;
-import net.imglib2.meta.Axes;
-import net.imglib2.meta.AxisType;
-import net.imglib2.meta.ImgPlus;
 import net.imglib2.position.transform.Round;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.NativeType;
@@ -24,7 +21,6 @@ import fiji.plugin.trackmate.SelectionModel;
 import fiji.plugin.trackmate.Spot;
 import fiji.plugin.trackmate.detection.SpotDetector;
 import fiji.plugin.trackmate.detection.semiauto.AbstractSemiAutoTracker;
-import fiji.plugin.trackmate.util.CropImgView;
 
 /**
  * A class made to perform semi-automated tracking of spots in MaMuT.
@@ -45,12 +41,12 @@ import fiji.plugin.trackmate.util.CropImgView;
  * <li>spots of high quality are found, but too far from the initial spot;
  * <li>the source has no time-point left.
  * </ul>
- * 
+ *
  * @param <T>
  *            the type of the source. Must extend {@link RealType} and
  *            {@link NativeType} to use with most TrackMate {@link SpotDetector}
  *            s.
- * 
+ *
  * @author Jean-Yves Tinevez - 2013
  */
 public class SourceSemiAutoTracker< T extends RealType< T > & NativeType< T >> extends AbstractSemiAutoTracker< T >
@@ -210,11 +206,10 @@ public class SourceSemiAutoTracker< T extends RealType< T > & NativeType< T >> e
 
 		final long[] min = new long[] { x0, y0, z0 };
 		final long[] max = new long[] { x1, y1, z1 };
-		final Img< T > cropimg = new CropImgView< T >( rai, min, max, new ArrayImgFactory< T >() );
 
-		final AxisType[] axes = new AxisType[] { Axes.X, Axes.Y, Axes.Z };
+		final Interval interval = new FinalInterval( min, max );
+
 		final double[] cal = new double[] { dx, dy, dz };
-		final ImgPlus< T > imgplus = new ImgPlus< T >( cropimg, "crop", axes, cal );
 
 		/*
 		 * Build the transformation that will put back the found spot in the
@@ -226,15 +221,18 @@ public class SourceSemiAutoTracker< T extends RealType< T > & NativeType< T >> e
 		{
 			scale.set( 1 / cal[ i ], i, i );
 		}
-		final AffineTransform3D translate = new AffineTransform3D();
-		for ( int i = 0; i < 3; i++ )
-		{
-			translate.set( min[ i ], i, 3 );
-		}
-
-		final AffineTransform3D transform = sourceToGlobal.copy().concatenate( translate ).concatenate( scale );
+		// final AffineTransform3D translate = new AffineTransform3D();
+		// for ( int i = 0; i < 3; i++ )
+		// {
+		// translate.set( min[ i ], i, 3 );
+		// }
+		//
+		// final AffineTransform3D transform =
+		// sourceToGlobal.copy().concatenate( translate ).concatenate( scale );
+		final AffineTransform3D transform = scale;
 		final SpotNeighborhood< T > sn = new SpotNeighborhood< T >();
-		sn.neighborhood = imgplus;
+		sn.source = rai;
+		sn.interval = interval;
 		sn.transform = transform;
 		return sn;
 	}

@@ -13,8 +13,8 @@ import net.imglib2.Point;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.algorithm.stats.Max;
 import net.imglib2.algorithm.stats.Min;
-import net.imglib2.display.RealUnsignedByteConverter;
-import net.imglib2.display.XYProjector;
+import net.imglib2.converter.RealUnsignedByteConverter;
+import net.imglib2.display.projector.Projector2D;
 import net.imglib2.img.array.ArrayImgs;
 import net.imglib2.position.transform.Round;
 import net.imglib2.realtransform.AffineTransform3D;
@@ -100,7 +100,7 @@ public class SourceSpotImageUpdater<T extends RealType<T>> extends SpotImageUpda
 					final byte[] imgData = ((DataBufferByte) image.getRaster().getDataBuffer()).getData();
 					final double minValue = Min.findMin(Views.iterable(crop)).get().getRealDouble();
 					final double maxValue = Max.findMax(Views.iterable(crop)).get().getRealDouble();
-					new XYProjector<T, UnsignedByteType>(crop, ArrayImgs.unsignedBytes(imgData, width, height), new RealUnsignedByteConverter<T>(minValue, maxValue)).map();
+					new Projector2D< T, UnsignedByteType >( 0, 1, crop, ArrayImgs.unsignedBytes( imgData, width, height ), new RealUnsignedByteConverter< T >( minValue, maxValue ) ).map();
 				}
 
 				// Convert to string
