@@ -154,6 +154,7 @@ public class SourceSemiAutoTracker< T extends RealType< T > & NativeType< T >> e
 		final double dx = Affine3DHelpers.extractScale( sourceToGlobal, 0 );
 		final double dy = Affine3DHelpers.extractScale( sourceToGlobal, 1 );
 		final double dz = Affine3DHelpers.extractScale( sourceToGlobal, 2 );
+		final double[] calibration = new double[] { dx, dy, dz };
 
 		/*
 		 * Extract source coords
@@ -221,19 +222,18 @@ public class SourceSemiAutoTracker< T extends RealType< T > & NativeType< T >> e
 		{
 			scale.set( 1 / cal[ i ], i, i );
 		}
-		// final AffineTransform3D translate = new AffineTransform3D();
-		// for ( int i = 0; i < 3; i++ )
-		// {
-		// translate.set( min[ i ], i, 3 );
-		// }
-		//
-		// final AffineTransform3D transform =
-		// sourceToGlobal.copy().concatenate( translate ).concatenate( scale );
-		final AffineTransform3D transform = scale;
+		final AffineTransform3D translate = new AffineTransform3D();
+		for ( int i = 0; i < 3; i++ )
+		{
+			translate.set( min[ i ], i, 3 );
+		}
+		final AffineTransform3D transform = sourceToGlobal.copy().concatenate( scale );
+
 		final SpotNeighborhood< T > sn = new SpotNeighborhood< T >();
 		sn.source = rai;
 		sn.interval = interval;
 		sn.transform = transform;
+		sn.calibration = calibration;
 		return sn;
 	}
 

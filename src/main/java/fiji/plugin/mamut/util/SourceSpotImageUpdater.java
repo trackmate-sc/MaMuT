@@ -15,7 +15,9 @@ import net.imglib2.algorithm.stats.Max;
 import net.imglib2.algorithm.stats.Min;
 import net.imglib2.converter.RealUnsignedByteConverter;
 import net.imglib2.display.projector.Projector2D;
+import net.imglib2.img.array.ArrayImg;
 import net.imglib2.img.array.ArrayImgs;
+import net.imglib2.img.basictypeaccess.array.ByteArray;
 import net.imglib2.position.transform.Round;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.RealType;
@@ -98,9 +100,13 @@ public class SourceSpotImageUpdater<T extends RealType<T>> extends SpotImageUpda
 					final int height = (int) crop.dimension(1);
 					image = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY);
 					final byte[] imgData = ((DataBufferByte) image.getRaster().getDataBuffer()).getData();
+					final ArrayImg< UnsignedByteType, ByteArray > target = ArrayImgs.unsignedBytes( imgData, width, height );
+
 					final double minValue = Min.findMin(Views.iterable(crop)).get().getRealDouble();
 					final double maxValue = Max.findMax(Views.iterable(crop)).get().getRealDouble();
-					new Projector2D< T, UnsignedByteType >( 0, 1, crop, ArrayImgs.unsignedBytes( imgData, width, height ), new RealUnsignedByteConverter< T >( minValue, maxValue ) ).map();
+					final RealUnsignedByteConverter< T > converter = new RealUnsignedByteConverter< T >( minValue, maxValue );
+
+					new Projector2D< T, UnsignedByteType >( 0, 1, crop, target, converter ).map();
 				}
 
 				// Convert to string

@@ -56,7 +56,6 @@ import net.imglib2.display.RealARGBColorConverter;
 import net.imglib2.histogram.DiscreteFrequencyDistribution;
 import net.imglib2.histogram.Histogram1d;
 import net.imglib2.histogram.Real1dBinMapper;
-import net.imglib2.io.ImgIOException;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.integer.UnsignedShortType;
@@ -363,7 +362,8 @@ public class MaMuT implements ModelChangeListener {
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public void launch(final File file) throws ImgIOException, FormatException, IOException, ParserConfigurationException, SAXException, InstantiationException, IllegalAccessException, ClassNotFoundException {
+	public void launch( final File file ) throws FormatException, IOException, ParserConfigurationException, SAXException, InstantiationException, IllegalAccessException, ClassNotFoundException
+	{
 		MaMuT.imageFile = file;
 
 		/*

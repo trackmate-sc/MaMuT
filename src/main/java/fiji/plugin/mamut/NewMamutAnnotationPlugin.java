@@ -12,7 +12,6 @@ import java.io.IOException;
 import javax.xml.parsers.ParserConfigurationException;
 
 import loci.formats.FormatException;
-import net.imglib2.io.ImgIOException;
 
 import org.xml.sax.SAXException;
 
@@ -44,9 +43,6 @@ public class NewMamutAnnotationPlugin implements PlugIn {
 		final MaMuT mamut = new MaMuT();
 		try {
 			mamut.launch(file);
-		} catch (final ImgIOException e) {
-			IJ.log(e.getMessage());
-			e.printStackTrace();
 		} catch (final FormatException e) {
 			IJ.log(e.getMessage());
 			e.printStackTrace();
