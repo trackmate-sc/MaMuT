@@ -64,12 +64,19 @@ public class MamutOverlay
 	{
 
 		/*
-		 * Collect current view
+		 * Collect current view.
 		 */
 		state.getViewerTransform( transform );
 
 		/*
-		 * Draw spots
+		 * Common display settings.
+		 */
+
+		final boolean doLimitDrawingDepth = ( Boolean ) viewer.displaySettings.get( TrackMateModelView.KEY_LIMIT_DRAWING_DEPTH );
+		final double drawingDepth = ( Double ) viewer.displaySettings.get( TrackMateModelView.KEY_DRAWING_DEPTH );
+
+		/*
+		 * Draw spots.
 		 */
 
 		if ( ( Boolean ) viewer.displaySettings.get( KEY_SPOTS_VISIBLE ) )
@@ -97,10 +104,12 @@ public class MamutOverlay
 			for ( final Spot spot : spots )
 			{
 
+				boolean forceDraw = !doLimitDrawingDepth;
 				Color color;
 				Stroke stroke;
 				if ( selectionModel.getSpotSelection().contains( spot ) )
 				{
+					forceDraw = true; // Selection is drawn unconditionally.
 					color = AbstractTrackMateModelView.DEFAULT_HIGHLIGHT_COLOR;
 					stroke = HIGHLIGHT_STROKE;
 				}
@@ -127,6 +136,9 @@ public class MamutOverlay
 				final double rad = radius * transformScale * radiusRatio;
 				final double zv = viewerCoords[ 2 ];
 				final double dz2 = zv * zv;
+
+				if ( !forceDraw && Math.abs( zv ) > drawingDepth )
+					continue;
 
 				if ( dz2 < rad * rad )
 				{
@@ -173,7 +185,7 @@ public class MamutOverlay
 			{
 				source = model.getTrackModel().getEdgeSource( edge );
 				target = model.getTrackModel().getEdgeTarget( edge );
-				drawEdge( g, source, target, transform, 1f );
+				drawEdge( g, source, target, transform, 1f, false, drawingDepth );
 			}
 
 			// The rest
@@ -220,8 +232,7 @@ public class MamutOverlay
 				for ( final Integer trackID : filteredTrackIDs )
 				{
 					viewer.trackColorProvider.setCurrentTrackID( trackID );
-					final Set< DefaultWeightedEdge > track = new HashSet< DefaultWeightedEdge >( model.getTrackModel().trackEdges( trackID ) ); // TODO
-																																				// TEST
+					final Set< DefaultWeightedEdge > track = new HashSet< DefaultWeightedEdge >( model.getTrackModel().trackEdges( trackID ) );
 
 					for ( final DefaultWeightedEdge edge : track )
 					{
@@ -231,7 +242,7 @@ public class MamutOverlay
 						source = model.getTrackModel().getEdgeSource( edge );
 						target = model.getTrackModel().getEdgeTarget( edge );
 						g.setColor( viewer.trackColorProvider.color( edge ) );
-						drawEdge( g, source, target, transform, 1f );
+						drawEdge( g, source, target, transform, 1f, doLimitDrawingDepth, drawingDepth );
 					}
 				}
 				break;
@@ -247,8 +258,7 @@ public class MamutOverlay
 				for ( final int trackID : filteredTrackIDs )
 				{
 					viewer.trackColorProvider.setCurrentTrackID( trackID );
-					final Set< DefaultWeightedEdge > track = new HashSet< DefaultWeightedEdge >( model.getTrackModel().trackEdges( trackID ) ); // TODO
-																																				// TEST
+					final Set< DefaultWeightedEdge > track = new HashSet< DefaultWeightedEdge >( model.getTrackModel().trackEdges( trackID ) );
 
 					for ( final DefaultWeightedEdge edge : track )
 					{
@@ -261,8 +271,9 @@ public class MamutOverlay
 							continue;
 
 						target = model.getTrackModel().getEdgeTarget( edge );
+
 						g.setColor( viewer.trackColorProvider.color( edge ) );
-						drawEdge( g, source, target, transform, 1f );
+						drawEdge( g, source, target, transform, 1f, doLimitDrawingDepth, drawingDepth );
 					}
 				}
 				break;
@@ -293,7 +304,7 @@ public class MamutOverlay
 						transparency = ( float ) ( 1 - Math.abs( sourceFrame - currentFrame ) / trackDisplayDepth );
 						target = model.getTrackModel().getEdgeTarget( edge );
 						g.setColor( viewer.trackColorProvider.color( edge ) );
-						drawEdge( g, source, target, transform, transparency );
+						drawEdge( g, source, target, transform, transparency, doLimitDrawingDepth, drawingDepth );
 					}
 				}
 				break;
@@ -311,7 +322,7 @@ public class MamutOverlay
 
 	}
 
-	protected void drawEdge( final Graphics2D g2d, final Spot source, final Spot target, final AffineTransform3D transform, final float transparency )
+	protected void drawEdge( final Graphics2D g2d, final Spot source, final Spot target, final AffineTransform3D transform, final float transparency, final boolean limitDrawingDetph, final double drawingDepth )
 	{
 
 		// Find x & y & z in physical coordinates
@@ -330,6 +341,9 @@ public class MamutOverlay
 		transform.apply( physicalPositionSource, pixelPositionSource );
 		final double[] pixelPositionTarget = new double[ 3 ];
 		transform.apply( physicalPositionTarget, pixelPositionTarget );
+
+		if (limitDrawingDetph && Math.abs( pixelPositionSource[2]) > drawingDepth &&  Math.abs( pixelPositionTarget[2]) > drawingDepth)
+			return;
 
 		// Round
 		final int x0 = ( int ) Math.round( pixelPositionSource[ 0 ] );
