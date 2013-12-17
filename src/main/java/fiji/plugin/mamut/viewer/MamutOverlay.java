@@ -192,9 +192,7 @@ public class MamutOverlay
 			final int currentFrame = viewer.getCurrentTimepoint();
 			final int trackDisplayMode = ( Integer ) viewer.displaySettings.get( TrackMateModelView.KEY_TRACK_DISPLAY_MODE );
 			final int trackDisplayDepth = ( Integer ) viewer.displaySettings.get( TrackMateModelView.KEY_TRACK_DISPLAY_DEPTH );
-			// final Map<Integer, Set<DefaultWeightedEdge>> trackEdges =
-			// model.getTrackModel().
-			final Set< Integer > filteredTrackIDs = model.getTrackModel().trackIDs( true );
+			final Set< Integer > filteredTrackIDs = model.getTrackModel().unsortedTrackIDs( true );
 
 			g.setStroke( new BasicStroke( 2.0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND ) );
 			if ( trackDisplayMode == TrackMateModelView.TRACK_DISPLAY_MODE_LOCAL || trackDisplayMode == TrackMateModelView.TRACK_DISPLAY_MODE_LOCAL_QUICK )
