@@ -122,11 +122,6 @@
 			<artifactId>imglib2-algorithms-legacy</artifactId>
 			<version>${imglib2.version}</version>
 		</dependency>
- 		<dependency>
-			<groupId>net.imglib2</groupId>
-			<artifactId>imglib2-io</artifactId>
-			<version>${imglib2.version}</version>
-		</dependency>
 		<dependency>
 			<groupId>net.imglib2</groupId>
 			<artifactId>imglib2-realtransform</artifactId>
