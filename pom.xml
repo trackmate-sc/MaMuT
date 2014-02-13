@@ -22,6 +22,37 @@
     <url>https://github.com/fiji/MaMuT</url>
   </scm>
 
+  <developers>
+    <developer>
+      <id>tinevez</id>
+      <name>Jean-Yves Tinevez</name>
+      <email>jean-yves.tinevez@pasteur.fr</email>
+      <url>http://www.pasteur.fr/ip/easysite/pasteur/fr/recherche/plates-formes-technologiques/imagopole/plates-formes-imagopole/la-plate-forme-d-imagerie-dynamique/equipe-pfid/equipe-pfid-jyt</url>
+      <organization>Institut Pasteur</organization>
+      <organizationUrl>http://www.pasteur.fr/</organizationUrl>
+      <roles>
+        <role>architect</role>
+        <role>developer</role>
+      </roles>
+      <timezone>+1</timezone>
+    </developer>
+
+    <developer>
+      <id>tpietzsch</id>
+      <name>Tobias Pietzsch</name>
+      <email>pietzsch@mpi-cbg.de</email>
+      <url></url>
+      <organization>MPI-CBG</organization>
+      <organizationUrl>http://www.mpi-cbg.de/</organizationUrl>
+      <roles>
+        <role>architect</role>
+        <role>developer</role>
+      </roles>
+      <timezone>+1</timezone>
+    </developer>
+  </developers>
+
+
 	<dependencies>
 		<dependency>
 			<groupId>sc.fiji</groupId>
