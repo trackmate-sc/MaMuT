@@ -383,7 +383,7 @@ public class MaMuT implements ModelChangeListener
 				initTransform( viewer, viewer.getFrame().getWidth(), viewer.getFrame().getHeight() );
 
 			}
-			else if ( view.getKey().equals( TrackScheme.KEY ) )
+			if ( view instanceof TrackScheme )
 			{
 				final TrackScheme trackscheme = ( TrackScheme ) view;
 				trackscheme.setSpotImageUpdater( thumbnailUpdater );
@@ -1090,8 +1090,7 @@ public class MaMuT implements ModelChangeListener
 		// Ok, then create this spot, wherever it is.
 		final double[] coordinates = new double[ 3 ];
 		viewer.getGlobalMouseCoordinates( RealPoint.wrap( coordinates ) );
-		final Spot spot = new Spot( coordinates );
-		spot.putFeature( Spot.RADIUS, radius );
+		final Spot spot = new Spot( coordinates[ 0 ], coordinates[ 1 ], coordinates[ 2 ], radius, -1d );
 
 		if ( testWithinSpot )
 		{
@@ -1254,7 +1253,7 @@ public class MaMuT implements ModelChangeListener
 		viewer.getGlobalMouseCoordinates( gPos );
 		final double[] coordinates = new double[ 3 ];
 		gPos.localize( coordinates );
-		final Spot location = new Spot( coordinates );
+		final Spot location = new Spot( coordinates[ 0 ], coordinates[ 1 ], coordinates[ 2 ], 1d, -1d );
 		final Spot closestSpot = model.getSpots().getClosestSpot( location, frame, true );
 		if ( null == closestSpot ) { return null; }
 		/*

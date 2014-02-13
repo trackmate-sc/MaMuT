@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.swing.ImageIcon;
+
 import net.imglib2.meta.ImgPlus;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
@@ -88,5 +90,23 @@ public class SpotSourceIdAnalyzerFactory<T extends RealType<T> & NativeType<T>> 
 	@Override
 	public SpotAnalyzer<T> getAnalyzer(final Model model, final ImgPlus<T> img, final int frame, final int channel) {
 		return dummyAnalyzer;
+	}
+
+	@Override
+	public String getInfoText()
+	{
+		return "";
+	}
+
+	@Override
+	public ImageIcon getIcon()
+	{
+		return null;
+	}
+
+	@Override
+	public String getName()
+	{
+		return "Spot source analyzer";
 	}
 }

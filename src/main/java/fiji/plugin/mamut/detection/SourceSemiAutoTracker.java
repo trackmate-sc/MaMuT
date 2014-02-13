@@ -84,7 +84,7 @@ public class SourceSemiAutoTracker< T extends RealType< T > & NativeType< T >> e
 	}
 
 	@Override
-	protected SpotNeighborhood< T > getNeighborhood( final Spot spot, final int frame )
+	protected SearchRegion< T > getNeighborhood( final Spot spot, final int frame )
 	{
 
 		final double radius = spot.getFeature( Spot.RADIUS );
@@ -229,7 +229,7 @@ public class SourceSemiAutoTracker< T extends RealType< T > & NativeType< T >> e
 		}
 		final AffineTransform3D transform = sourceToGlobal.copy().concatenate( scale );
 
-		final SpotNeighborhood< T > sn = new SpotNeighborhood< T >();
+		final SearchRegion< T > sn = new SearchRegion< T >();
 		sn.source = rai;
 		sn.interval = interval;
 		sn.transform = transform;

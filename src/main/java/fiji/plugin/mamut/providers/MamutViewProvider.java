@@ -1,18 +1,14 @@
 package fiji.plugin.mamut.providers;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import viewer.render.SourceAndConverter;
 import fiji.plugin.mamut.MaMuT;
 import fiji.plugin.mamut.SourceSettings;
 import fiji.plugin.mamut.viewer.MamutViewer;
-import fiji.plugin.trackmate.Model;
-import fiji.plugin.trackmate.SelectionModel;
-import fiji.plugin.trackmate.Settings;
 import fiji.plugin.trackmate.providers.ViewProvider;
-import fiji.plugin.trackmate.visualization.TrackMateModelView;
-import fiji.plugin.trackmate.visualization.trackscheme.TrackScheme;
+import fiji.plugin.trackmate.visualization.ViewFactory;
+import fiji.plugin.trackmate.visualization.trackscheme.TrackSchemeFactory;
 
 public class MamutViewProvider extends ViewProvider
 {
@@ -25,15 +21,15 @@ public class MamutViewProvider extends ViewProvider
 	@Override
 	protected void registerViews()
 	{
-		names = new ArrayList< String >( 2 );
-		names.add( TrackScheme.KEY );
-		names.add( MamutViewer.KEY );
+		final TrackSchemeFactory trackSchemeFactory = new TrackSchemeFactory();
+		keys.add( trackSchemeFactory.getKey() );
+		factories.put( trackSchemeFactory.getKey(), trackSchemeFactory );
 	}
 
 	@Override
-	public TrackMateModelView getView(final String key, final Model model, final Settings settings, final SelectionModel selectionModel)
+	public ViewFactory getFactory( final String key )
 	{
-		TrackMateModelView val = super.getView(key, model, settings, selectionModel);
+		ViewFactory val = super.getFactory( key );
 		if ( null == val )
 		{
 			if ( key.equals( MamutViewer.KEY ) )

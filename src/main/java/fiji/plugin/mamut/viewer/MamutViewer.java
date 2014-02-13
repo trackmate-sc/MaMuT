@@ -119,12 +119,6 @@ public class MamutViewer extends SpimViewer implements TrackMateModelView
 	}
 
 	@Override
-	public String getInfoText()
-	{
-		return INFO_TEXT;
-	}
-
-	@Override
 	public void render()
 	{
 		this.overlay = new MamutOverlay( model, selectionModel, this );
@@ -180,7 +174,9 @@ public class MamutViewer extends SpimViewer implements TrackMateModelView
 				handler.setTransform( transform );
 				transformChanged( transform );
 				if ( currentAnimator.isComplete() )
+				{
 					currentAnimator = null;
+				}
 			}
 		}
 
