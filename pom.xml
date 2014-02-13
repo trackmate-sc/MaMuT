@@ -15,6 +15,13 @@
 	<name>plugins/MaMuT_.jar</name>
 	<description></description>
 
+  <scm>
+    <connection>scm:git:git://github.com/fiji/MaMuT</connection>
+    <developerConnection>scm:git:git@github.com:fiji/MaMuT</developerConnection>
+    <tag>HEAD</tag>
+    <url>https://github.com/fiji/MaMuT</url>
+  </scm>
+
 	<dependencies>
 		<dependency>
 			<groupId>sc.fiji</groupId>
