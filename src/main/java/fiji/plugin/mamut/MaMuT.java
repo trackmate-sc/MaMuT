@@ -53,18 +53,10 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import loci.formats.FormatException;
 import mpicbg.spim.data.SequenceDescription;
-import net.imglib2.Interval;
-import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealPoint;
 import net.imglib2.display.RealARGBColorConverter;
-import net.imglib2.histogram.DiscreteFrequencyDistribution;
-import net.imglib2.histogram.Histogram1d;
-import net.imglib2.histogram.Real1dBinMapper;
-import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.integer.UnsignedShortType;
-import net.imglib2.util.LinAlgHelpers;
-import net.imglib2.view.Views;
 
 import org.jdom2.JDOMException;
 import org.jgrapht.graph.DefaultWeightedEdge;
@@ -72,13 +64,15 @@ import org.xml.sax.SAXException;
 
 import bdv.SequenceViewsLoader;
 import bdv.SpimSource;
+import bdv.img.cache.Cache;
+import bdv.img.hdf5.Hdf5ImageLoader;
+import bdv.tools.HelpDialog;
+import bdv.tools.InitializeViewerState;
 import bdv.tools.brightness.BrightnessDialog;
 import bdv.tools.brightness.ConverterSetup;
 import bdv.tools.brightness.MinMaxGroup;
 import bdv.tools.brightness.SetupAssignments;
-import bdv.util.Affine3DHelpers;
 import bdv.viewer.SourceAndConverter;
-import bdv.viewer.state.SourceState;
 import bdv.viewer.state.ViewerState;
 import fiji.plugin.mamut.detection.SourceSemiAutoTracker;
 import fiji.plugin.mamut.feature.spot.SpotSourceIdAnalyzerFactory;
@@ -94,6 +88,8 @@ import fiji.plugin.mamut.providers.MamutViewProvider;
 import fiji.plugin.mamut.util.SourceSpotImageUpdater;
 import fiji.plugin.mamut.viewer.MamutOverlay;
 import fiji.plugin.mamut.viewer.MamutViewer;
+import fiji.plugin.mamut.viewer.MamutViewerFactory;
+import fiji.plugin.mamut.viewer.MamutViewerPanel;
 import fiji.plugin.trackmate.Logger;
 import fiji.plugin.trackmate.Model;
 import fiji.plugin.trackmate.ModelChangeEvent;
@@ -151,6 +147,8 @@ public class MaMuT implements ModelChangeListener
 
 	private BrightnessDialog brightnessDialog;
 
+	private HelpDialog helpDialog;
+
 	/** The model shown and edited by this plugin. */
 	private Model model;
 
@@ -167,6 +165,8 @@ public class MaMuT implements ModelChangeListener
 
 	/** The image data sources to be displayed in the views. */
 	private List< SourceAndConverter< ? >> sources;
+
+	private Cache cache;
 
 	/** The number of timepoints in the image sources. */
 	private int nTimepoints;
@@ -309,7 +309,7 @@ public class MaMuT implements ModelChangeListener
 		 * Update settings
 		 */
 
-		settings.setFrom( sources, imageFile, nTimepoints );
+		settings.setFrom( sources, imageFile, nTimepoints, cache );
 
 		/*
 		 * Autoupdate features
@@ -351,6 +351,12 @@ public class MaMuT implements ModelChangeListener
 		brightnessDialog = new BrightnessDialog( gui, setupAssignments );
 
 		/*
+		 * Help
+		 */
+
+		helpDialog = new HelpDialog( gui, MaMuT.class.getResource( "Help.html" ) );
+
+		/*
 		 * Read and render views
 		 */
 
@@ -363,13 +369,13 @@ public class MaMuT implements ModelChangeListener
 				view.setDisplaySettings( key, guimodel.getDisplaySettings().get( key ) );
 			}
 
-			if ( view.getKey().equals( MamutViewer.KEY ) )
+			if ( view.getKey().equals( MamutViewerFactory.KEY ) )
 			{
 				final MamutViewer viewer = ( MamutViewer ) view;
 				installKeyBindings( viewer );
 				installMouseListeners( viewer );
 
-				viewer.getFrame().addWindowListener( new WindowAdapter()
+				viewer.addWindowListener( new WindowAdapter()
 				{
 					@Override
 					public void windowClosed( final WindowEvent arg0 )
@@ -378,10 +384,9 @@ public class MaMuT implements ModelChangeListener
 					}
 				} );
 
-				initTransform( viewer, viewer.getFrame().getWidth(), viewer.getFrame().getHeight() );
-
+				InitializeViewerState.initTransform( viewer.getViewerPanel() );
 			}
-			if ( view instanceof TrackScheme )
+			else if ( view instanceof TrackScheme )
 			{
 				final TrackScheme trackscheme = ( TrackScheme ) view;
 				trackscheme.setSpotImageUpdater( thumbnailUpdater );
@@ -429,7 +434,7 @@ public class MaMuT implements ModelChangeListener
 		 */
 
 		settings = new SourceSettings();
-		settings.setFrom( sources, file, nTimepoints );
+		settings.setFrom( sources, file, nTimepoints, cache );
 		// We need this to have the SOURCE_ID feature
 		settings.addSpotAnalyzerFactory( new SpotSourceIdAnalyzerFactory() );
 		// we need at least this one
@@ -494,6 +499,12 @@ public class MaMuT implements ModelChangeListener
 		 */
 
 		brightnessDialog = new BrightnessDialog( gui, setupAssignments );
+
+		/*
+		 * Help
+		 */
+
+		helpDialog = new HelpDialog( gui, MaMuT.class.getResource( "Help.html" ) );
 	}
 
 	@Override
@@ -607,6 +618,7 @@ public class MaMuT implements ModelChangeListener
 		final SequenceDescription seq = loader.getSequenceDescription();
 		nTimepoints = seq.numTimepoints();
 		sources = new ArrayList< SourceAndConverter< ? >>();
+		cache = ( ( Hdf5ImageLoader ) seq.imgLoader ).getCache();
 		final ArrayList< ConverterSetup > converterSetups = new ArrayList< ConverterSetup >();
 		for ( int setup = 0; setup < seq.numViewSetups(); ++setup )
 		{
@@ -671,7 +683,7 @@ public class MaMuT implements ModelChangeListener
 
 	private MamutViewer newViewer()
 	{
-		final MamutViewer viewer = new MamutViewer( DEFAULT_WIDTH, DEFAULT_HEIGHT, sources, nTimepoints, model, selectionModel );
+		final MamutViewer viewer = new MamutViewer( DEFAULT_WIDTH, DEFAULT_HEIGHT, sources, nTimepoints, cache, model, selectionModel );
 
 		for ( final String key : guimodel.getDisplaySettings().keySet() )
 		{
@@ -681,8 +693,8 @@ public class MaMuT implements ModelChangeListener
 		installKeyBindings( viewer );
 		installMouseListeners( viewer );
 
-		viewer.getFrame().setIconImage( MAMUT_ICON.getImage() );
-		viewer.getFrame().addWindowListener( new WindowAdapter()
+		viewer.setIconImage( MAMUT_ICON.getImage() );
+		viewer.addWindowListener( new WindowAdapter()
 		{
 			@Override
 			public void windowClosed( final WindowEvent arg0 )
@@ -691,11 +703,15 @@ public class MaMuT implements ModelChangeListener
 			}
 		} );
 
-		initTransform( viewer, viewer.getFrame().getWidth(), viewer.getFrame().getHeight() );
-		initBrightness( viewer, 0.001, 0.999 );
+		InitializeViewerState.initTransform( viewer.getViewerPanel() );
+
+		// TODO: only initBrightness if it hasn't been done before.
+		InitializeViewerState.initBrightness( 0.001, 0.999, viewer.getViewerPanel(), setupAssignments );
 
 		viewer.render();
 		guimodel.addView( viewer );
+
+		viewer.refresh();
 
 		return viewer;
 
@@ -704,6 +720,11 @@ public class MaMuT implements ModelChangeListener
 	public void toggleBrightnessDialog()
 	{
 		brightnessDialog.setVisible( !brightnessDialog.isVisible() );
+	}
+
+	public void toggleHelpDialog()
+	{
+		helpDialog.setVisible( !helpDialog.isVisible() );
 	}
 
 	private void save()
@@ -753,103 +774,12 @@ public class MaMuT implements ModelChangeListener
 		{
 			for ( final TrackMateModelView view : guimodel.getViews() )
 			{
-				if ( view instanceof SpimViewer )
+				if ( view instanceof MamutViewer )
 				{
-					( ( SpimViewer ) view ).requestRepaint();
+					( ( MamutViewer ) view ).getViewerPanel().requestRepaint();
 				}
 			}
 		}
-	}
-
-	private void initTransform( final MamutViewer viewer, final int viewerWidth, final int viewerHeight )
-	{
-		final int cX = viewerWidth / 2;
-		final int cY = viewerHeight / 2;
-
-		final ViewerState state = viewer.getState();
-		final SourceState< ? > source = state.getSources().get( state.getCurrentSource() );
-		final int timepoint = state.getCurrentTimepoint();
-		final AffineTransform3D sourceTransform = source.getSpimSource().getSourceTransform( timepoint, 0 );
-
-		final Interval sourceInterval = source.getSpimSource().getSource( timepoint, 0 );
-		final double sX0 = sourceInterval.min( 0 );
-		final double sX1 = sourceInterval.max( 0 );
-		final double sY0 = sourceInterval.min( 1 );
-		final double sY1 = sourceInterval.max( 1 );
-		final double sZ0 = sourceInterval.min( 2 );
-		final double sZ1 = sourceInterval.max( 2 );
-		final double sX = ( sX0 + sX1 + 1 ) / 2;
-		final double sY = ( sY0 + sY1 + 1 ) / 2;
-		final double sZ = ( sZ0 + sZ1 + 1 ) / 2;
-
-		final double[][] m = new double[ 3 ][ 4 ];
-
-		// rotation
-		final double[] qSource = new double[ 4 ];
-		final double[] qViewer = new double[ 4 ];
-		Affine3DHelpers.extractApproximateRotationAffine( sourceTransform, qSource, 2 );
-		LinAlgHelpers.quaternionInvert( qSource, qViewer );
-		LinAlgHelpers.quaternionToR( qViewer, m );
-
-		// translation
-		final double[] centerSource = new double[] { sX, sY, sZ };
-		final double[] centerGlobal = new double[ 3 ];
-		final double[] translation = new double[ 3 ];
-		sourceTransform.apply( centerSource, centerGlobal );
-		LinAlgHelpers.quaternionApply( qViewer, centerGlobal, translation );
-		LinAlgHelpers.scale( translation, -1, translation );
-		LinAlgHelpers.setCol( 3, translation, m );
-
-		final AffineTransform3D viewerTransform = new AffineTransform3D();
-		viewerTransform.set( m );
-
-		// scale
-		final double[] pSource = new double[] { sX1, sY1, sZ };
-		final double[] pGlobal = new double[ 3 ];
-		final double[] pScreen = new double[ 3 ];
-		sourceTransform.apply( pSource, pGlobal );
-		viewerTransform.apply( pGlobal, pScreen );
-		final double scaleX = cX / pScreen[ 0 ];
-		final double scaleY = cY / pScreen[ 1 ];
-		final double scale = Math.min( scaleX, scaleY );
-		viewerTransform.scale( scale );
-
-		// window center offset
-		viewerTransform.set( viewerTransform.get( 0, 3 ) + cX, 0, 3 );
-		viewerTransform.set( viewerTransform.get( 1, 3 ) + cY, 1, 3 );
-
-		viewer.setCurrentViewerTransform( viewerTransform );
-	}
-
-	private void initBrightness( final MamutViewer viewer, final double cumulativeMinCutoff, final double cumulativeMaxCutoff )
-	{
-		final ViewerState state = viewer.getState();
-		final Source< ? > source = state.getSources().get( state.getCurrentSource() ).getSpimSource();
-		@SuppressWarnings( { "rawtypes", "unchecked" } )
-		final RandomAccessibleInterval< UnsignedShortType > img = ( RandomAccessibleInterval ) source.getSource( state.getCurrentTimepoint(), source.getNumMipmapLevels() - 1 );
-		final long z = ( img.min( 2 ) + img.max( 2 ) + 1 ) / 2;
-
-		final int numBins = 6535;
-		final Histogram1d< UnsignedShortType > histogram = new Histogram1d< UnsignedShortType >( Views.iterable( Views.hyperSlice( img, 2, z ) ), new Real1dBinMapper< UnsignedShortType >( 0, 65535, numBins, false ) );
-		final DiscreteFrequencyDistribution dfd = histogram.dfd();
-		final long[] bin = new long[] { 0 };
-		double cumulative = 0;
-		int i = 0;
-		for ( ; i < numBins && cumulative < cumulativeMinCutoff; ++i )
-		{
-			bin[ 0 ] = i;
-			cumulative += dfd.relativeFrequency( bin );
-		}
-		final int min = i * 65535 / numBins;
-		for ( ; i < numBins && cumulative < cumulativeMaxCutoff; ++i )
-		{
-			bin[ 0 ] = i;
-			cumulative += dfd.relativeFrequency( bin );
-		}
-		final int max = i * 65535 / numBins;
-		final MinMaxGroup minmax = setupAssignments.getMinMaxGroups().get( 0 );
-		minmax.getMinBoundedValue().setCurrentValue( min );
-		minmax.getMaxBoundedValue().setCurrentValue( max );
 	}
 
 	/**
@@ -903,7 +833,7 @@ public class MaMuT implements ModelChangeListener
 			{
 				if ( event.getKeyCode() == moveSpotKeystroke.getKeyCode() )
 				{
-					movedSpot = getSpotWithinRadius( viewer );
+					movedSpot = getSpotWithinRadius( viewer.getViewerPanel() );
 				}
 
 			}
@@ -928,7 +858,7 @@ public class MaMuT implements ModelChangeListener
 				if ( null != movedSpot )
 				{
 					final RealPoint gPos = new RealPoint( 3 );
-					viewer.getGlobalMouseCoordinates( gPos );
+					viewer.getViewerPanel().getGlobalMouseCoordinates( gPos );
 					final double[] coordinates = new double[ 3 ];
 					gPos.localize( coordinates );
 					movedSpot.putFeature( Spot.POSITION_X, coordinates[ 0 ] );
@@ -951,7 +881,7 @@ public class MaMuT implements ModelChangeListener
 				if ( event.getClickCount() < 2 )
 				{
 
-					final Spot spot = getSpotWithinRadius( viewer );
+					final Spot spot = getSpotWithinRadius( viewer.getViewerPanel() );
 					if ( null != spot )
 					{
 						// Center view on it
@@ -982,7 +912,7 @@ public class MaMuT implements ModelChangeListener
 				else
 				{
 
-					final Spot spot = getSpotWithinRadius( viewer );
+					final Spot spot = getSpotWithinRadius( viewer.getViewerPanel() );
 					if ( null == spot )
 					{
 						// Create a new spot
@@ -1078,16 +1008,17 @@ public class MaMuT implements ModelChangeListener
 
 		// Check if the mouse is not off-screen
 		final Point mouseScreenLocation = MouseInfo.getPointerInfo().getLocation();
-		final Point viewerPosition = viewer.getFrame().getLocationOnScreen();
-		final Dimension viewerSize = viewer.getFrame().getSize();
+		final Point viewerPosition = viewer.getLocationOnScreen();
+		final Dimension viewerSize = viewer.getSize();
 		if ( mouseScreenLocation.x < viewerPosition.x || mouseScreenLocation.y < viewerPosition.y || mouseScreenLocation.x > viewerPosition.x + viewerSize.width || mouseScreenLocation.y > viewerPosition.y + viewerSize.height ) { return; }
 
-		final int frame = viewer.getCurrentTimepoint();
-		final int sourceId = viewer.getState().getCurrentSource();
+		final ViewerState state = viewer.getViewerPanel().getState();
+		final int frame = state.getCurrentTimepoint();
+		final int sourceId = state.getCurrentSource();
 
 		// Ok, then create this spot, wherever it is.
 		final double[] coordinates = new double[ 3 ];
-		viewer.getGlobalMouseCoordinates( RealPoint.wrap( coordinates ) );
+		viewer.getViewerPanel().getGlobalMouseCoordinates( RealPoint.wrap( coordinates ) );
 		final Spot spot = new Spot( coordinates[ 0 ], coordinates[ 1 ], coordinates[ 2 ], radius, -1d );
 
 		if ( testWithinSpot )
@@ -1174,7 +1105,7 @@ public class MaMuT implements ModelChangeListener
 	 */
 	public void deleteSpot( final MamutViewer viewer )
 	{
-		final Spot spot = getSpotWithinRadius( viewer );
+		final Spot spot = getSpotWithinRadius( viewer.getViewerPanel() );
 		if ( null != spot )
 		{
 			// We can delete it
@@ -1204,7 +1135,7 @@ public class MaMuT implements ModelChangeListener
 	 */
 	public void increaseSpotRadius( final MamutViewer viewer, final double factor )
 	{
-		final Spot spot = getSpotWithinRadius( viewer );
+		final Spot spot = getSpotWithinRadius( viewer.getViewerPanel() );
 		if ( null != spot )
 		{
 			// Change the spot radius
@@ -1241,17 +1172,17 @@ public class MaMuT implements ModelChangeListener
 	 *            the viewer to inspect.
 	 * @return the closest spot within radius.
 	 */
-	private Spot getSpotWithinRadius( final MamutViewer viewer )
+	private Spot getSpotWithinRadius( final MamutViewerPanel viewer )
 	{
 		/*
 		 * Get the closest spot
 		 */
-		final int frame = viewer.getCurrentTimepoint();
+		final int frame = viewer.getState().getCurrentTimepoint();
 		final RealPoint gPos = new RealPoint( 3 );
 		viewer.getGlobalMouseCoordinates( gPos );
 		final double[] coordinates = new double[ 3 ];
 		gPos.localize( coordinates );
-		final Spot location = new Spot( coordinates[ 0 ], coordinates[ 1 ], coordinates[ 2 ], 1d, -1d );
+		final Spot location = new Spot( coordinates[ 0 ], coordinates[ 1 ], coordinates[ 2 ], radius, -1d );
 		final Spot closestSpot = model.getSpots().getClosestSpot( location, frame, true );
 		if ( null == closestSpot ) { return null; }
 		/*

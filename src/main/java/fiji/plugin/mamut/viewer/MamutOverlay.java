@@ -189,7 +189,7 @@ public class MamutOverlay
 			}
 
 			// The rest
-			final int currentFrame = viewer.getCurrentTimepoint();
+			final int currentFrame = state.getCurrentTimepoint();
 			final int trackDisplayMode = ( Integer ) viewer.displaySettings.get( TrackMateModelView.KEY_TRACK_DISPLAY_MODE );
 			final int trackDisplayDepth = ( Integer ) viewer.displaySettings.get( TrackMateModelView.KEY_TRACK_DISPLAY_DEPTH );
 			final Set< Integer > filteredTrackIDs = model.getTrackModel().unsortedTrackIDs( true );

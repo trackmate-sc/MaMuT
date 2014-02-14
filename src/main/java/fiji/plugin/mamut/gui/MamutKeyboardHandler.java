@@ -60,7 +60,7 @@ public class MamutKeyboardHandler {
 		this.mamut = mamut;
 		this.viewer = viewer;
 
-		installKeyboardActions(viewer.getDisplay());
+		installKeyboardActions( viewer.getViewerPanel() );
 	}
 
 	protected InputMap readPropertyFile() {
@@ -119,7 +119,7 @@ public class MamutKeyboardHandler {
 
 		map.put("toggle linking mode", MamutActions.getToggleLinkingModeAction(mamut, viewer.getLogger()));
 
-		map.put("show help", MamutActions.getShowHelpAction());
+		map.put( "show help", MamutActions.getShowHelpAction( viewer ) );
 
 		map.put("toggle brightness dialog", MamutActions.getToggleBrightnessDialogAction(mamut));
 

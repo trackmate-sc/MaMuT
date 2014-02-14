@@ -18,12 +18,14 @@ import org.jdom2.Element;
 
 import bdv.tools.brightness.SetupAssignments;
 import fiji.plugin.mamut.viewer.MamutViewer;
+import fiji.plugin.mamut.viewer.MamutViewerFactory;
 import fiji.plugin.trackmate.Model;
 import fiji.plugin.trackmate.SelectionModel;
 import fiji.plugin.trackmate.Settings;
 import fiji.plugin.trackmate.io.TmXmlReader;
 import fiji.plugin.trackmate.providers.ViewProvider;
 import fiji.plugin.trackmate.visualization.TrackMateModelView;
+import fiji.plugin.trackmate.visualization.ViewFactory;
 import fiji.plugin.trackmate.visualization.trackscheme.TrackScheme;
 
 public class MamutXmlReader extends TmXmlReader {
@@ -60,18 +62,25 @@ public class MamutXmlReader extends TmXmlReader {
 							+ child + ".\n");
 					ok = false;
 				} else {
-					final TrackMateModelView view = provider.getView(viewKey, model, settings, selectionModel);
-					if (null == view) {
+
+					final ViewFactory viewFactory = provider.getFactory( viewKey );
+
+					if ( null == viewFactory )
+					{
 						logger.error("Unknown view for key " + viewKey + ".\n");
 						ok = false;
+
 					} else {
+
+						final TrackMateModelView view = viewFactory.create( model, settings, selectionModel );
 						views.add(view);
 
 						new Thread("MaMuT view rendering thread") {
 							@Override
 							public void run() {
 
-								if (viewKey.equals(MamutViewer.KEY)) {
+								if ( viewKey.equals( MamutViewerFactory.KEY ) )
+								{
 									final MamutViewer mv = (MamutViewer) view;
 									// mv.render();
 
@@ -90,14 +99,15 @@ public class MamutXmlReader extends TmXmlReader {
 												.getAttribute(
 														GUI_VIEW_ATTRIBUTE_POSITION_HEIGHT)
 												.getIntValue();
-										mv.getFrame().setLocation(mvx, mvy);
-										mv.getFrame()
-												.setSize(mvwidth, mvheight);
+										mv.setLocation( mvx, mvy );
+										mv.setSize( mvwidth, mvheight );
 									} catch (final DataConversionException e) {
 										e.printStackTrace();
 									}
 
-								} else if (viewKey.equals(TrackScheme.KEY)) {
+								}
+								else if ( viewKey.equals( "TRACKSCHEME" ) )
+								{
 									final TrackScheme ts = (TrackScheme) view;
 									// ts.render();
 

@@ -6,6 +6,7 @@ import java.io.File;
 import java.util.List;
 
 import net.imglib2.RandomAccessibleInterval;
+import bdv.img.cache.Cache;
 import bdv.viewer.SourceAndConverter;
 import fiji.plugin.trackmate.Settings;
 
@@ -13,13 +14,17 @@ public class SourceSettings extends Settings {
 
 	private List<SourceAndConverter<?>> sources;
 
+	private Cache cache;
+
 	@Override
 	public void setFrom(final ImagePlus imp) {
 		throw new UnsupportedOperationException("Cannot use ImagePlus with SourceSettings.");
 	}
 
-	public void setFrom(final List<SourceAndConverter<?>> sources, final File file, final int numTimePoints) {
+	public void setFrom( final List< SourceAndConverter< ? >> sources, final File file, final int numTimePoints, final Cache cache )
+	{
 		this.sources = sources;
+		this.cache = cache;
 
 		// File info
 		this.imageFileName = file.getName();
@@ -49,4 +54,8 @@ public class SourceSettings extends Settings {
 		return sources;
 	}
 
+	public Cache getCache()
+	{
+		return cache;
+	}
 }

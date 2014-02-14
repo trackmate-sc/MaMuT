@@ -18,6 +18,7 @@ import org.jdom2.Element;
 import bdv.tools.brightness.SetupAssignments;
 import fiji.plugin.mamut.SourceSettings;
 import fiji.plugin.mamut.viewer.MamutViewer;
+import fiji.plugin.mamut.viewer.MamutViewerFactory;
 import fiji.plugin.trackmate.Settings;
 import fiji.plugin.trackmate.gui.TrackMateGUIModel;
 import fiji.plugin.trackmate.io.TmXmlWriter;
@@ -34,7 +35,7 @@ public class MamutXmlWriter extends TmXmlWriter {
 
 	/**
 	 * Appends the content of a {@link Settings} object to the document.
-	 * 
+	 *
 	 * @param settings
 	 *            the {@link Settings} to write. It must be a
 	 *            {@link SourceSettings} instance, otherwise an exception is
@@ -101,10 +102,11 @@ public class MamutXmlWriter extends TmXmlWriter {
 			viewel.setAttribute(GUI_VIEW_ATTRIBUTE, view.getKey());
 			guiel.addContent(viewel);
 
-			if (view.getKey().equals(MamutViewer.KEY)) {
+			if ( view.getKey().equals( MamutViewerFactory.KEY ) )
+			{
 				final MamutViewer mv = (MamutViewer) view;
-				final Point location = mv.getFrame().getLocation();
-				final Dimension size = mv.getFrame().getSize();
+				final Point location = mv.getLocation();
+				final Dimension size = mv.getSize();
 				viewel.setAttribute(GUI_VIEW_ATTRIBUTE_POSITION_X, ""
 						+ location.x);
 				viewel.setAttribute(GUI_VIEW_ATTRIBUTE_POSITION_Y, ""
@@ -114,7 +116,9 @@ public class MamutXmlWriter extends TmXmlWriter {
 				viewel.setAttribute(GUI_VIEW_ATTRIBUTE_POSITION_HEIGHT, ""
 						+ size.height);
 
-			} else if (view.getKey().equals(TrackScheme.KEY)) {
+			}
+			else if ( view.getKey().equals( "TRACKSCHEME" ) )
+			{
 				final TrackScheme ts = (TrackScheme) view;
 				final Point location = ts.getGUI().getLocation();
 				final Dimension size = ts.getGUI().getSize();

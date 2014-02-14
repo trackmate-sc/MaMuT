@@ -1,21 +1,27 @@
 package fiji.plugin.mamut.viewer;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
+import java.awt.event.KeyListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.swing.JComponent;
 import javax.swing.JFrame;
+import javax.swing.SwingUtilities;
 
-import net.imglib2.realtransform.AffineTransform3D;
-import net.imglib2.ui.TransformEventHandler;
+import net.imglib2.ui.util.GuiUtil;
+import bdv.img.cache.Cache;
+import bdv.viewer.InputActionBindings;
 import bdv.viewer.SourceAndConverter;
 import bdv.viewer.ViewerPanel;
+import bdv.viewer.ViewerPanel.Options;
 import bdv.viewer.animate.MessageOverlayAnimator;
-import bdv.viewer.animate.TranslationAnimator;
 import fiji.plugin.trackmate.Logger;
 import fiji.plugin.trackmate.Model;
 import fiji.plugin.trackmate.SelectionModel;
@@ -24,8 +30,16 @@ import fiji.plugin.trackmate.visualization.SpotColorGenerator;
 import fiji.plugin.trackmate.visualization.TrackColorGenerator;
 import fiji.plugin.trackmate.visualization.TrackMateModelView;
 
-public class MamutViewer extends ViewerPanel implements TrackMateModelView
+/**
+ * A {@link JFrame} containing a {@link ViewerPanel} and associated
+ * {@link InputActionBindings}.
+ *
+ * @author Tobias Pietzsch <tobias.pietzsch@gmail.com>
+ */
+public class MamutViewer extends JFrame implements TrackMateModelView
 {
+	private static final long serialVersionUID = 1L;
+
 	private static final long DEFAULT_TEXT_DISPLAY_DURATION = 3000;
 
 	private static final double DEFAULT_FADEINTIME = 0;
@@ -33,13 +47,6 @@ public class MamutViewer extends ViewerPanel implements TrackMateModelView
 	private static final double DEFAULT_FADEOUTTIME = 0.5;
 
 	private static final Font DEFAULT_FONT = new Font("SansSerif", Font.PLAIN, 14);
-
-	private static final String INFO_TEXT = "A viewer based on Tobias Pietzsch SPIM Viewer";
-
-	public static final String KEY = "MaMuT Viewer";
-
-	/** The overlay on which the {@link TrackMateModel} will be painted. */
-	private MamutOverlay overlay;
 
 	/** The logger instance that echoes message on this view. */
 	private final Logger logger;
@@ -56,23 +63,80 @@ public class MamutViewer extends ViewerPanel implements TrackMateModelView
 
 	TrackColorGenerator trackColorProvider;
 
-	/*
-	 * CONSTRUCTOR
-	 */
+	protected final MamutViewerPanel viewerPanel;
 
-	public MamutViewer( final int width, final int height, final List< SourceAndConverter< ? >> sources, final int numTimePoints, final Model model, final SelectionModel selectionModel )
+	private final InputActionBindings keybindings;
+
+	public MamutViewer( final int width, final int height, final List< SourceAndConverter< ? > > sources, final int numTimePoints, final Cache cache, final Model model, final SelectionModel selectionModel )
 	{
-		super( width, height, sources, numTimePoints );
+		this( width, height, sources, numTimePoints, cache, model, selectionModel, ViewerPanel.options() );
+	}
+
+	/**
+	 *
+	 * @param width
+	 *            width of the display window.
+	 * @param height
+	 *            height of the display window.
+	 * @param sources
+	 *            the {@link SourceAndConverter sources} to display.
+	 * @param numTimePoints
+	 *            number of available timepoints.
+	 * @param cache
+	 *            handle to cache. This is used to control io timing. Also, is
+	 *            is used to subscribe / {@link #stop() unsubscribe} to the
+	 *            cache as a consumer, so that eventually the io fetcher threads
+	 *            can be shut down.
+	 * @param optional
+	 *            optional parameters. See {@link ViewerPanel#options()}.
+	 */
+	public MamutViewer( final int width, final int height, final List< SourceAndConverter< ? > > sources, final int numTimePoints, final Cache cache, final Model model, final SelectionModel selectionModel, final Options optional )
+	{
+		super( "BigDataViewer", GuiUtil.getSuitableGraphicsConfiguration( GuiUtil.RGB_COLOR_MODEL ) );
+		final MessageOverlayAnimator msgOverlay = new MessageOverlayAnimator( DEFAULT_TEXT_DISPLAY_DURATION, DEFAULT_FADEINTIME, DEFAULT_FADEOUTTIME, DEFAULT_FONT );
+		viewerPanel = new MamutViewerPanel( sources, numTimePoints, cache, optional.width( width ).height( height ).msgOverlay( msgOverlay ) );
+		keybindings = new InputActionBindings();
+
 		this.model = model;
 		this.selectionModel = selectionModel;
 		this.logger = new MamutViewerLogger();
-		this.msgOverlay = new MessageOverlayAnimator(DEFAULT_TEXT_DISPLAY_DURATION, DEFAULT_FADEINTIME, DEFAULT_FADEOUTTIME, DEFAULT_FONT);
 
+		getRootPane().setDoubleBuffered( true );
+		setPreferredSize( new Dimension( width, height ) );
+		add( viewerPanel, BorderLayout.CENTER );
+		pack();
+		setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
+		addWindowListener( new WindowAdapter()
+		{
+			@Override
+			public void windowClosing( final WindowEvent e )
+			{
+				viewerPanel.stop();
+			}
+		} );
+
+		SwingUtilities.replaceUIActionMap( getRootPane(), keybindings.getConcatenatedActionMap() );
+		SwingUtilities.replaceUIInputMap( getRootPane(), JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT, keybindings.getConcatenatedInputMap() );
+
+		setVisible( true );
 	}
 
-	/*
-	 * METHODS
-	 */
+	public void addHandler( final Object handler )
+	{
+		viewerPanel.getDisplay().addHandler( handler );
+		if ( KeyListener.class.isInstance( handler ) )
+			addKeyListener( ( KeyListener ) handler );
+	}
+
+	public MamutViewerPanel getViewerPanel()
+	{
+		return viewerPanel;
+	}
+
+	public InputActionBindings getKeybindings()
+	{
+		return keybindings;
+	}
 
 	/**
 	 * Returns the {@link Logger} object that will echo any message to this
@@ -86,107 +150,39 @@ public class MamutViewer extends ViewerPanel implements TrackMateModelView
 	}
 
 	@Override
-	public void drawOverlays( final Graphics g )
-	{
-		super.drawOverlays( g );
-
-		if ( null != overlay )
-		{
-			overlay.setViewerState( state );
-			overlay.paint( ( Graphics2D ) g );
-		}
-	}
-
-	/**
-	 * Returns the {@link JFrame} component that is the parent to this viewer.
-	 *
-	 * @return the parent JFrame.
-	 */
-	@Override
-	public JFrame getFrame()
-	{
-		return frame;
-	}
-
-	/**
-	 * Returns the time-point currently displayed in this viewer.
-	 *
-	 * @return the time-point currently displayed.
-	 */
-	public int getCurrentTimepoint()
-	{
-		return state.getCurrentTimepoint();
-	}
-
-	@Override
 	public void render()
 	{
-		this.overlay = new MamutOverlay( model, selectionModel, this );
+		viewerPanel.overlay = new MamutOverlay( model, selectionModel, this );
 	}
 
 	@Override
 	public void refresh()
 	{
-		requestRepaint();
+		// System.out.println("refresh");
+		viewerPanel.requestRepaint();
 	}
 
 	@Override
 	public void clear()
 	{
-		this.overlay = null;
+		viewerPanel.overlay = null;
 	}
 
 	@Override
 	public void centerViewOn( final Spot spot )
 	{
-
-		final int tp = spot.getFeature( Spot.FRAME ).intValue();
-		state.setCurrentTimepoint( tp );
-		sliderTime.setValue( tp );
-
-		final AffineTransform3D t = new AffineTransform3D();
-		state.getViewerTransform( t );
-		final double[] spotCoords = new double[] { spot.getFeature( Spot.POSITION_X ), spot.getFeature( Spot.POSITION_Y ), spot.getFeature( Spot.POSITION_Z ) };
-
-		// Translate view so that the target spot is in the middle of the
-		// JFrame.
-		final double dx = frame.getWidth() / 2 - ( t.get( 0, 0 ) * spotCoords[ 0 ] + t.get( 0, 1 ) * spotCoords[ 1 ] + t.get( 0, 2 ) * spotCoords[ 2 ] );
-		final double dy = frame.getHeight() / 2 - ( t.get( 1, 0 ) * spotCoords[ 0 ] + t.get( 1, 1 ) * spotCoords[ 1 ] + t.get( 1, 2 ) * spotCoords[ 2 ] );
-		final double dz = -( t.get( 2, 0 ) * spotCoords[ 0 ] + t.get( 2, 1 ) * spotCoords[ 1 ] + t.get( 2, 2 ) * spotCoords[ 2 ] );
-
-		// But use an animator to do this smoothly.
-		final double[] target = new double[] { dx, dy, dz };
-		currentAnimator = new TranslationAnimator( t, target, 300 );
-		currentAnimator.setTime( System.currentTimeMillis() );
-		transformChanged( t );
+		viewerPanel.centerViewOn( spot );
 	}
 
 	@Override
-	public void paint()
+	public Map< String, Object > getDisplaySettings()
 	{
-
-		synchronized ( this )
-		{
-			if ( currentAnimator != null )
-			{
-				final TransformEventHandler< AffineTransform3D > handler = display.getTransformEventHandler();
-				final AffineTransform3D transform = currentAnimator.getCurrent( System.currentTimeMillis() );
-				handler.setTransform( transform );
-				transformChanged( transform );
-				if ( currentAnimator.isComplete() )
-				{
-					currentAnimator = null;
-				}
-			}
-		}
-
-		super.paint();
+		return displaySettings;
 	}
 
 	@Override
 	public void setDisplaySettings( final String key, final Object value )
 	{
-
 		if ( key.equals( KEY_SPOT_COLORING ) )
 		{
 			if ( null != spotColorProvider )
@@ -215,20 +211,19 @@ public class MamutViewer extends ViewerPanel implements TrackMateModelView
 	}
 
 	@Override
-	public Map< String, Object > getDisplaySettings()
-	{
-		return displaySettings;
-	}
-
-	@Override
 	public Model getModel()
 	{
 		return model;
+	}
 
+	@Override
+	public String getKey()
+	{
+		return MamutViewerFactory.KEY;
 	}
 
 	/*
-	 * INNER CLASSRS
+	 * INNER CLASSES
 	 */
 
 	private final class MamutViewerLogger extends Logger
@@ -237,30 +232,23 @@ public class MamutViewer extends ViewerPanel implements TrackMateModelView
 		@Override
 		public void setStatus( final String status )
 		{
-			showMessage(status);
+			viewerPanel.showMessage( status );
 		}
 
 		@Override
-		public void setProgress(final double val) {}
+		public void setProgress( final double val )
+		{}
 
 		@Override
 		public void log( final String message, final Color color )
 		{
-			showMessage(message);
+			viewerPanel.showMessage( message );
 		}
 
 		@Override
 		public void error( final String message )
 		{
-			showMessage(message);
+			viewerPanel.showMessage( message );
 		}
-
 	}
-
-	@Override
-	public String getKey()
-	{
-		return KEY;
-	}
-
 }
