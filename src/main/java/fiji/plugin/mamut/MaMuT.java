@@ -34,6 +34,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -117,6 +118,7 @@ import fiji.plugin.trackmate.visualization.trackscheme.TrackScheme;
 
 public class MaMuT implements ModelChangeListener
 {
+
 
 	public static final ImageIcon MAMUT_ICON = new ImageIcon( MaMuT.class.getResource( "mammouth-256x256.png" ) );
 
@@ -936,6 +938,7 @@ public class MaMuT implements ModelChangeListener
 			public void run()
 			{
 				final TrackScheme trackscheme = new TrackScheme( model, selectionModel );
+				trackscheme.getGUI().addWindowListener( new DeregisterWindowListener( trackscheme ) );
 				trackscheme.setSpotImageUpdater( thumbnailUpdater );
 				for ( final String settingKey : guimodel.getDisplaySettings().keySet() )
 				{
@@ -1246,4 +1249,45 @@ public class MaMuT implements ModelChangeListener
 		return displaySettings;
 	}
 
+	private class DeregisterWindowListener implements WindowListener
+	{
+
+		private final TrackMateModelView view;
+
+		public DeregisterWindowListener( final TrackMateModelView view )
+		{
+			this.view = view;
+		}
+
+		@Override
+		public void windowActivated( final WindowEvent arg0 )
+		{}
+
+		@Override
+		public void windowClosed( final WindowEvent arg0 )
+		{}
+
+		@Override
+		public void windowClosing( final WindowEvent arg0 )
+		{
+			guimodel.removeView( view );
+		}
+
+		@Override
+		public void windowDeactivated( final WindowEvent arg0 )
+		{}
+
+		@Override
+		public void windowDeiconified( final WindowEvent arg0 )
+		{}
+
+		@Override
+		public void windowIconified( final WindowEvent arg0 )
+		{}
+
+		@Override
+		public void windowOpened( final WindowEvent arg0 )
+		{}
+
+	}
 }
