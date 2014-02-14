@@ -11,6 +11,8 @@ import javax.swing.InputMap;
 import javax.swing.JComponent;
 import javax.swing.KeyStroke;
 
+import bdv.util.KeyProperties;
+import bdv.viewer.NavigationActions;
 import fiji.FijiTools;
 import fiji.plugin.mamut.MaMuT;
 import fiji.plugin.mamut.viewer.MamutViewer;
@@ -19,7 +21,7 @@ public class MamutKeyboardHandler {
 
 	private static final Properties DEFAULT_KEYBINGS = new Properties();
 	static {
-		DEFAULT_KEYBINGS.setProperty("A", "add spot");
+		DEFAULT_KEYBINGS.setProperty( "A", "add spot" );
 		DEFAULT_KEYBINGS.setProperty("ENTER", "add spot");
 		DEFAULT_KEYBINGS.setProperty("D", "delete spot");
 		DEFAULT_KEYBINGS.setProperty("shift A", "semi-auto tracking");
@@ -30,7 +32,7 @@ public class MamutKeyboardHandler {
 		DEFAULT_KEYBINGS.setProperty("shift Q", "decrease spot radius a lot");
 		DEFAULT_KEYBINGS.setProperty("control E", "increase spot radius a bit");
 		DEFAULT_KEYBINGS.setProperty("control Q", "decrease spot radius a bit");
-		DEFAULT_KEYBINGS.setProperty("F1", "show help");
+		DEFAULT_KEYBINGS.setProperty( "F1", "show help" );
 		DEFAULT_KEYBINGS.setProperty("S", "toggle brightness dialog");
 
 		DEFAULT_KEYBINGS.setProperty("I", "toggle interpolation");
@@ -43,10 +45,10 @@ public class MamutKeyboardHandler {
 			DEFAULT_KEYBINGS.setProperty("shift " + numkeys[i], "toggle source visibility " + i);
 		}
 
-		DEFAULT_KEYBINGS.setProperty("shift Z", "align XY plane");
-		DEFAULT_KEYBINGS.setProperty("shift X", "align ZY plane");
-		DEFAULT_KEYBINGS.setProperty("shift Y", "align XZ plane");
-		DEFAULT_KEYBINGS.setProperty("shift C", "align XZ plane");
+		DEFAULT_KEYBINGS.setProperty( "shift Z", "align XY plane" );
+		DEFAULT_KEYBINGS.setProperty( "shift X", "align ZY plane" );
+		DEFAULT_KEYBINGS.setProperty( "shift Y", "align XZ plane" );
+		DEFAULT_KEYBINGS.setProperty( "shift C", "align XZ plane" );
 
 		DEFAULT_KEYBINGS.setProperty("CLOSE_BRACKET", "next timepoint");
 		DEFAULT_KEYBINGS.setProperty("M", "next timepoint");
@@ -97,15 +99,13 @@ public class MamutKeyboardHandler {
 	}
 
 	protected void installKeyboardActions(final JComponent graphComponent) {
-		// Remove old input map for navigation and put new one.
-		viewer.getKeybindings().removeInputMap("navigation");
+		NavigationActions.installActionBindings( viewer.getKeybindings(), viewer.getViewerPanel(), KeyProperties.readPropertyFile() );
 
 		final InputMap inputMap = readPropertyFile();
 		final ActionMap actionMap = createActionMap();
 
-		viewer.getKeybindings().addActionMap("all", actionMap);
-		viewer.getKeybindings().addInputMap("all", inputMap);
-
+		viewer.getKeybindings().addActionMap( "all", actionMap );
+		viewer.getKeybindings().addInputMap( "all", inputMap );
 	}
 
 	/**

@@ -72,7 +72,8 @@ public class NewMamutAnnotationPlugin implements PlugIn {
 		ImageJ.main(args);
 
 		final NewMamutAnnotationPlugin plugin = new NewMamutAnnotationPlugin();
-		plugin.run("/Users/tinevez/Desktop/Data/Mamut/parhyale-crop/parhyale-crop-2.xml");
+		// plugin.run("/Users/tinevez/Desktop/Data/Mamut/parhyale-crop/parhyale-crop-2.xml");
+		plugin.run( "/Users/tinevez/Desktop/Data/Mamut/parhyale/BDV130418A325_NoTempReg.xml" );
 	}
 
 }

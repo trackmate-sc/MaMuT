@@ -106,6 +106,8 @@ public class MamutActions {
 
 		private final MamutViewer viewer;
 
+		private HelpDialog helpDialog;
+
 		public ShowHelpAction( final MamutViewer viewer )
 		{
 			this.viewer = viewer;
@@ -113,7 +115,12 @@ public class MamutActions {
 
 		@Override
 		public void actionPerformed(final ActionEvent e) {
-			new HelpDialog( viewer, MaMuT.class.getResource( "Help.html" ) );
+			if ( null == helpDialog )
+			{
+				helpDialog = new HelpDialog( viewer, MaMuT.class.getResource( "Help.html" ) );
+			}
+			helpDialog.setVisible( !helpDialog.isVisible() );
+			viewer.getViewerPanel().requestFocus();
 		}
 
 	}
