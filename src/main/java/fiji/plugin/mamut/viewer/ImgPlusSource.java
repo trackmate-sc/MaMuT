@@ -10,8 +10,8 @@ import net.imglib2.meta.ImgPlus;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.NumericType;
 import net.imglib2.view.Views;
-import viewer.render.Interpolation;
-import viewer.render.Source;
+import bdv.viewer.Interpolation;
+import bdv.viewer.Source;
 import fiji.plugin.mamut.util.TransformUtils;
 
 public class ImgPlusSource< T extends NumericType< T >> implements Source< T >
@@ -79,4 +79,5 @@ public class ImgPlusSource< T extends NumericType< T >> implements Source< T >
 	{
 		return 1;
 	}
+
 }

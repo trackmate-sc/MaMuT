@@ -25,9 +25,9 @@ import net.imglib2.type.numeric.integer.UnsignedByteType;
 import net.imglib2.util.Intervals;
 import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
-import viewer.render.Source;
-import viewer.render.SourceAndConverter;
-import viewer.util.Affine3DHelpers;
+import bdv.util.Affine3DHelpers;
+import bdv.viewer.Source;
+import bdv.viewer.SourceAndConverter;
 
 import com.mxgraph.util.mxBase64;
 

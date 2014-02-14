@@ -2,7 +2,7 @@ package fiji.plugin.mamut.providers;
 
 import java.util.List;
 
-import viewer.render.SourceAndConverter;
+import bdv.viewer.SourceAndConverter;
 import fiji.plugin.mamut.MaMuT;
 import fiji.plugin.mamut.SourceSettings;
 import fiji.plugin.mamut.viewer.MamutViewer;

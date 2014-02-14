@@ -19,7 +19,7 @@ import net.imglib2.realtransform.AffineTransform3D;
 
 import org.jgrapht.graph.DefaultWeightedEdge;
 
-import viewer.render.ViewerState;
+import bdv.viewer.state.ViewerState;
 import fiji.plugin.trackmate.Model;
 import fiji.plugin.trackmate.SelectionModel;
 import fiji.plugin.trackmate.Spot;

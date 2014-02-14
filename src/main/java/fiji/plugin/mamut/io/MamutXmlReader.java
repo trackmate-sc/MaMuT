@@ -16,7 +16,7 @@ import java.util.List;
 import org.jdom2.DataConversionException;
 import org.jdom2.Element;
 
-import viewer.gui.brightness.SetupAssignments;
+import bdv.tools.brightness.SetupAssignments;
 import fiji.plugin.mamut.viewer.MamutViewer;
 import fiji.plugin.trackmate.Model;
 import fiji.plugin.trackmate.SelectionModel;

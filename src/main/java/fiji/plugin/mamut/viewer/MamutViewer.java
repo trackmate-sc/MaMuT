@@ -12,10 +12,10 @@ import javax.swing.JFrame;
 
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.ui.TransformEventHandler;
-import viewer.MessageOverlayAnimator;
-import viewer.SpimViewer;
-import viewer.TranslationAnimator;
-import viewer.render.SourceAndConverter;
+import bdv.viewer.SourceAndConverter;
+import bdv.viewer.ViewerPanel;
+import bdv.viewer.animate.MessageOverlayAnimator;
+import bdv.viewer.animate.TranslationAnimator;
 import fiji.plugin.trackmate.Logger;
 import fiji.plugin.trackmate.Model;
 import fiji.plugin.trackmate.SelectionModel;
@@ -24,7 +24,7 @@ import fiji.plugin.trackmate.visualization.SpotColorGenerator;
 import fiji.plugin.trackmate.visualization.TrackColorGenerator;
 import fiji.plugin.trackmate.visualization.TrackMateModelView;
 
-public class MamutViewer extends SpimViewer implements TrackMateModelView
+public class MamutViewer extends ViewerPanel implements TrackMateModelView
 {
 	private static final long DEFAULT_TEXT_DISPLAY_DURATION = 3000;
 
