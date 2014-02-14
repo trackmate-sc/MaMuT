@@ -20,6 +20,8 @@ public class MamutControlPanel extends ConfigureViewsPanel {
 	private static final long serialVersionUID = 1L;
 	private static final ImageIcon MAMUT_ICON = new ImageIcon(MaMuT.class.getResource("mammouth-16x16.png"));
 	private static final Icon SAVE_ICON = new ImageIcon(MaMuT.class.getResource("page_save.png"));
+
+	public static final ImageIcon THREEDVIEWER_ICON = new ImageIcon( MaMuT.class.getResource( "sport_8ball.png" ) );
 	private final JButton jButtonMamutViewer;
 	private final JButton jButtonSaveButton;
 	public final ActionEvent MAMUT_VIEWER_BUTTON_PRESSED = new ActionEvent(this, 2, "MamutViewerButtonPushed");
@@ -33,8 +35,13 @@ public class MamutControlPanel extends ConfigureViewsPanel {
 		jButtonShowTrackScheme.setLocation(btp.x, btp.y + 50);
 		final Dimension btd = jButtonShowTrackScheme.getSize();
 
+		// Hijack the do analysis bytton
+		jButtonDoAnalysis.setText( "3D Viewer" );
+		jButtonDoAnalysis.setIcon( THREEDVIEWER_ICON );
+		jButtonDoAnalysis.setToolTipText( "Launch a 3D view of the annotation data only." );
+
 		// New Mamut viewer button
-		jButtonMamutViewer = new JButton("Viewer", MAMUT_ICON);
+		jButtonMamutViewer = new JButton( "Mamut Viewer", MAMUT_ICON );
 		jButtonMamutViewer.setFont(SMALL_FONT);
 		jButtonMamutViewer.setLocation(btp);
 		jButtonMamutViewer.setSize(btd);

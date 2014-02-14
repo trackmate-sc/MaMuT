@@ -22,6 +22,7 @@ import bdv.viewer.SourceAndConverter;
 import bdv.viewer.ViewerPanel;
 import bdv.viewer.ViewerPanel.Options;
 import bdv.viewer.animate.MessageOverlayAnimator;
+import fiji.plugin.mamut.MaMuT;
 import fiji.plugin.trackmate.Logger;
 import fiji.plugin.trackmate.Model;
 import fiji.plugin.trackmate.SelectionModel;
@@ -92,7 +93,7 @@ public class MamutViewer extends JFrame implements TrackMateModelView
 	 */
 	public MamutViewer( final int width, final int height, final List< SourceAndConverter< ? > > sources, final int numTimePoints, final Cache cache, final Model model, final SelectionModel selectionModel, final Options optional )
 	{
-		super( "BigDataViewer", GuiUtil.getSuitableGraphicsConfiguration( GuiUtil.RGB_COLOR_MODEL ) );
+		super( "MaMut Viewer", GuiUtil.getSuitableGraphicsConfiguration( GuiUtil.RGB_COLOR_MODEL ) );
 		final MessageOverlayAnimator msgOverlay = new MessageOverlayAnimator( DEFAULT_TEXT_DISPLAY_DURATION, DEFAULT_FADEINTIME, DEFAULT_FADEOUTTIME, DEFAULT_FONT );
 		viewerPanel = new MamutViewerPanel( sources, numTimePoints, cache, optional.width( width ).height( height ).msgOverlay( msgOverlay ) );
 		keybindings = new InputActionBindings();
@@ -118,6 +119,7 @@ public class MamutViewer extends JFrame implements TrackMateModelView
 		SwingUtilities.replaceUIActionMap( getRootPane(), keybindings.getConcatenatedActionMap() );
 		SwingUtilities.replaceUIInputMap( getRootPane(), JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT, keybindings.getConcatenatedInputMap() );
 
+		setIconImage( MaMuT.MAMUT_ICON.getImage() );
 		setVisible( true );
 	}
 
@@ -125,7 +127,9 @@ public class MamutViewer extends JFrame implements TrackMateModelView
 	{
 		viewerPanel.getDisplay().addHandler( handler );
 		if ( KeyListener.class.isInstance( handler ) )
+		{
 			addKeyListener( ( KeyListener ) handler );
+		}
 	}
 
 	public MamutViewerPanel getViewerPanel()

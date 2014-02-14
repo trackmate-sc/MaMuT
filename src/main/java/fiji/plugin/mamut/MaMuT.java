@@ -21,6 +21,8 @@ import static fiji.plugin.trackmate.visualization.TrackMateModelView.KEY_TRACK_C
 import static fiji.plugin.trackmate.visualization.TrackMateModelView.KEY_TRACK_DISPLAY_DEPTH;
 import static fiji.plugin.trackmate.visualization.TrackMateModelView.KEY_TRACK_DISPLAY_MODE;
 import ij.IJ;
+import ij3d.Image3DUniverse;
+import ij3d.ImageWindow3D;
 
 import java.awt.Dimension;
 import java.awt.MouseInfo;
@@ -114,6 +116,7 @@ import fiji.plugin.trackmate.visualization.PerEdgeFeatureColorGenerator;
 import fiji.plugin.trackmate.visualization.PerTrackFeatureColorGenerator;
 import fiji.plugin.trackmate.visualization.SpotColorGenerator;
 import fiji.plugin.trackmate.visualization.TrackMateModelView;
+import fiji.plugin.trackmate.visualization.threedviewer.SpotDisplayer3D;
 import fiji.plugin.trackmate.visualization.trackscheme.TrackScheme;
 
 public class MaMuT implements ModelChangeListener
@@ -541,7 +544,7 @@ public class MaMuT implements ModelChangeListener
 				}
 				else if ( event == viewPanel.DO_ANALYSIS_BUTTON_PRESSED )
 				{
-					launchDoAnalysis();
+					launch3DViewer( viewPanel.getDoAnalysisButton() );
 
 				}
 				else if ( event == viewPanel.MAMUT_VIEWER_BUTTON_PRESSED )
@@ -695,15 +698,7 @@ public class MaMuT implements ModelChangeListener
 		installKeyBindings( viewer );
 		installMouseListeners( viewer );
 
-		viewer.setIconImage( MAMUT_ICON.getImage() );
-		viewer.addWindowListener( new WindowAdapter()
-		{
-			@Override
-			public void windowClosed( final WindowEvent arg0 )
-			{
-				guimodel.getViews().remove( viewer );
-			}
-		} );
+		viewer.addWindowListener( new DeregisterWindowListener( viewer ) );
 
 		InitializeViewerState.initTransform( viewer.getViewerPanel() );
 
@@ -952,10 +947,32 @@ public class MaMuT implements ModelChangeListener
 		}.start();
 	}
 
-	private void launchDoAnalysis()
+	private void launch3DViewer( final JButton button )
 	{
-		System.out.println( "Hey guys, what do you want me to analyze?" );// TODO
+		button.setEnabled( false );
+		new Thread( "MaMuT new 3D viewer thread" )
+		{
+			@Override
+			public void run()
+			{
+				final Image3DUniverse universe = new Image3DUniverse();
+				final ImageWindow3D win = new ImageWindow3D( "MaMuT 3D Viewer", universe );
+				win.setIconImage( MamutControlPanel.THREEDVIEWER_ICON.getImage() );
+				universe.init( win );
+				win.pack();
+				win.setVisible( true );
 
+				// universe.show();
+				final SpotDisplayer3D newDisplayer = new SpotDisplayer3D( model, selectionModel, universe );
+				for ( final String key : guimodel.getDisplaySettings().keySet() )
+				{
+					newDisplayer.setDisplaySettings( key, guimodel.getDisplaySettings().get( key ) );
+				}
+				guimodel.addView( newDisplayer );
+				newDisplayer.render();
+				button.setEnabled( true );
+			}
+		}.start();
 	}
 
 	private void refresh()
