@@ -65,9 +65,17 @@ public class MamutKeyboardHandler {
 
 	protected InputMap readPropertyFile() {
 		Properties config = new Properties();
+
+		final String fijiDir = FijiTools.getImageJDir();
+		File file = new File( fijiDir, "mamut.properties" );
+		if ( !file.exists() )
+		{
+			// Look in build folder.
+			file = new File( MaMuT.class.getResource( "../../../mamut.properties" ).getPath() );
+		}
+
 		try {
-			final String fijiDir = FijiTools.getFijiDir();
-			final InputStream stream = new FileInputStream(new File(fijiDir, "mamut.properties"));
+			final InputStream stream = new FileInputStream( file );
 			config.load(stream);
 		} catch (final IOException e) {
 			System.out.println("MaMuT: cannot find the config file. Using default key bindings.");
