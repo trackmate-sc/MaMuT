@@ -15,4 +15,9 @@ public class MamutGUIModel extends TrackMateGUIModel {
 	 */
 	public double qualityThreshold = 0.2;
 
+	/**
+	 * By how much we move in time when calling the step in time action.
+	 */
+	public int timeStep = 5;
+
 }

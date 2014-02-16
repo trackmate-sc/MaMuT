@@ -4,6 +4,7 @@ import static fiji.plugin.trackmate.gui.TrackMateWizard.FONT;
 import static fiji.plugin.trackmate.gui.TrackMateWizard.SMALL_FONT;
 
 import java.awt.Color;
+import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -57,6 +58,8 @@ public class AnnotationPanel extends ActionListenablePanel {
 	private final JNumericTextField jNFDistanceTolerance;
 	private final JNumericTextField jNFQualityThreshold;
 
+	private final JNumericTextField jTimeStep;
+
 	public AnnotationPanel() {
 		this(new MamutGUIModel());
 	}
@@ -93,7 +96,7 @@ public class AnnotationPanel extends ActionListenablePanel {
 
 		final JPanel panelSemiAutoParams = new JPanel();
 		panelSemiAutoParams.setBorder(new LineBorder(new Color(252, 117, 0), 1, false));
-		panelSemiAutoParams.setBounds(6, 6, 288, 108);
+		panelSemiAutoParams.setBounds( 5, 47, 288, 108 );
 		add(panelSemiAutoParams);
 		panelSemiAutoParams.setLayout(null);
 
@@ -155,7 +158,7 @@ public class AnnotationPanel extends ActionListenablePanel {
 		final JScrollPane scrollPane = new JScrollPane();
 		scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 		scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
-		scrollPane.setBounds(6, 255, 288, 232);
+		scrollPane.setBounds( 6, 273, 288, 214 );
 		add(scrollPane);
 
 		final JTextPane textPane = new JTextPane();
@@ -165,18 +168,18 @@ public class AnnotationPanel extends ActionListenablePanel {
 		textPane.setBackground(this.getBackground());
 
 		final JPanel panelButtons = new JPanel();
-		panelButtons.setBounds(6, 126, 288, 117);
+		panelButtons.setBounds( 6, 162, 288, 103 );
 		panelButtons.setBorder(new LineBorder(new Color(252, 117, 0), 1, false));
 		add(panelButtons);
 		panelButtons.setLayout(null);
 
 		final JLabel lblSelectionTools = new JLabel("Selection tools");
 		lblSelectionTools.setFont(FONT.deriveFont(Font.BOLD));
-		lblSelectionTools.setBounds(10, 11, 172, 14);
+		lblSelectionTools.setBounds( 9, 6, 172, 14 );
 		panelButtons.add(lblSelectionTools);
 
 		final JButton buttonSelectTrack = new JButton(SELECT_TRACK_ICON);
-		buttonSelectTrack.setBounds(10, 36, 33, 23);
+		buttonSelectTrack.setBounds( 9, 23, 33, 23 );
 		buttonSelectTrack.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(final ActionEvent e) {
@@ -186,13 +189,13 @@ public class AnnotationPanel extends ActionListenablePanel {
 		panelButtons.add(buttonSelectTrack);
 
 		final JLabel lblSelectTrack = new JLabel("Select track");
-		lblSelectTrack.setBounds(53, 36, 129, 23);
+		lblSelectTrack.setBounds( 52, 23, 129, 23 );
 		lblSelectTrack.setFont(SMALL_FONT);
 		lblSelectTrack.setToolTipText("Select the whole tracks selected spots belong to.");
 		panelButtons.add(lblSelectTrack);
 
 		final JButton buttonSelectTrackUp = new JButton(SELECT_TRACK_ICON_UPWARDS);
-		buttonSelectTrackUp.setBounds(10, 61, 33, 23);
+		buttonSelectTrackUp.setBounds( 9, 48, 33, 23 );
 		buttonSelectTrackUp.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(final ActionEvent e) {
@@ -202,7 +205,7 @@ public class AnnotationPanel extends ActionListenablePanel {
 		panelButtons.add(buttonSelectTrackUp);
 
 		final JLabel lblSelectTrackUpward = new JLabel("Select track upward");
-		lblSelectTrackUpward.setBounds(53, 61, 129, 23);
+		lblSelectTrackUpward.setBounds( 52, 48, 129, 23 );
 		lblSelectTrackUpward.setFont(SMALL_FONT);
 		lblSelectTrackUpward.setToolTipText("<html>" +
 				"Select the whole tracks selected spots <br>" +
@@ -210,7 +213,7 @@ public class AnnotationPanel extends ActionListenablePanel {
 		panelButtons.add(lblSelectTrackUpward);
 
 		final JButton buttonSelectTrackDown = new JButton(SELECT_TRACK_ICON_DOWNWARDS);
-		buttonSelectTrackDown.setBounds(10, 86, 33, 23);
+		buttonSelectTrackDown.setBounds( 9, 73, 33, 23 );
 		buttonSelectTrackDown.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(final ActionEvent e) {
@@ -220,12 +223,41 @@ public class AnnotationPanel extends ActionListenablePanel {
 		panelButtons.add(buttonSelectTrackDown);
 
 		final JLabel lblSelectTrackDown = new JLabel("Select track downward");
-		lblSelectTrackDown.setBounds(53, 86, 129, 23);
+		lblSelectTrackDown.setBounds( 52, 73, 129, 23 );
 		lblSelectTrackDown.setFont(SMALL_FONT);
 		lblSelectTrackDown.setToolTipText("<html>" +
 				"Select the whole tracks selected spots <br>" +
 				"belong to, forward in time.</html>");
 		panelButtons.add(lblSelectTrackDown);
+
+		{
+			final String toolTip = "<html>Determines the interval of the timepoints accessible <br>" + "when stepwise browsing in time. For instance, with a <br>" + "value of 5, you will be taken to timepoints 0, 5, 10, etc.." + "</html>";
+
+			final JPanel stepWisePanel = new JPanel();
+			final FlowLayout flowLayout = ( FlowLayout ) stepWisePanel.getLayout();
+			flowLayout.setAlignment( FlowLayout.LEFT );
+			stepWisePanel.setBorder( new LineBorder( new Color( 252, 117, 0 ) ) );
+			stepWisePanel.setBounds( 6, 11, 287, 30 );
+			add( stepWisePanel );
+
+			final JLabel lblJumpToEvery = new JLabel( "Stepwise time browsing " );
+			lblJumpToEvery.setFont( SMALL_FONT.deriveFont( Font.BOLD ) );
+			lblJumpToEvery.setToolTipText( toolTip );
+			stepWisePanel.add( lblJumpToEvery );
+
+			jTimeStep = new JNumericTextField( ( double ) guiModel.timeStep );
+			stepWisePanel.add( jTimeStep );
+			jTimeStep.setColumns( 3 );
+			jTimeStep.setHorizontalAlignment( SwingConstants.CENTER );
+			jTimeStep.addActionListener( al );
+			jTimeStep.addFocusListener( fl );
+			jTimeStep.setToolTipText( toolTip );
+
+			final JLabel lblFrames = new JLabel( "frames" );
+			lblFrames.setFont( SMALL_FONT );
+			lblFrames.setToolTipText( toolTip );
+			stepWisePanel.add( lblFrames );
+		}
 
 		logger = new Logger() {
 
@@ -274,6 +306,6 @@ public class AnnotationPanel extends ActionListenablePanel {
 	private void updateParamsFromTextFields() {
 		guiModel.distanceTolerance = jNFDistanceTolerance.getValue();
 		guiModel.qualityThreshold = jNFQualityThreshold.getValue();
+		guiModel.timeStep = ( int ) jTimeStep.getValue();
 	}
-
 }

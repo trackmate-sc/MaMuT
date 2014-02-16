@@ -1266,6 +1266,16 @@ public class MaMuT implements ModelChangeListener
 		return displaySettings;
 	}
 
+	/**
+	 * Exposes the GUI model that stores this GUI states.
+	 * 
+	 * @return the {@link MamutGUIModel}.
+	 */
+	public MamutGUIModel getGuimodel()
+	{
+		return guimodel;
+	}
+
 	private class DeregisterWindowListener implements WindowListener
 	{
 

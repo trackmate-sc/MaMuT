@@ -30,6 +30,11 @@ public class MamutActions {
 		return new ShowHelpAction( viewer );
 	}
 
+	public static final Action getStepWiseTimeBrowsingAction( final MaMuT mamut, final MamutViewer viewer, final boolean forward )
+	{
+		return new StepWiseTimeBrowsingAction( mamut, viewer, forward );
+	}
+
 	public static final Action getToggleBrightnessDialogAction(final MaMuT mamut) {
 		return new ToggleBrightnessDialogAction(mamut);
 	}
@@ -66,6 +71,57 @@ public class MamutActions {
 	/*
 	 * INNER CLASSES
 	 */
+
+	private static final class StepWiseTimeBrowsingAction extends AbstractAction
+	{
+		private static final long serialVersionUID = 1L;
+
+		private final boolean forward;
+
+		private final MamutGUIModel guiModel;
+
+		private final MamutViewer viewer;
+
+		public StepWiseTimeBrowsingAction( final MaMuT mamut, final MamutViewer viewer, final boolean forward )
+		{
+			this.viewer = viewer;
+			this.guiModel = mamut.getGuimodel();
+			this.forward = forward;
+		}
+
+		@Override
+		public void actionPerformed( final ActionEvent e )
+		{
+			final int currentT = viewer.getViewerPanel().getState().getCurrentTimepoint();
+			final int prevStep = ( currentT / guiModel.timeStep ) * guiModel.timeStep;
+			int tp;
+			if ( forward )
+			{
+				tp = prevStep + guiModel.timeStep;
+			}
+			else
+			{
+				if ( currentT == prevStep )
+				{
+					tp = currentT - guiModel.timeStep;
+				}
+				else
+				{
+					tp = prevStep;
+				}
+			}
+
+			if ( tp < 0 )
+			{
+				tp = 0;
+			}
+			if ( tp > viewer.getViewerPanel().getState().getNumTimePoints() - 1 )
+			{
+				tp = viewer.getViewerPanel().getState().getNumTimePoints() - 1;
+			}
+			viewer.getViewerPanel().setTimepoint( tp );
+		}
+	}
 
 	private static final class ToggleLinkingModeAction extends AbstractAction {
 

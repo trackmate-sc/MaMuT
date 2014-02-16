@@ -50,9 +50,9 @@ public class MamutKeyboardHandler {
 		DEFAULT_KEYBINGS.setProperty( "shift Y", "align XZ plane" );
 		DEFAULT_KEYBINGS.setProperty( "shift C", "align XZ plane" );
 
-		DEFAULT_KEYBINGS.setProperty("CLOSE_BRACKET", "next timepoint");
+		DEFAULT_KEYBINGS.setProperty( "CLOSE_BRACKET", "step time forward" );
 		DEFAULT_KEYBINGS.setProperty("M", "next timepoint");
-		DEFAULT_KEYBINGS.setProperty("OPEN_BRACKET", "previous timepoint");
+		DEFAULT_KEYBINGS.setProperty( "OPEN_BRACKET", "step time backward" );
 		DEFAULT_KEYBINGS.setProperty("N", "previous timepoint");
 	}
 	private final MamutViewer viewer;
@@ -130,6 +130,9 @@ public class MamutKeyboardHandler {
 		map.put( "show help", MamutActions.getShowHelpAction( viewer ) );
 
 		map.put("toggle brightness dialog", MamutActions.getToggleBrightnessDialogAction(mamut));
+
+		map.put( "step time forward", MamutActions.getStepWiseTimeBrowsingAction( mamut, viewer, true ) );
+		map.put( "step time backward", MamutActions.getStepWiseTimeBrowsingAction( mamut, viewer, false ) );
 
 		return map;
 	}
