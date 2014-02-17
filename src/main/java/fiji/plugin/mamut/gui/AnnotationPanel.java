@@ -246,12 +246,13 @@ public class AnnotationPanel extends ActionListenablePanel {
 			stepWisePanel.add( lblJumpToEvery );
 
 			jTimeStep = new JNumericTextField( ( double ) guiModel.timeStep );
-			stepWisePanel.add( jTimeStep );
+			jTimeStep.setFont( SMALL_FONT );
 			jTimeStep.setColumns( 3 );
 			jTimeStep.setHorizontalAlignment( SwingConstants.CENTER );
 			jTimeStep.addActionListener( al );
 			jTimeStep.addFocusListener( fl );
 			jTimeStep.setToolTipText( toolTip );
+			stepWisePanel.add( jTimeStep );
 
 			final JLabel lblFrames = new JLabel( "frames" );
 			lblFrames.setFont( SMALL_FONT );
