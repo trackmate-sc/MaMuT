@@ -60,6 +60,7 @@ import net.imglib2.RealPoint;
 import net.imglib2.display.RealARGBColorConverter;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.integer.UnsignedShortType;
+import net.imglib2.type.volatiles.VolatileUnsignedShortType;
 
 import org.jdom2.JDOMException;
 import org.jgrapht.graph.DefaultWeightedEdge;
@@ -67,6 +68,7 @@ import org.xml.sax.SAXException;
 
 import bdv.SequenceViewsLoader;
 import bdv.SpimSource;
+import bdv.VolatileSpimSource;
 import bdv.img.cache.Cache;
 import bdv.img.hdf5.Hdf5ImageLoader;
 import bdv.tools.HelpDialog;
@@ -74,6 +76,7 @@ import bdv.tools.InitializeViewerState;
 import bdv.tools.brightness.BrightnessDialog;
 import bdv.tools.brightness.ConverterSetup;
 import bdv.tools.brightness.MinMaxGroup;
+import bdv.tools.brightness.RealARGBColorConverterSetup;
 import bdv.tools.brightness.SetupAssignments;
 import bdv.viewer.SourceAndConverter;
 import bdv.viewer.state.ViewerState;
@@ -617,61 +620,36 @@ public class MaMuT implements ModelChangeListener
 
 	}
 
-	private void prepareSources( final File dataFile ) throws ParserConfigurationException, SAXException, IOException, InstantiationException, IllegalAccessException, ClassNotFoundException, JDOMException
-	{
-		final SequenceViewsLoader loader = new SequenceViewsLoader( dataFile.getAbsolutePath() );
+	private void prepareSources(final File dataFile) throws ParserConfigurationException, SAXException, IOException, InstantiationException, IllegalAccessException, ClassNotFoundException, JDOMException {
+		final SequenceViewsLoader loader = new SequenceViewsLoader(dataFile.getAbsolutePath());
 		final SequenceDescription seq = loader.getSequenceDescription();
 		nTimepoints = seq.numTimepoints();
-		sources = new ArrayList< SourceAndConverter< ? >>();
-		cache = ( ( Hdf5ImageLoader ) seq.imgLoader ).getCache();
-		final ArrayList< ConverterSetup > converterSetups = new ArrayList< ConverterSetup >();
-		for ( int setup = 0; setup < seq.numViewSetups(); ++setup )
-		{
-			final RealARGBColorConverter< UnsignedShortType > converter = new RealARGBColorConverter< UnsignedShortType >( 0, 65535 );
-			converter.setColor( new ARGBType( ARGBType.rgba( 255, 255, 255, 255 ) ) );
-			sources.add( new SourceAndConverter< UnsignedShortType >( new SpimSource( loader, setup, "angle " + seq.setups.get( setup ).getAngle() ), converter ) );
-			final int id = setup;
-			converterSetups.add( new ConverterSetup()
-			{
+		sources = new ArrayList<SourceAndConverter<?>>();
+		cache = ((Hdf5ImageLoader) seq.imgLoader).getCache();
+		final ArrayList<ConverterSetup> converterSetups = new ArrayList<ConverterSetup>();
+		for (int setup = 0; setup < seq.numViewSetups(); ++setup) {
+			final RealARGBColorConverter<VolatileUnsignedShortType> vconverter = new RealARGBColorConverter<VolatileUnsignedShortType>(0, 65535);
+			vconverter.setColor(new ARGBType(ARGBType.rgba(255, 255, 255, 255)));
+			final RealARGBColorConverter<UnsignedShortType> converter = new RealARGBColorConverter<UnsignedShortType>(0, 65535);
+			converter.setColor(new ARGBType(ARGBType.rgba(255, 255, 255, 255)));
+			final VolatileSpimSource vs = new VolatileSpimSource(loader, setup, "angle " + seq.setups.get(setup).getAngle());
+			final SpimSource s = vs.nonVolatile();
+			final SourceAndConverter<VolatileUnsignedShortType> vsoc = new SourceAndConverter<VolatileUnsignedShortType>(vs, vconverter);
+			final SourceAndConverter<UnsignedShortType> soc = new SourceAndConverter<UnsignedShortType>(s, converter, vsoc);
+			sources.add(soc);
+			converterSetups.add(new RealARGBColorConverterSetup(setup, converter, vconverter) {
 				@Override
-				public void setDisplayRange( final int min, final int max )
-				{
-					converter.setMin( min );
-					converter.setMax( max );
+				public void setDisplayRange(final int min, final int max) {
+					super.setDisplayRange(min, max);
 					requestRepaintAllViewers();
 				}
 
 				@Override
-				public void setColor( final ARGBType color )
-				{
-					converter.setColor( color );
+				public void setColor(final ARGBType color) {
+					super.setColor(color);
 					requestRepaintAllViewers();
 				}
-
-				@Override
-				public int getSetupId()
-				{
-					return id;
-				}
-
-				@Override
-				public int getDisplayRangeMin()
-				{
-					return ( int ) converter.getMin();
-				}
-
-				@Override
-				public int getDisplayRangeMax()
-				{
-					return ( int ) converter.getMax();
-				}
-
-				@Override
-				public ARGBType getColor()
-				{
-					return converter.getColor();
-				}
-			} );
+			});
 		}
 
 		/*
