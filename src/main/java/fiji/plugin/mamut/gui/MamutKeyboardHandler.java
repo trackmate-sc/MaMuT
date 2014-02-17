@@ -2,7 +2,6 @@ package fiji.plugin.mamut.gui;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
@@ -70,16 +69,18 @@ public class MamutKeyboardHandler {
 
 		final String fijiDir = FijiTools.getImageJDir();
 		File file = new File( fijiDir, "mamut.properties" );
-		if ( !file.exists() )
-		{
-			// Look in build folder.
-			file = new File( MaMuT.class.getResource( "../../../mamut.properties" ).getPath() );
-		}
 
 		try {
+			if ( !file.exists() )
+			{
+				// Look in build folder.
+				file = new File( MaMuT.class.getResource( "../../../mamut.properties" ).getPath() );
+			}
 			final InputStream stream = new FileInputStream( file );
 			config.load(stream);
-		} catch (final IOException e) {
+		}
+		catch ( final Exception e )
+		{
 			System.out.println("MaMuT: cannot find the config file. Using default key bindings.");
 			System.out.println(e.getMessage());
 			config = DEFAULT_KEYBINGS;
