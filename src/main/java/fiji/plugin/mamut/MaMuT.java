@@ -1065,19 +1065,20 @@ public class MaMuT implements ModelChangeListener
 			{ // & if they are on different
 				// frames
 				model.beginUpdate();
+				final DefaultWeightedEdge newedge;
 				try
 				{
 
 					// Create link
-					final DefaultWeightedEdge newedge = model.addEdge( targetSpot, spot, -1 );
-					selectionModel.clearEdgeSelection();
-					selectionModel.addEdgeToSelection( newedge );
+					newedge = model.addEdge( targetSpot, spot, -1 );
 				}
 				finally
 				{
 					model.endUpdate();
 				}
 				message += ", linked to spot " + targetSpot + ".";
+				selectionModel.clearEdgeSelection();
+				selectionModel.addEdgeToSelection( newedge );
 			}
 			else
 			{
@@ -1246,7 +1247,7 @@ public class MaMuT implements ModelChangeListener
 
 	/**
 	 * Exposes the GUI model that stores this GUI states.
-	 * 
+	 *
 	 * @return the {@link MamutGUIModel}.
 	 */
 	public MamutGUIModel getGuimodel()
