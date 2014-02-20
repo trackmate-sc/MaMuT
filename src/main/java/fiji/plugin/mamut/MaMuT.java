@@ -165,7 +165,6 @@ public class MaMuT implements ModelChangeListener
 
 	/** The radius below which a spot cannot go. */
 	private final double minRadius = 2; // TODO change this when we have a
-
 	// physical calibration
 
 	/** The spot currently moved under the mouse. */
@@ -1232,7 +1231,6 @@ public class MaMuT implements ModelChangeListener
 		displaySettings.put( KEY_HIGHLIGHT_COLOR, DEFAULT_HIGHLIGHT_COLOR );
 		displaySettings.put( KEY_SPOTS_VISIBLE, true );
 		displaySettings.put( KEY_DISPLAY_SPOT_NAMES, false );
-		displaySettings.put( KEY_SPOT_COLORING, new SpotColorGenerator( model ) );
 		displaySettings.put( KEY_SPOT_RADIUS_RATIO, 1.0f );
 		displaySettings.put( KEY_TRACKS_VISIBLE, true );
 		displaySettings.put( KEY_TRACK_DISPLAY_MODE, DEFAULT_TRACK_DISPLAY_MODE );

@@ -194,6 +194,7 @@ public class MamutViewer extends JFrame implements TrackMateModelView
 				spotColorProvider.terminate();
 			}
 			spotColorProvider = ( SpotColorGenerator ) value;
+			spotColorProvider.activate();
 		}
 		else if ( key.equals( KEY_TRACK_COLORING ) )
 		{
@@ -202,6 +203,7 @@ public class MamutViewer extends JFrame implements TrackMateModelView
 				trackColorProvider.terminate();
 			}
 			trackColorProvider = ( TrackColorGenerator ) value;
+			trackColorProvider.activate();
 		}
 
 		displaySettings.put( key, value );

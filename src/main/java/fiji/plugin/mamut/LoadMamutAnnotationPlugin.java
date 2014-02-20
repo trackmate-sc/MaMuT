@@ -68,7 +68,8 @@ public class LoadMamutAnnotationPlugin implements PlugIn {
 		final LoadMamutAnnotationPlugin plugin = new LoadMamutAnnotationPlugin();
 		//		plugin.run("/Users/tinevez/Desktop/Data/Mamut/parhyale-crop/parhyale-crop-2-mamut.xml");
 		// plugin.run("/Users/tinevez/Desktop/Data/Mamut/combined-mamut-20.xml");
-		plugin.run( "/Users/JeanYves/Desktop/Data/Celegans-mamut.xml" );
+		// plugin.run( "/Users/JeanYves/Desktop/Data/Celegans-mamut.xml" );
+		plugin.run( "/Users/tinevez/Desktop/Data/Mamut/parhyale/BDV130418A325_NoTempReg-mamut_JY.xml" );
 	}
 
 }

@@ -27,6 +27,16 @@ public class NewMamutAnnotationPlugin implements PlugIn {
 		if (null != fileStr && fileStr.length() > 0) {
 			// Skip dialog
 			file = new File(fileStr);
+			if ( !file.exists() )
+			{
+				IJ.error( MaMuT.PLUGIN_NAME + " v" + MaMuT.PLUGIN_VERSION, "Cannot find image file " + fileStr );
+				return;
+			}
+			if ( !file.canRead() )
+			{
+				IJ.error( MaMuT.PLUGIN_NAME + " v" + MaMuT.PLUGIN_VERSION, "Cannot read image file " + fileStr );
+				return;
+			}
 
 		} else {
 
@@ -72,8 +82,8 @@ public class NewMamutAnnotationPlugin implements PlugIn {
 		ImageJ.main(args);
 
 		final NewMamutAnnotationPlugin plugin = new NewMamutAnnotationPlugin();
-		// plugin.run("/Users/tinevez/Desktop/Data/Mamut/parhyale-crop/parhyale-crop-2.xml");
-		plugin.run( "/Users/JeanYves/Desktop/Data/Celegans.xml" );
+		plugin.run( "/Users/tinevez/Desktop/Data/Mamut/parhyale/BDV130418A325_NoTempReg.xml" );
+		// plugin.run( "/Users/JeanYves/Desktop/Data/Celegans.xml" );
 	}
 
 }
