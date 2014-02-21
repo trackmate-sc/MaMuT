@@ -90,7 +90,9 @@ import fiji.plugin.mamut.gui.MamutGUIModel;
 import fiji.plugin.mamut.gui.MamutKeyboardHandler;
 import fiji.plugin.mamut.io.MamutXmlReader;
 import fiji.plugin.mamut.io.MamutXmlWriter;
+import fiji.plugin.mamut.providers.MamutEdgeAnalyzerProvider;
 import fiji.plugin.mamut.providers.MamutSpotAnalyzerProvider;
+import fiji.plugin.mamut.providers.MamutTrackAnalyzerProvider;
 import fiji.plugin.mamut.providers.MamutViewProvider;
 import fiji.plugin.mamut.util.SourceSpotImageUpdater;
 import fiji.plugin.mamut.viewer.MamutOverlay;
@@ -107,13 +109,17 @@ import fiji.plugin.trackmate.SelectionModel;
 import fiji.plugin.trackmate.Spot;
 import fiji.plugin.trackmate.TrackMate;
 import fiji.plugin.trackmate.features.ModelFeatureUpdater;
+import fiji.plugin.trackmate.features.edges.EdgeAnalyzer;
 import fiji.plugin.trackmate.features.edges.EdgeTargetAnalyzer;
 import fiji.plugin.trackmate.features.edges.EdgeVelocityAnalyzer;
+import fiji.plugin.trackmate.features.spot.SpotAnalyzerFactory;
+import fiji.plugin.trackmate.features.track.TrackAnalyzer;
 import fiji.plugin.trackmate.features.track.TrackIndexAnalyzer;
 import fiji.plugin.trackmate.gui.DisplaySettingsEvent;
 import fiji.plugin.trackmate.gui.DisplaySettingsListener;
 import fiji.plugin.trackmate.io.IOUtils;
 import fiji.plugin.trackmate.providers.EdgeAnalyzerProvider;
+import fiji.plugin.trackmate.providers.SpotAnalyzerProvider;
 import fiji.plugin.trackmate.providers.TrackAnalyzerProvider;
 import fiji.plugin.trackmate.util.ModelTools;
 import fiji.plugin.trackmate.visualization.PerEdgeFeatureColorGenerator;
@@ -286,7 +292,7 @@ public class MaMuT implements ModelChangeListener
 		 */
 
 		settings = new SourceSettings();
-		reader.readSettings( settings, null, null, new MamutSpotAnalyzerProvider(), new EdgeAnalyzerProvider(), new TrackAnalyzerProvider() );
+		reader.readSettings( settings, null, null, new MamutSpotAnalyzerProvider(), new MamutEdgeAnalyzerProvider(), new MamutTrackAnalyzerProvider() );
 
 		/*
 		 * Read image source
@@ -316,10 +322,22 @@ public class MaMuT implements ModelChangeListener
 		settings.setFrom( sources, imageFile, nTimepoints, cache );
 
 		/*
-		 * Autoupdate features
+		 * Configure settings object with spot, edge and track analyzers as
+		 * specified in the providers.
+		 */
+
+		prepareSettingsObject();
+
+		/*
+		 * Autoupdate features & declare them
 		 */
 
 		new ModelFeatureUpdater( model, settings );
+
+		final TrackMate trackmate = new TrackMate( model, settings );
+		trackmate.computeSpotFeatures( true );
+		trackmate.computeEdgeFeatures( true );
+		trackmate.computeTrackFeatures( true );
 
 		/*
 		 * Thumbnail updater
@@ -439,14 +457,13 @@ public class MaMuT implements ModelChangeListener
 
 		settings = new SourceSettings();
 		settings.setFrom( sources, file, nTimepoints, cache );
-		// We need this to have the SOURCE_ID feature
-		settings.addSpotAnalyzerFactory( new SpotSourceIdAnalyzerFactory() );
-		// we need at least this one
-		settings.addTrackAnalyzer( new TrackIndexAnalyzer() );
-		// this one is for fun
-		settings.addEdgeAnalyzer( new EdgeVelocityAnalyzer() );
-		// we CANNOT load & save without this one
-		settings.addEdgeAnalyzer( new EdgeTargetAnalyzer() );
+
+		/*
+		 * Configure settings object with spot, edge and track analyzers as
+		 * specified in the providers.
+		 */
+
+		prepareSettingsObject();
 
 		/*
 		 * Autoupdate features & declare them
@@ -614,6 +631,41 @@ public class MaMuT implements ModelChangeListener
 
 		return mamutGUI;
 
+	}
+
+	/**
+	 * Sets the {@link #settings} field with the analyzers configured for MaMuT.
+	 */
+	private void prepareSettingsObject()
+	{
+
+		settings.clearSpotAnalyzerFactories();
+		final SpotAnalyzerProvider spotAnalyzerProvider = new MamutSpotAnalyzerProvider();
+		final List< String > spotAnalyzerKeys = spotAnalyzerProvider.getKeys();
+		for ( final String key : spotAnalyzerKeys )
+		{
+			final SpotAnalyzerFactory< ? > spotFeatureAnalyzer = spotAnalyzerProvider.getFactory( key );
+			settings.addSpotAnalyzerFactory( spotFeatureAnalyzer );
+		}
+
+		settings.clearEdgeAnalyzers();
+		final EdgeAnalyzerProvider edgeAnalyzerProvider = new MamutEdgeAnalyzerProvider();
+		final List< String > edgeAnalyzerKeys = edgeAnalyzerProvider.getKeys();
+		for ( final String key : edgeAnalyzerKeys )
+		{
+			final EdgeAnalyzer edgeAnalyzer = edgeAnalyzerProvider.getFactory( key );
+			settings.addEdgeAnalyzer( edgeAnalyzer );
+		}
+
+		settings.clearTrackAnalyzers();
+		final TrackAnalyzerProvider trackAnalyzerProvider = new MamutTrackAnalyzerProvider();
+		final List< String > trackAnalyzerKeys = trackAnalyzerProvider.getKeys();
+		for ( final String key : trackAnalyzerKeys )
+		{
+			final TrackAnalyzer trackAnalyzer = trackAnalyzerProvider.getFactory( key );
+			settings.addTrackAnalyzer( trackAnalyzer );
+		}
+		System.out.println( settings.toString() );// DEBUG
 	}
 
 	private void prepareSources(final File dataFile) throws ParserConfigurationException, SAXException, IOException, InstantiationException, IllegalAccessException, ClassNotFoundException, JDOMException {
