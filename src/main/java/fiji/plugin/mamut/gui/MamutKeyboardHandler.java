@@ -25,6 +25,7 @@ public class MamutKeyboardHandler {
 		DEFAULT_KEYBINGS.setProperty("D", "delete spot");
 		DEFAULT_KEYBINGS.setProperty("shift A", "semi-auto tracking");
 		DEFAULT_KEYBINGS.setProperty("shift L", "toggle linking mode");
+		DEFAULT_KEYBINGS.setProperty( "L", "toggle link" );
 		DEFAULT_KEYBINGS.setProperty("E", "increase spot radius");
 		DEFAULT_KEYBINGS.setProperty("Q", "decrease spot radius");
 		DEFAULT_KEYBINGS.setProperty("shift E", "increase spot radius a lot");
@@ -127,6 +128,7 @@ public class MamutKeyboardHandler {
 		map.put("semi-auto tracking", MamutActions.getSemiAutoTrackingAction(mamut));
 
 		map.put("toggle linking mode", MamutActions.getToggleLinkingModeAction(mamut, viewer.getLogger()));
+		map.put( "toggle link", MamutActions.getToggleLinkAction( mamut, viewer.getLogger() ) );
 
 		map.put( "show help", MamutActions.getShowHelpAction( viewer ) );
 

@@ -66,6 +66,11 @@ public class MamutActions {
 	public static final Action getToggleLinkingModeAction(final MaMuT mamut, final Logger logger) {
 		return new ToggleLinkingModeAction(mamut, logger);
 	}
+	
+	public static final Action getToggleLinkAction(final MaMuT mamut, final Logger logger) {
+		return new ToggleLinkAction(mamut, logger);
+	}
+	
 
 
 	/*
@@ -138,6 +143,30 @@ public class MamutActions {
 		public void actionPerformed(final ActionEvent e) {
 			mamut.toggleLinkingMode(logger);
 		}
+	}
+
+	private static final class ToggleLinkAction extends AbstractAction
+	{
+
+		private static final long serialVersionUID = 1L;
+
+		private final MaMuT mamut;
+
+		private final Logger logger;
+
+		public ToggleLinkAction( final MaMuT mamut, final Logger logger )
+		{
+			this.mamut = mamut;
+			this.logger = logger;
+		}
+
+		@Override
+		public void actionPerformed( final ActionEvent arg0 )
+		{
+			mamut.toggleLink( logger );
+		}
+
+
 	}
 
 	private static final class ToggleBrightnessDialogAction extends AbstractAction {

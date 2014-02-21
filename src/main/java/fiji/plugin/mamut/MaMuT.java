@@ -43,6 +43,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -125,11 +126,7 @@ import fiji.plugin.trackmate.visualization.trackscheme.TrackScheme;
 public class MaMuT implements ModelChangeListener
 {
 
-
 	public static final ImageIcon MAMUT_ICON = new ImageIcon( MaMuT.class.getResource( "mammouth-256x256.png" ) );
-
-	// public static final ImageIcon MAMUT_ICON = new
-	// ImageIcon(MaMuT.class.getResource("mammouth-32x32.png"));
 
 	public static final String PLUGIN_NAME = "MaMuT";
 
@@ -1213,6 +1210,95 @@ public class MaMuT implements ModelChangeListener
 		this.isLinkingMode = !isLinkingMode;
 		final String str = "Switched auto-linking mode " + ( isLinkingMode ? "on." : "off." );
 		logger.log( str );
+	}
+
+	/**
+	 * Toggles a link between two spots.
+	 * <p>
+	 * The two spots are taken from the selection, which must have exactly two
+	 * spots in it
+	 *
+	 * @param logger
+	 *            the {@link Logger} to echo linking messages.
+	 */
+	public void toggleLink( final Logger logger )
+	{
+		/*
+		 * Toggle a link between two spots.
+		 */
+		final Set< Spot > selectedSpots = selectionModel.getSpotSelection();
+		if ( selectedSpots.size() == 2 )
+		{
+			final Iterator< Spot > it = selectedSpots.iterator();
+			final Spot source = it.next();
+			final Spot target = it.next();
+
+			if ( model.getTrackModel().containsEdge( source, target ) )
+			{
+				/*
+				 * Remove it
+				 */
+				model.beginUpdate();
+				try
+				{
+					model.removeEdge( source, target );
+					logger.log( "Removed the link between " + source + " and " + target + ".\n" );
+				}
+				finally
+				{
+					model.endUpdate();
+				}
+
+			}
+			else
+			{
+				/*
+				 * Create a new link
+				 */
+				final int ts = source.getFeature( Spot.FRAME ).intValue();
+				final int tt = target.getFeature( Spot.FRAME ).intValue();
+
+				if ( tt != ts )
+				{
+					model.beginUpdate();
+					try
+					{
+						model.addEdge( source, target, -1 );
+						logger.log( "Created a link between " + source + " and " + target + ".\n" );
+					}
+					finally
+					{
+						model.endUpdate();
+					}
+					/*
+					 * To emulate a kind of automatic linking, we put the last
+					 * spot to the selection, so several spots can be tracked in
+					 * a row without having to de-select one
+					 */
+					Spot single;
+					if ( tt > ts )
+					{
+						single = target;
+					}
+					else
+					{
+						single = source;
+					}
+					selectionModel.clearSpotSelection();
+					selectionModel.addSpotToSelection( single );
+
+				}
+				else
+				{
+					logger.error( "Cannot create a link between two spots belonging in the same frame." );
+				}
+			}
+
+		}
+		else
+		{
+			logger.error( "Expected selection to contain 2 spots, found " + selectedSpots.size() + ".\n" );
+		}
 	}
 
 	/**
