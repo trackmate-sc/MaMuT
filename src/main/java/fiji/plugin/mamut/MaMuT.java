@@ -111,7 +111,6 @@ import fiji.plugin.trackmate.TrackMate;
 import fiji.plugin.trackmate.features.ModelFeatureUpdater;
 import fiji.plugin.trackmate.features.edges.EdgeAnalyzer;
 import fiji.plugin.trackmate.features.edges.EdgeTargetAnalyzer;
-import fiji.plugin.trackmate.features.edges.EdgeVelocityAnalyzer;
 import fiji.plugin.trackmate.features.spot.SpotAnalyzerFactory;
 import fiji.plugin.trackmate.features.track.TrackAnalyzer;
 import fiji.plugin.trackmate.features.track.TrackIndexAnalyzer;
@@ -125,6 +124,7 @@ import fiji.plugin.trackmate.util.ModelTools;
 import fiji.plugin.trackmate.visualization.PerEdgeFeatureColorGenerator;
 import fiji.plugin.trackmate.visualization.PerTrackFeatureColorGenerator;
 import fiji.plugin.trackmate.visualization.SpotColorGenerator;
+import fiji.plugin.trackmate.visualization.SpotColorGeneratorPerTrackFeature;
 import fiji.plugin.trackmate.visualization.TrackMateModelView;
 import fiji.plugin.trackmate.visualization.threedviewer.SpotDisplayer3D;
 import fiji.plugin.trackmate.visualization.trackscheme.TrackScheme;
@@ -198,6 +198,8 @@ public class MaMuT implements ModelChangeListener
 
 	private PerEdgeFeatureColorGenerator edgeColorProvider;
 
+	private SpotColorGeneratorPerTrackFeature spotColorPerTrackFeatureProvider;
+
 	private SourceSettings settings;
 
 	private SelectionModel selectionModel;
@@ -214,6 +216,7 @@ public class MaMuT implements ModelChangeListener
 	 * then the new spot will not be added to the model.
 	 */
 	private boolean testWithinSpot = true;
+
 
 	private static File mamutFile;
 
@@ -349,9 +352,7 @@ public class MaMuT implements ModelChangeListener
 		 * Color provider
 		 */
 
-		spotColorProvider = new SpotColorGenerator( model );
-		trackColorProvider = new PerTrackFeatureColorGenerator( model, TrackIndexAnalyzer.TRACK_ID );
-		edgeColorProvider = new PerEdgeFeatureColorGenerator( model, EdgeTargetAnalyzer.EDGE_COST );
+		prepareColorProviders();
 
 		/*
 		 * GUI model
@@ -498,9 +499,7 @@ public class MaMuT implements ModelChangeListener
 		 * Color provider
 		 */
 
-		spotColorProvider = new SpotColorGenerator( model );
-		trackColorProvider = new PerTrackFeatureColorGenerator( model, TrackIndexAnalyzer.TRACK_ID );
-		edgeColorProvider = new PerEdgeFeatureColorGenerator( model, EdgeVelocityAnalyzer.VELOCITY );
+		prepareColorProviders();
 
 		/*
 		 * GUI model
@@ -547,6 +546,7 @@ public class MaMuT implements ModelChangeListener
 		viewPanel.setTrackColorGenerator( trackColorProvider );
 		viewPanel.setEdgeColorGenerator( edgeColorProvider );
 		viewPanel.setSpotColorGenerator( spotColorProvider );
+		viewPanel.setSpotColorGeneratorPerTrackFeature( spotColorPerTrackFeatureProvider );
 
 		viewPanel.addActionListener( new ActionListener()
 		{
@@ -666,6 +666,14 @@ public class MaMuT implements ModelChangeListener
 			settings.addTrackAnalyzer( trackAnalyzer );
 		}
 		System.out.println( settings.toString() );// DEBUG
+	}
+
+	private void prepareColorProviders()
+	{
+		spotColorProvider = new SpotColorGenerator( model );
+		trackColorProvider = new PerTrackFeatureColorGenerator( model, TrackIndexAnalyzer.TRACK_ID );
+		edgeColorProvider = new PerEdgeFeatureColorGenerator( model, EdgeTargetAnalyzer.EDGE_COST );
+		spotColorPerTrackFeatureProvider = new SpotColorGeneratorPerTrackFeature( model, TrackIndexAnalyzer.TRACK_ID );
 	}
 
 	private void prepareSources(final File dataFile) throws ParserConfigurationException, SAXException, IOException, InstantiationException, IllegalAccessException, ClassNotFoundException, JDOMException {

@@ -27,7 +27,7 @@ import fiji.plugin.trackmate.Logger;
 import fiji.plugin.trackmate.Model;
 import fiji.plugin.trackmate.SelectionModel;
 import fiji.plugin.trackmate.Spot;
-import fiji.plugin.trackmate.visualization.SpotColorGenerator;
+import fiji.plugin.trackmate.visualization.FeatureColorGenerator;
 import fiji.plugin.trackmate.visualization.TrackColorGenerator;
 import fiji.plugin.trackmate.visualization.TrackMateModelView;
 
@@ -60,7 +60,7 @@ public class MamutViewer extends JFrame implements TrackMateModelView
 	protected Map< String, Object > displaySettings = new HashMap< String, Object >();
 
 	/** The mapping from spot to a color. */
-	SpotColorGenerator spotColorProvider;
+	FeatureColorGenerator< Spot > spotColorProvider;
 
 	TrackColorGenerator trackColorProvider;
 
@@ -184,6 +184,7 @@ public class MamutViewer extends JFrame implements TrackMateModelView
 		return displaySettings;
 	}
 
+	@SuppressWarnings( "unchecked" )
 	@Override
 	public void setDisplaySettings( final String key, final Object value )
 	{
@@ -193,7 +194,7 @@ public class MamutViewer extends JFrame implements TrackMateModelView
 			{
 				spotColorProvider.terminate();
 			}
-			spotColorProvider = ( SpotColorGenerator ) value;
+			spotColorProvider = ( FeatureColorGenerator< Spot > ) value;
 			spotColorProvider.activate();
 		}
 		else if ( key.equals( KEY_TRACK_COLORING ) )
