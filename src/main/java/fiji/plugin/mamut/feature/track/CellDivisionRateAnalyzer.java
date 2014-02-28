@@ -76,7 +76,6 @@ public class CellDivisionRateAnalyzer implements TrackAnalyzer
 		return NAME;
 	}
 
-
 	@Override
 	public List< String > getFeatures()
 	{
