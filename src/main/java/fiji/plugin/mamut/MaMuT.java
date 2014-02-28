@@ -121,6 +121,8 @@ import fiji.plugin.trackmate.providers.EdgeAnalyzerProvider;
 import fiji.plugin.trackmate.providers.SpotAnalyzerProvider;
 import fiji.plugin.trackmate.providers.TrackAnalyzerProvider;
 import fiji.plugin.trackmate.util.ModelTools;
+import fiji.plugin.trackmate.visualization.ManualEdgeColorGenerator;
+import fiji.plugin.trackmate.visualization.ManualSpotColorGenerator;
 import fiji.plugin.trackmate.visualization.PerEdgeFeatureColorGenerator;
 import fiji.plugin.trackmate.visualization.PerTrackFeatureColorGenerator;
 import fiji.plugin.trackmate.visualization.SpotColorGenerator;
@@ -200,6 +202,10 @@ public class MaMuT implements ModelChangeListener
 
 	private SpotColorGeneratorPerTrackFeature spotColorPerTrackFeatureProvider;
 
+	private ManualSpotColorGenerator manualSpotColorGenerator;
+
+	private ManualEdgeColorGenerator manualEdgeColorGenerator;
+
 	private SourceSettings settings;
 
 	private SelectionModel selectionModel;
@@ -216,7 +222,6 @@ public class MaMuT implements ModelChangeListener
 	 * then the new spot will not be added to the model.
 	 */
 	private boolean testWithinSpot = true;
-
 
 	private static File mamutFile;
 
@@ -543,10 +548,12 @@ public class MaMuT implements ModelChangeListener
 		final MamutGUI mamutGUI = new MamutGUI( model, guimodel );
 
 		final MamutControlPanel viewPanel = mamutGUI.getViewPanel();
-		viewPanel.setTrackColorGenerator( trackColorProvider );
-		viewPanel.setEdgeColorGenerator( edgeColorProvider );
 		viewPanel.setSpotColorGenerator( spotColorProvider );
 		viewPanel.setSpotColorGeneratorPerTrackFeature( spotColorPerTrackFeatureProvider );
+		viewPanel.setManualSpotColorGenerator( manualSpotColorGenerator );
+		viewPanel.setEdgeColorGenerator( edgeColorProvider );
+		viewPanel.setManualEdgeColorGenerator( manualEdgeColorGenerator );
+		viewPanel.setTrackColorGenerator( trackColorProvider );
 
 		viewPanel.addActionListener( new ActionListener()
 		{
@@ -638,7 +645,6 @@ public class MaMuT implements ModelChangeListener
 	 */
 	private void prepareSettingsObject()
 	{
-
 		settings.clearSpotAnalyzerFactories();
 		final SpotAnalyzerProvider spotAnalyzerProvider = new MamutSpotAnalyzerProvider();
 		final List< String > spotAnalyzerKeys = spotAnalyzerProvider.getKeys();
@@ -665,7 +671,6 @@ public class MaMuT implements ModelChangeListener
 			final TrackAnalyzer trackAnalyzer = trackAnalyzerProvider.getFactory( key );
 			settings.addTrackAnalyzer( trackAnalyzer );
 		}
-		System.out.println( settings.toString() );// DEBUG
 	}
 
 	private void prepareColorProviders()
@@ -674,6 +679,8 @@ public class MaMuT implements ModelChangeListener
 		trackColorProvider = new PerTrackFeatureColorGenerator( model, TrackIndexAnalyzer.TRACK_ID );
 		edgeColorProvider = new PerEdgeFeatureColorGenerator( model, EdgeTargetAnalyzer.EDGE_COST );
 		spotColorPerTrackFeatureProvider = new SpotColorGeneratorPerTrackFeature( model, TrackIndexAnalyzer.TRACK_ID );
+		manualSpotColorGenerator = new ManualSpotColorGenerator();
+		manualEdgeColorGenerator = new ManualEdgeColorGenerator( model );
 	}
 
 	private void prepareSources(final File dataFile) throws ParserConfigurationException, SAXException, IOException, InstantiationException, IllegalAccessException, ClassNotFoundException, JDOMException {
