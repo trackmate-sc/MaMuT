@@ -35,6 +35,8 @@ public class SpotSourceIdAnalyzerFactory< T extends RealType< T > & NativeType< 
 
 	public final static Map< String, Dimension > FEATURE_DIMENSIONS = new HashMap< String, Dimension >();
 
+	public static final Map< String, Boolean > IS_INT = new HashMap< String, Boolean >();
+
 	public static final String KEY = "Spot Source ID";
 
 	static
@@ -43,6 +45,7 @@ public class SpotSourceIdAnalyzerFactory< T extends RealType< T > & NativeType< 
 		FEATURE_NAMES.put( SOURCE_ID, "Source ID" );
 		FEATURE_SHORT_NAMES.put( SOURCE_ID, "Source" );
 		FEATURE_DIMENSIONS.put( SOURCE_ID, Dimension.NONE );
+		IS_INT.put( SOURCE_ID, Boolean.TRUE );
 	}
 
 	@Override
@@ -124,5 +127,17 @@ public class SpotSourceIdAnalyzerFactory< T extends RealType< T > & NativeType< 
 	public String getName()
 	{
 		return "Spot source analyzer";
+	}
+
+	@Override
+	public Map< String, Boolean > getIsIntFeature()
+	{
+		return IS_INT;
+	}
+
+	@Override
+	public boolean isManualFeature()
+	{
+		return true;
 	}
 }

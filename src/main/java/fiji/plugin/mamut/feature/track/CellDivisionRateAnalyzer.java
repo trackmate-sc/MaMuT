@@ -36,6 +36,8 @@ public class CellDivisionRateAnalyzer implements TrackAnalyzer
 
 	private static final Map< String, Dimension > FEATURE_DIMENSIONS = new HashMap< String, Dimension >( 1 );
 
+	private static final Map< String, Boolean > IS_INT = new HashMap< String, Boolean >();
+
 	private static final String INFO_TEXT = "<html>This analyzers measures the number of cell divisions per unit of time, from track start to track stop.</html>";
 
 	private static final String NAME = "Cell division rate analyzer";
@@ -46,6 +48,7 @@ public class CellDivisionRateAnalyzer implements TrackAnalyzer
 		FEATURE_SHORT_NAMES.put( FEATURE, "Div. rate" );
 		FEATURE_NAMES.put( FEATURE, "Cell division rate" );
 		FEATURE_DIMENSIONS.put( FEATURE, Dimension.RATE );
+		IS_INT.put( FEATURE, Boolean.FALSE );
 	}
 
 	private long processingTime;
@@ -165,6 +168,18 @@ public class CellDivisionRateAnalyzer implements TrackAnalyzer
 	public boolean isLocal()
 	{
 		return true;
+	}
+
+	@Override
+	public Map< String, Boolean > getIsIntFeature()
+	{
+		return IS_INT;
+	}
+
+	@Override
+	public boolean isManualFeature()
+	{
+		return false;
 	}
 
 }
