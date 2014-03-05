@@ -1,5 +1,7 @@
 package fiji.plugin.mamut.feature.track;
 
+import static fiji.plugin.mamut.feature.spot.CellDivisionTimeAnalyzerSpotFactory.CELL_DIVISION_TIME;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -24,6 +26,13 @@ import fiji.plugin.trackmate.graph.TimeDirectedNeighborIndex;
 @Plugin( type = TrackAnalyzer.class )
 public class CellDivisionTimeAnalyzer implements TrackAnalyzer
 {
+
+	/**
+	 * If <code>true</code>, then we will exclude from the calculations the
+	 * branches that do not start with a split event and do not end with a split
+	 * event.
+	 */
+	private static final boolean EXCLUDE_OPEN_BRANCHES = true;
 
 	public static final String KEY = "CELL_DIVISION_TIME_ANALYZER";
 
@@ -158,28 +167,41 @@ public class CellDivisionTimeAnalyzer implements TrackAnalyzer
 			final TrackBranchDecomposition branchDecomposition = ConvexBranchesDecomposition.processTrack( trackID, tm, neighborIndex, false, false );
 			for ( final List< Spot > branch : branchDecomposition.branches )
 			{
-				// Check if this branch arose from a cell division
 				final Spot first = branch.get( 0 );
-				final Set< Spot > predecessors = neighborIndex.predecessorsOf( first );
-				if ( predecessors.size() == 0 )
-				{
-					continue;
-				}
-				final Spot predecessor = predecessors.iterator().next();
-				if ( neighborIndex.successorsOf( predecessor ).size() < 2 )
-				{
-					continue;
-				}
-
-				// Check if this branch ends by a cell division
 				final Spot last = branch.get( branch.size() - 1 );
-				if ( neighborIndex.successorsOf( last ).size() < 2 )
+
+				if ( EXCLUDE_OPEN_BRANCHES )
 				{
-					continue;
+					// Check if this branch arose from a cell division
+					final Set< Spot > predecessors = neighborIndex.predecessorsOf( first );
+					if ( predecessors.size() == 0 )
+					{
+						continue;
+					}
+					final Spot predecessor = predecessors.iterator().next();
+					if ( neighborIndex.successorsOf( predecessor ).size() < 2 )
+					{
+						continue;
+					}
+
+					// Check if this branch ends by a cell division
+					if ( neighborIndex.successorsOf( last ).size() < 2 )
+					{
+						continue;
+					}
 				}
 
 				// Ok, incorporate its duration
 				val = last.diffTo( first, Spot.POSITION_T );
+
+				/*
+				 * Before we go on, we will add this value as a feature of all
+				 * the spots of this branch.
+				 */
+				for ( final Spot spot : branch )
+				{
+					spot.putFeature( CELL_DIVISION_TIME, Double.valueOf( val ) );
+				}
 
 				// For variance and mean
 				sum += val;
