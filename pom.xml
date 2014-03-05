@@ -11,7 +11,7 @@
 	</parent>
 
 	<artifactId>MaMuT_</artifactId>
-	<version>0.11.0-SNAPSHOT</version>
+	<version>0.11.0</version>
 	<name>plugins/MaMuT_.jar</name>
 	<description></description>
 
