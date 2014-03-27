@@ -138,7 +138,7 @@ public class MaMuT implements ModelChangeListener
 
 	public static final String PLUGIN_NAME = "MaMuT";
 
-	public static final String PLUGIN_VERSION = "0.11.0";
+	public static final String PLUGIN_VERSION = "0.12.0-SNAPSHOT";
 
 	private static final double DEFAULT_RADIUS = 10;
 
@@ -787,7 +787,7 @@ public class MaMuT implements ModelChangeListener
 
 		final MamutXmlWriter writer = new MamutXmlWriter( mamutFile );
 		writer.appendModel( model );
-		writer.appendSettings( settings, null, null );
+		writer.appendSettings( settings );
 		writer.appendMamutState( guimodel, setupAssignments );
 		try
 		{
@@ -1124,7 +1124,7 @@ public class MaMuT implements ModelChangeListener
 			// spot in
 			// selection
 			final Spot targetSpot = spotSelection.iterator().next();
-			if ( targetSpot.getFeature( Spot.FRAME ).intValue() < spot.getFeature( Spot.FRAME ).intValue() )
+			if ( targetSpot.getFeature( Spot.FRAME ).intValue() != spot.getFeature( Spot.FRAME ).intValue() )
 			{ // & if they are on different
 				// frames
 				model.beginUpdate();
