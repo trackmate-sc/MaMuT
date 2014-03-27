@@ -22,8 +22,6 @@ import fiji.plugin.mamut.viewer.MamutViewerFactory;
 import fiji.plugin.trackmate.Settings;
 import fiji.plugin.trackmate.gui.TrackMateGUIModel;
 import fiji.plugin.trackmate.io.TmXmlWriter;
-import fiji.plugin.trackmate.providers.DetectorProvider;
-import fiji.plugin.trackmate.providers.TrackerProvider;
 import fiji.plugin.trackmate.visualization.TrackMateModelView;
 import fiji.plugin.trackmate.visualization.trackscheme.TrackScheme;
 
@@ -40,19 +38,10 @@ public class MamutXmlWriter extends TmXmlWriter {
 	 *            the {@link Settings} to write. It must be a
 	 *            {@link SourceSettings} instance, otherwise an exception is
 	 *            thrown.
-	 * @param detectorProvider
-	 *            the {@link DetectorProvider}, required to marshall the
-	 *            selected detector and its settings. If <code>null</code>, they
-	 *            won't be appended.
-	 * @param trackerProvider
-	 *            the {@link TrackerProvider}, required to marshall the selected
-	 *            tracker and its settings. If <code>null</code>, they won't be
-	 *            appended.
 	 */
 	@Override
-	public void appendSettings(final Settings settings,
-			final DetectorProvider detectorProvider,
-			final TrackerProvider trackerProvider) {
+	public void appendSettings( final Settings settings )
+	{
 
 		if (!(settings instanceof SourceSettings)) {
 			throw new IllegalArgumentException(
@@ -66,25 +55,25 @@ public class MamutXmlWriter extends TmXmlWriter {
 		final Element imageInfoElement = echoImageInfo(ss);
 		settingsElement.addContent(imageInfoElement);
 
-		if (null != detectorProvider) {
-			final Element detectorElement = echoDetectorSettings(settings,
-					detectorProvider);
-			settingsElement.addContent(detectorElement);
+		if ( settings.detectorFactory != null )
+		{
+			final Element detectorElement = echoDetectorSettings( settings );
+			settingsElement.addContent( detectorElement );
 		}
 
-		final Element initFilter = echoInitialSpotFilter(settings);
-		settingsElement.addContent(initFilter);
+		final Element initFilter = echoInitialSpotFilter( settings );
+		settingsElement.addContent( initFilter );
 
-		final Element spotFiltersElement = echoSpotFilters(settings);
-		settingsElement.addContent(spotFiltersElement);
+		final Element spotFiltersElement = echoSpotFilters( settings );
+		settingsElement.addContent( spotFiltersElement );
 
-		if (null != trackerProvider) {
-			final Element trackerElement = echoTrackerSettings(settings,
-					trackerProvider);
-			settingsElement.addContent(trackerElement);
+		if ( settings.trackerFactory != null )
+		{
+			final Element trackerElement = echoTrackerSettings( settings );
+			settingsElement.addContent( trackerElement );
 		}
 
-		final Element trackFiltersElement = echoTrackFilters(settings);
+		final Element trackFiltersElement = echoTrackFilters( settings );
 		settingsElement.addContent(trackFiltersElement);
 
 		final Element analyzersElement = echoAnalyzers(settings);
