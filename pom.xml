@@ -20,6 +20,11 @@
     <imagej.app.directory>../fiji/</imagej.app.directory>
   </properties>
 
+	<ciManagement>
+		<system>Jenkins</system>
+		<url>http://jenkins.imagej.net/job/MaMuT/</url>
+	</ciManagement>
+
   <scm>
     <connection>scm:git:git://github.com/fiji/MaMuT</connection>
     <developerConnection>scm:git:git@github.com:fiji/MaMuT</developerConnection>
