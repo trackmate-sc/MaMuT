@@ -14,7 +14,7 @@ import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.algorithm.stats.Max;
 import net.imglib2.algorithm.stats.Min;
 import net.imglib2.converter.RealUnsignedByteConverter;
-import net.imglib2.display.projector.Projector2D;
+import net.imglib2.display.projector.IterableIntervalProjector2D;
 import net.imglib2.img.array.ArrayImg;
 import net.imglib2.img.array.ArrayImgs;
 import net.imglib2.img.basictypeaccess.array.ByteArray;
@@ -106,7 +106,7 @@ public class SourceSpotImageUpdater<T extends RealType<T>> extends SpotImageUpda
 					final double maxValue = Max.findMax(Views.iterable(crop)).get().getRealDouble();
 					final RealUnsignedByteConverter< T > converter = new RealUnsignedByteConverter< T >( minValue, maxValue );
 
-					new Projector2D< T, UnsignedByteType >( 0, 1, crop, target, converter ).map();
+					new IterableIntervalProjector2D< T, UnsignedByteType >( 0, 1, crop, target, converter ).map();
 				}
 
 				// Convert to string
