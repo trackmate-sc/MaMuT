@@ -19,7 +19,8 @@
     <!-- Prevent the plugin from being copied to ./plugins/ by default -->
     <imagej.app.directory>../fiji/</imagej.app.directory>
 	<imglib2.version>2.0.0-SNAPSHOT</imglib2.version>
-  </properties>
+		<imglib2-ij.version>2.0.0-beta-26-SNAPSHOT</imglib2-ij.version>
+	</properties>
 
 	<ciManagement>
 		<system>Jenkins</system>
