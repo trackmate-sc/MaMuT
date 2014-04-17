@@ -695,9 +695,13 @@ public class MaMuT implements ModelChangeListener
 			vconverter.setColor(new ARGBType(ARGBType.rgba(255, 255, 255, 255)));
 			final RealARGBColorConverter<UnsignedShortType> converter = new RealARGBColorConverter<UnsignedShortType>(0, 65535);
 			converter.setColor(new ARGBType(ARGBType.rgba(255, 255, 255, 255)));
+			@SuppressWarnings( "rawtypes" )
 			final VolatileSpimSource vs = new VolatileSpimSource(loader, setup, "angle " + seq.setups.get(setup).getAngle());
+			@SuppressWarnings( "rawtypes" )
 			final SpimSource s = vs.nonVolatile();
+			@SuppressWarnings( "unchecked" )
 			final SourceAndConverter<VolatileUnsignedShortType> vsoc = new SourceAndConverter<VolatileUnsignedShortType>(vs, vconverter);
+			@SuppressWarnings( "unchecked" )
 			final SourceAndConverter<UnsignedShortType> soc = new SourceAndConverter<UnsignedShortType>(s, converter, vsoc);
 			sources.add(soc);
 			converterSetups.add(new RealARGBColorConverterSetup(setup, converter, vconverter) {
