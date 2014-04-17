@@ -207,6 +207,8 @@ public class MaMuT implements ModelChangeListener
 
 	private ManualEdgeColorGenerator manualEdgeColorGenerator;
 
+	private TrackMate trackmate;
+
 	private SourceSettings settings;
 
 	private SelectionModel selectionModel;
@@ -223,6 +225,8 @@ public class MaMuT implements ModelChangeListener
 	 * then the new spot will not be added to the model.
 	 */
 	private boolean testWithinSpot = true;
+
+	private MamutGUI gui;
 
 	private static File mamutFile;
 
@@ -343,7 +347,7 @@ public class MaMuT implements ModelChangeListener
 
 		new ModelFeatureUpdater( model, settings );
 
-		final TrackMate trackmate = new TrackMate( model, settings );
+		trackmate = new TrackMate( model, settings );
 		trackmate.computeSpotFeatures( true );
 		trackmate.computeEdgeFeatures( true );
 		trackmate.computeTrackFeatures( true );
@@ -371,7 +375,7 @@ public class MaMuT implements ModelChangeListener
 		 * Control Panel
 		 */
 
-		final MamutGUI gui = launchGUI();
+		gui = launchGUI();
 
 		/*
 		 * Brightness
@@ -478,7 +482,7 @@ public class MaMuT implements ModelChangeListener
 
 		new ModelFeatureUpdater( model, settings );
 
-		final TrackMate trackmate = new TrackMate( model, settings );
+		trackmate = new TrackMate( model, settings );
 		trackmate.computeSpotFeatures( true );
 		trackmate.computeEdgeFeatures( true );
 		trackmate.computeTrackFeatures( true );
@@ -518,7 +522,7 @@ public class MaMuT implements ModelChangeListener
 		 * Control Panel
 		 */
 
-		final MamutGUI gui = launchGUI();
+		gui = launchGUI();
 
 		/*
 		 * Brightness
@@ -546,7 +550,7 @@ public class MaMuT implements ModelChangeListener
 	private MamutGUI launchGUI()
 	{
 
-		final MamutGUI mamutGUI = new MamutGUI( model, guimodel );
+		final MamutGUI mamutGUI = new MamutGUI( trackmate, this );
 
 		final MamutControlPanel viewPanel = mamutGUI.getViewPanel();
 		viewPanel.setSpotColorGenerator( spotColorProvider );
@@ -1419,6 +1423,28 @@ public class MaMuT implements ModelChangeListener
 	public MamutGUIModel getGuimodel()
 	{
 		return guimodel;
+	}
+
+	/**
+	 * Exposes the {@link SelectionModel} shared amongst all views in the MaMuT
+	 * session.
+	 *
+	 * @return the {@link SelectionModel}.
+	 */
+	public SelectionModel getSelectionModel()
+	{
+		return selectionModel;
+	}
+
+	/**
+	 * Exposes the GUI frame that fosters user interface with this MaMuT
+	 * session.
+	 *
+	 * @return the {@link MamutGUI}.
+	 */
+	public MamutGUI getGUI()
+	{
+		return gui;
 	}
 
 	private class DeregisterWindowListener implements WindowListener
