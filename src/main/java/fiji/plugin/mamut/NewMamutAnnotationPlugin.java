@@ -27,6 +27,11 @@ public class NewMamutAnnotationPlugin implements PlugIn {
 		if (null != fileStr && fileStr.length() > 0) {
 			// Skip dialog
 			file = new File(fileStr);
+			if ( file.isDirectory() )
+			{
+				file = IOUtils.askForFileForLoading( file, "Open a MaMuT xml file", IJ.getInstance(), logger );
+				if ( null == file ) { return; }
+			}
 			if ( !file.exists() )
 			{
 				IJ.error( MaMuT.PLUGIN_NAME + " v" + MaMuT.PLUGIN_VERSION, "Cannot find image file " + fileStr );
