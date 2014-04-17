@@ -19,6 +19,7 @@ import bdv.tools.brightness.SetupAssignments;
 import fiji.plugin.mamut.SourceSettings;
 import fiji.plugin.mamut.viewer.MamutViewer;
 import fiji.plugin.mamut.viewer.MamutViewerFactory;
+import fiji.plugin.trackmate.Logger;
 import fiji.plugin.trackmate.Settings;
 import fiji.plugin.trackmate.gui.TrackMateGUIModel;
 import fiji.plugin.trackmate.io.TmXmlWriter;
@@ -28,9 +29,9 @@ import fiji.plugin.trackmate.visualization.trackscheme.TrackScheme;
 public class MamutXmlWriter extends TmXmlWriter
 {
 
-	public MamutXmlWriter( final File file )
+	public MamutXmlWriter( final File file, final Logger logger )
 	{
-		super( file );
+		super( file, logger );
 	}
 
 	/**
