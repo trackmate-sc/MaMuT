@@ -783,25 +783,30 @@ public class MaMuT implements ModelChangeListener
 		}
 
 		mamutFile = IOUtils.askForFileForSaving( mamutFile, IJ.getInstance(), logger );
-		if ( null == mamutFile ) { return; }
+		if ( null == mamutFile )
+		{
+			logger.log( "Saving canceled.\n" );
+			return;
+		}
 
-		final MamutXmlWriter writer = new MamutXmlWriter( mamutFile );
+		logger.log( "Saving to " + mamutFile + '\n' );
+
+		final MamutXmlWriter writer = new MamutXmlWriter( mamutFile, logger );
 		writer.appendModel( model );
 		writer.appendSettings( settings );
 		writer.appendMamutState( guimodel, setupAssignments );
 		try
 		{
 			writer.writeToFile();
+			logger.log( "Done.\n" );
 		}
 		catch ( final FileNotFoundException e )
 		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.error( "Could not find file " + mamutFile + ";\n" + e.getMessage() );
 		}
 		catch ( final IOException e )
 		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.error( "Could not write to " + mamutFile + ";\n" + e.getMessage() );
 		}
 
 	}
