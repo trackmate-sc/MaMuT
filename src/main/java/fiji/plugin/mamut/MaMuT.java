@@ -170,6 +170,7 @@ public class MaMuT implements ModelChangeListener
 
 	/** The radius below which a spot cannot go. */
 	private final double minRadius = 2; // TODO change this when we have a
+
 	// physical calibration
 
 	/** The spot currently moved under the mouse. */
@@ -683,40 +684,45 @@ public class MaMuT implements ModelChangeListener
 		manualEdgeColorGenerator = new ManualEdgeColorGenerator( model );
 	}
 
-	private void prepareSources(final File dataFile) throws ParserConfigurationException, SAXException, IOException, InstantiationException, IllegalAccessException, ClassNotFoundException, JDOMException {
-		final SequenceViewsLoader loader = new SequenceViewsLoader(dataFile.getAbsolutePath());
+	private void prepareSources( final File dataFile ) throws ParserConfigurationException, SAXException, IOException, InstantiationException, IllegalAccessException, ClassNotFoundException, JDOMException
+	{
+		final SequenceViewsLoader loader = new SequenceViewsLoader( dataFile.getAbsolutePath() );
 		final SequenceDescription seq = loader.getSequenceDescription();
 		nTimepoints = seq.numTimepoints();
-		sources = new ArrayList<SourceAndConverter<?>>();
-		cache = ((Hdf5ImageLoader) seq.imgLoader).getCache();
-		final ArrayList<ConverterSetup> converterSetups = new ArrayList<ConverterSetup>();
-		for (int setup = 0; setup < seq.numViewSetups(); ++setup) {
-			final RealARGBColorConverter<VolatileUnsignedShortType> vconverter = new RealARGBColorConverter<VolatileUnsignedShortType>(0, 65535);
-			vconverter.setColor(new ARGBType(ARGBType.rgba(255, 255, 255, 255)));
-			final RealARGBColorConverter<UnsignedShortType> converter = new RealARGBColorConverter<UnsignedShortType>(0, 65535);
-			converter.setColor(new ARGBType(ARGBType.rgba(255, 255, 255, 255)));
+		sources = new ArrayList< SourceAndConverter< ? >>();
+		cache = ( ( Hdf5ImageLoader ) seq.imgLoader ).getCache();
+		final ArrayList< ConverterSetup > converterSetups = new ArrayList< ConverterSetup >();
+		for ( int setup = 0; setup < seq.numViewSetups(); ++setup )
+		{
+			final RealARGBColorConverter< VolatileUnsignedShortType > vconverter = new RealARGBColorConverter< VolatileUnsignedShortType >( 0, 65535 );
+			vconverter.setColor( new ARGBType( ARGBType.rgba( 255, 255, 255, 255 ) ) );
+			final RealARGBColorConverter< UnsignedShortType > converter = new RealARGBColorConverter< UnsignedShortType >( 0, 65535 );
+			converter.setColor( new ARGBType( ARGBType.rgba( 255, 255, 255, 255 ) ) );
 			@SuppressWarnings( "rawtypes" )
-			final VolatileSpimSource vs = new VolatileSpimSource(loader, setup, "angle " + seq.setups.get(setup).getAngle());
+			final VolatileSpimSource vs = new VolatileSpimSource( loader, setup, "angle " + seq.setups.get( setup ).getAngle() );
 			@SuppressWarnings( "rawtypes" )
 			final SpimSource s = vs.nonVolatile();
 			@SuppressWarnings( "unchecked" )
-			final SourceAndConverter<VolatileUnsignedShortType> vsoc = new SourceAndConverter<VolatileUnsignedShortType>(vs, vconverter);
+			final SourceAndConverter< VolatileUnsignedShortType > vsoc = new SourceAndConverter< VolatileUnsignedShortType >( vs, vconverter );
 			@SuppressWarnings( "unchecked" )
-			final SourceAndConverter<UnsignedShortType> soc = new SourceAndConverter<UnsignedShortType>(s, converter, vsoc);
-			sources.add(soc);
-			converterSetups.add(new RealARGBColorConverterSetup(setup, converter, vconverter) {
+			final SourceAndConverter< UnsignedShortType > soc = new SourceAndConverter< UnsignedShortType >( s, converter, vsoc );
+			sources.add( soc );
+			converterSetups.add( new RealARGBColorConverterSetup( setup, converter, vconverter )
+			{
 				@Override
-				public void setDisplayRange(final int min, final int max) {
-					super.setDisplayRange(min, max);
+				public void setDisplayRange( final int min, final int max )
+				{
+					super.setDisplayRange( min, max );
 					requestRepaintAllViewers();
 				}
 
 				@Override
-				public void setColor(final ARGBType color) {
-					super.setColor(color);
+				public void setColor( final ARGBType color )
+				{
+					super.setColor( color );
 					requestRepaintAllViewers();
 				}
-			});
+			} );
 		}
 
 		/*
