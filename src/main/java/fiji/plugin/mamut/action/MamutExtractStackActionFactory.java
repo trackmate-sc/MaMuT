@@ -5,8 +5,8 @@ import javax.swing.ImageIcon;
 import org.scijava.plugin.Plugin;
 
 import fiji.plugin.mamut.MaMuT;
-import fiji.plugin.trackmate.action.ExtractTrackStackAction;
 import fiji.plugin.trackmate.action.TrackMateAction;
+import fiji.plugin.trackmate.visualization.TrackMateModelView;
 
 @Plugin( type = MamutActionFactory.class )
 public class MamutExtractStackActionFactory implements MamutActionFactory
@@ -15,31 +15,38 @@ public class MamutExtractStackActionFactory implements MamutActionFactory
 	@Override
 	public String getInfoText()
 	{
-		return ExtractTrackStackAction.INFO_TEXT;
+		return MamutExtractTrackStackAction.INFO_TEXT;
 	}
 
 	@Override
 	public ImageIcon getIcon()
 	{
-		return ExtractTrackStackAction.ICON;
+		return MamutExtractTrackStackAction.ICON;
 	}
 
 	@Override
 	public String getKey()
 	{
-		return ExtractTrackStackAction.KEY;
+		return MamutExtractTrackStackAction.KEY;
 	}
 
 	@Override
 	public String getName()
 	{
-		return ExtractTrackStackAction.NAME;
+		return MamutExtractTrackStackAction.NAME;
 	}
 
 	@Override
 	public TrackMateAction create( final MaMuT mamut )
 	{
-		return new ExtractTrackStackAction( mamut.getSelectionModel() );
+		final Float radiusRatio = ( Float ) mamut.getGuimodel().getDisplaySettings().get( TrackMateModelView.KEY_SPOT_RADIUS_RATIO );
+		float rad;
+		if (radiusRatio != null) {
+			rad = radiusRatio.floatValue();
+		} else {
+			rad = 1f;
+		}
+		return new MamutExtractTrackStackAction( mamut.getSelectionModel(), rad );
 	}
 
 }
