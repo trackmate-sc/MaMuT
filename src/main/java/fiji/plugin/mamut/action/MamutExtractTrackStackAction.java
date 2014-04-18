@@ -2,6 +2,8 @@ package fiji.plugin.mamut.action;
 
 import ij.ImagePlus;
 import ij.ImageStack;
+import ij.measure.Calibration;
+import ij.process.ImageProcessor;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -13,9 +15,13 @@ import javax.swing.ImageIcon;
 
 import net.imglib2.img.Img;
 import net.imglib2.img.display.imagej.ImageJFunctions;
+import net.imglib2.realtransform.AffineTransform3D;
+import net.imglib2.view.Views;
 
 import org.jgrapht.graph.DefaultWeightedEdge;
 
+import bdv.util.Affine3DHelpers;
+import bdv.viewer.Source;
 import fiji.plugin.mamut.SourceSettings;
 import fiji.plugin.mamut.util.MamutUtils;
 import fiji.plugin.trackmate.Model;
@@ -32,7 +38,7 @@ public class MamutExtractTrackStackAction extends AbstractTMAction
 
 	public static final String KEY = "EXTRACT_TRACK_STACK";
 
-	public static final String INFO_TEXT = "<html> " + "Generate a stack of images taken from the track " + "that joins two selected spots. " + "<p>" + "There must be exactly 2 spots selected for this action " + "to work, and they must belong to a track that connects " + "them." + "<p>" + "A stack of images will be generated from the spots that join " + "them, defining the image size with the largest spot encountered, multiplied by the current spot radius display factor. " + "The central spot slice is taken in case of 3D data. The source used is the one used at spot creation. " + "</html>";
+	public static final String INFO_TEXT = "<html> " + "Generate a stack of images taken from the track " + "that joins two selected spots. " + "<p>" + "There must be exactly 2 spots selected for this action " + "to work, and they must belong to a track that connects " + "them." + "<p>" + "A stack of images will be generated from the spots that join them. " + "A dialog will allow defining the source to use, the image size around the spot to capture and whether we generate a 3D stack or just grab the central slice. " + "</html>";
 
 	public static final ImageIcon ICON = new ImageIcon( TrackMateWizard.class.getResource( "images/magnifier.png" ) );
 
@@ -44,16 +50,42 @@ public class MamutExtractTrackStackAction extends AbstractTMAction
 
 	private final SelectionModel selectionModel;
 
-	private final float radiusFactor;
+	private final int targetSourceIndex;
+
+	private final double diameterFactor;
+
+	private final boolean do3d;
 
 	/*
 	 * CONSTRUCTOR
 	 */
 
-	public MamutExtractTrackStackAction( final SelectionModel selectionModel, final float radiusFactor )
+	/**
+	 * Instantiates a new action that extract the image context around a track
+	 * joining two spots.
+	 *
+	 * @param selectionModel
+	 *            the {@link SelectionModel} model in which exactly two spots
+	 *            must be selected.
+	 * @param targetSourceIndex
+	 *            the index of the source to use for image data.
+	 * @param diameterFactor
+	 *            the size of the target image, in spot diameter units, so that
+	 *            id <code>d</code> is the diameter of the largest spot that
+	 *            joins the track, then the image size is given by
+	 *            <code>d × dimameterFactor</code>. An extra prefactor of
+	 *            {@value #RESIZE_FACTOR} is applied on top of this one.
+	 * @param do3d
+	 *            if <code>true</code>, then a 3D volume will be captured around
+	 *            each spot. If <code>false</code>, we just take the central
+	 *            slice.
+	 */
+	public MamutExtractTrackStackAction( final SelectionModel selectionModel, final int targetSourceIndex, final double diameterFactor, final boolean do3d )
 	{
 		this.selectionModel = selectionModel;
-		this.radiusFactor = radiusFactor;
+		this.targetSourceIndex = targetSourceIndex;
+		this.diameterFactor = diameterFactor;
+		this.do3d = do3d;
 	}
 
 	/*
@@ -106,6 +138,7 @@ public class MamutExtractTrackStackAction extends AbstractTMAction
 		Spot previous = start;
 		Spot current;
 		double radius = Math.abs( start.getFeature( Spot.RADIUS ) );
+		int frameLargest = start.getFeature( Spot.FRAME ).intValue();
 		for ( final DefaultWeightedEdge edge : edges )
 		{
 			current = model.getTrackModel().getEdgeSource( edge );
@@ -118,6 +151,7 @@ public class MamutExtractTrackStackAction extends AbstractTMAction
 			if ( ct > radius )
 			{
 				radius = ct;
+				frameLargest = current.getFeature( Spot.FRAME ).intValue();
 			}
 			previous = current;
 		}
@@ -135,10 +169,26 @@ public class MamutExtractTrackStackAction extends AbstractTMAction
 			return;
 		}
 		final SourceSettings settings = ( SourceSettings ) s;
-		final double[] calibration = new double[] { settings.dx,settings.dy, settings.dz};
+		final Source source = settings.getSources().get( targetSourceIndex ).getSpimSource();
 
-		final int width = ( int ) Math.ceil( 2 * radius * RESIZE_FACTOR * radiusFactor / calibration[ 0 ] );
-		final int height = ( int ) Math.ceil( 2 * radius * RESIZE_FACTOR * radiusFactor / calibration[ 1 ] );
+		// Get scale
+		final AffineTransform3D sourceToGlobal = source.getSourceTransform( frameLargest, 0 );
+		final double dx = Affine3DHelpers.extractScale( sourceToGlobal, 0 );
+		final double dy = Affine3DHelpers.extractScale( sourceToGlobal, 1 );
+		final double dz = Affine3DHelpers.extractScale( sourceToGlobal, 2 );
+
+
+		final int width = ( int ) Math.ceil( 2 * radius * RESIZE_FACTOR * diameterFactor / dx );
+		final int height = ( int ) Math.ceil( 2 * radius * RESIZE_FACTOR * diameterFactor / dy );
+		final int depth;
+		if ( do3d )
+		{
+			depth = ( int ) Math.ceil( 2 * radius * RESIZE_FACTOR * diameterFactor / dz );
+		}
+		else
+		{
+			depth = 1;
+		}
 
 		// Prepare new image holder:
 		final ImageStack stack = new ImageStack( width, height );
@@ -147,13 +197,25 @@ public class MamutExtractTrackStackAction extends AbstractTMAction
 		int zpos = 0;
 		for ( final Spot spot : sortedSpots )
 		{
+			if ( do3d )
+			{
+				// Extract stack for current frame
+				final Img crop = MamutUtils.getStackAround( spot, width, height, depth, source );
+				// Copy it so stack
+				for ( int i = 0; i < crop.dimension( 2 ); i++ )
+				{
+					final ImageProcessor processor = ImageJFunctions.wrap( Views.hyperSlice( crop, 2, i ), crop.toString() ).getProcessor();
+					stack.addSlice( spot.toString(), processor );
+				}
+			}
+			else
+			{
+				// Extract image for current frame
+				final Img crop = MamutUtils.getSliceAround( spot, width, height, source );
 
-			// Extract image for current frame
-			final Img crop = MamutUtils.getImgAround( spot, width, height, settings.getSources() );
-
-			// Copy to central holder
-			stack.addSlice( spot.toString(), ImageJFunctions.wrap( crop, crop.toString() ).getProcessor() );
-
+				// Copy to central holder
+				stack.addSlice( spot.toString(), ImageJFunctions.wrap( crop, crop.toString() ).getProcessor() );
+			}
 			logger.setProgress( ( float ) ( zpos + 1 ) / nspots );
 			zpos++;
 
@@ -161,11 +223,20 @@ public class MamutExtractTrackStackAction extends AbstractTMAction
 
 		// Convert to plain ImageJ
 		final ImagePlus stackTrack = new ImagePlus( "", stack );
+		final Calibration cal = stackTrack.getCalibration();
+		cal.pixelWidth = dx;
+		cal.pixelHeight = dy;
+		cal.pixelDepth = dz;
+		cal.frameInterval = 1d;
+		cal.setTimeUnit( "link" );
+		stackTrack.setCalibration( cal );
 		stackTrack.setTitle( "Path from " + start + " to " + end );
-		stackTrack.setDimensions( 1, 1, nspots );
+		stackTrack.setDimensions( 1, depth, nspots );
 
 		// Display it
+		stackTrack.setOpenAsHyperStack( true );
 		stackTrack.show();
+		stackTrack.setZ( depth / 2 + 1 );
 		stackTrack.resetDisplayRange();
 	}
 }

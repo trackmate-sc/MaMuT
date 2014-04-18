@@ -1447,6 +1447,16 @@ public class MaMuT implements ModelChangeListener
 		return gui;
 	}
 
+	/**
+	 * Exposes the TrackMate object that controls this MaMuT session.
+	 * 
+	 * @return the {@link TrackMate} object.
+	 */
+	public TrackMate getTrackMate()
+	{
+		return trackmate;
+	}
+
 	private class DeregisterWindowListener implements WindowListener
 	{
 
