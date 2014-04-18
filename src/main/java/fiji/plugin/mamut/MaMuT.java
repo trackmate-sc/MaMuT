@@ -138,7 +138,7 @@ public class MaMuT implements ModelChangeListener
 
 	public static final String PLUGIN_NAME = "MaMuT";
 
-	public static final String PLUGIN_VERSION = "0.12.0-SNAPSHOT";
+	public static final String PLUGIN_VERSION = "0.12.0";
 
 	private static final double DEFAULT_RADIUS = 10;
 
@@ -153,6 +153,12 @@ public class MaMuT implements ModelChangeListener
 
 	/** The default height for new image viewers. */
 	public static final int DEFAULT_HEIGHT = 600;
+
+	/**
+	 * If <code>true</code>, the views position will be saved and retrieved to
+	 * and from MaMuT files.
+	 */
+	private static final boolean DO_SAVE_AND_LOAD_VIEWS = false;
 
 	private final KeyStroke moveSpotKeystroke = KeyStroke.getKeyStroke( KeyEvent.VK_SPACE, 0 );
 
@@ -170,7 +176,6 @@ public class MaMuT implements ModelChangeListener
 
 	/** The radius below which a spot cannot go. */
 	private final double minRadius = 2; // TODO change this when we have a
-
 	// physical calibration
 
 	/** The spot currently moved under the mouse. */
@@ -393,42 +398,44 @@ public class MaMuT implements ModelChangeListener
 		 * Read and render views
 		 */
 
-		final MamutViewProvider provider = new MamutViewProvider();
-		final Collection< TrackMateModelView > views = reader.getViews( provider, model, settings, selectionModel );
-		for ( final TrackMateModelView view : views )
+		if ( DO_SAVE_AND_LOAD_VIEWS )
 		{
-			for ( final String key : guimodel.getDisplaySettings().keySet() )
+			final MamutViewProvider provider = new MamutViewProvider();
+			final Collection< TrackMateModelView > views = reader.getViews( provider, model, settings, selectionModel );
+			for ( final TrackMateModelView view : views )
 			{
-				view.setDisplaySettings( key, guimodel.getDisplaySettings().get( key ) );
-			}
-
-			if ( view.getKey().equals( MamutViewerFactory.KEY ) )
-			{
-				final MamutViewer viewer = ( MamutViewer ) view;
-				installKeyBindings( viewer );
-				installMouseListeners( viewer );
-
-				viewer.addWindowListener( new WindowAdapter()
+				for ( final String key : guimodel.getDisplaySettings().keySet() )
 				{
-					@Override
-					public void windowClosed( final WindowEvent arg0 )
+					view.setDisplaySettings( key, guimodel.getDisplaySettings().get( key ) );
+				}
+
+				if ( view.getKey().equals( MamutViewerFactory.KEY ) )
+				{
+					final MamutViewer viewer = ( MamutViewer ) view;
+					installKeyBindings( viewer );
+					installMouseListeners( viewer );
+
+					viewer.addWindowListener( new WindowAdapter()
 					{
-						guimodel.getViews().remove( viewer );
-					}
-				} );
+						@Override
+						public void windowClosed( final WindowEvent arg0 )
+						{
+							guimodel.getViews().remove( viewer );
+						}
+					} );
 
-				InitializeViewerState.initTransform( viewer.getViewerPanel() );
-			}
-			else if ( view instanceof TrackScheme )
-			{
-				final TrackScheme trackscheme = ( TrackScheme ) view;
-				trackscheme.setSpotImageUpdater( thumbnailUpdater );
-			}
+					InitializeViewerState.initTransform( viewer.getViewerPanel() );
+				}
+				else if ( view instanceof TrackScheme )
+				{
+					final TrackScheme trackscheme = ( TrackScheme ) view;
+					trackscheme.setSpotImageUpdater( thumbnailUpdater );
+				}
 
-			view.render();
-			guimodel.addView( view );
+				view.render();
+				guimodel.addView( view );
+			}
 		}
-
 	}
 
 	@SuppressWarnings( { "unchecked", "rawtypes" } )
