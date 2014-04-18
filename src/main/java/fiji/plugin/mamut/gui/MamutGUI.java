@@ -50,6 +50,7 @@ public class MamutGUI extends JFrame
 
 		final JTabbedPane tabbedPane = new JTabbedPane( JTabbedPane.TOP );
 		getContentPane().add( tabbedPane, BorderLayout.CENTER );
+		setLocationByPlatform( true );
 		setVisible( true );
 
 		viewPanel = new MamutControlPanel( trackmate.getModel() );
@@ -87,7 +88,6 @@ public class MamutGUI extends JFrame
 		};
 		actionPanel = new MamutActionPanel( names, infoTexts, icons, "action", action );
 		tabbedPane.addTab( "Actions", ACTION_ICON, actionPanel, "Actions" );
-
 	}
 
 	public MamutControlPanel getViewPanel()

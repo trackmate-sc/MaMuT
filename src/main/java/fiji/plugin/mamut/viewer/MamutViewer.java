@@ -120,6 +120,7 @@ public class MamutViewer extends JFrame implements TrackMateModelView
 		SwingUtilities.replaceUIInputMap( getRootPane(), JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT, keybindings.getConcatenatedInputMap() );
 
 		setIconImage( MaMuT.MAMUT_ICON.getImage() );
+		setLocationByPlatform( true );
 		setVisible( true );
 	}
 

@@ -1020,6 +1020,7 @@ public class MaMuT implements ModelChangeListener
 				win.setIconImage( MamutControlPanel.THREEDVIEWER_ICON.getImage() );
 				universe.init( win );
 				win.pack();
+				win.setLocationByPlatform( true );
 				win.setVisible( true );
 
 				// universe.show();
@@ -1449,7 +1450,7 @@ public class MaMuT implements ModelChangeListener
 
 	/**
 	 * Exposes the TrackMate object that controls this MaMuT session.
-	 * 
+	 *
 	 * @return the {@link TrackMate} object.
 	 */
 	public TrackMate getTrackMate()
