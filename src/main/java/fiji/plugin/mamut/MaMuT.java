@@ -34,14 +34,12 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
-import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -55,7 +53,6 @@ import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import javax.xml.parsers.ParserConfigurationException;
 
-import loci.formats.FormatException;
 import mpicbg.spim.data.SequenceDescription;
 import net.imglib2.RealPoint;
 import net.imglib2.display.RealARGBColorConverter;
@@ -88,16 +85,13 @@ import fiji.plugin.mamut.gui.MamutControlPanel;
 import fiji.plugin.mamut.gui.MamutGUI;
 import fiji.plugin.mamut.gui.MamutGUIModel;
 import fiji.plugin.mamut.gui.MamutKeyboardHandler;
-import fiji.plugin.mamut.io.MamutXmlReader;
 import fiji.plugin.mamut.io.MamutXmlWriter;
 import fiji.plugin.mamut.providers.MamutEdgeAnalyzerProvider;
 import fiji.plugin.mamut.providers.MamutSpotAnalyzerProvider;
 import fiji.plugin.mamut.providers.MamutTrackAnalyzerProvider;
-import fiji.plugin.mamut.providers.MamutViewProvider;
 import fiji.plugin.mamut.util.SourceSpotImageUpdater;
 import fiji.plugin.mamut.viewer.MamutOverlay;
 import fiji.plugin.mamut.viewer.MamutViewer;
-import fiji.plugin.mamut.viewer.MamutViewerFactory;
 import fiji.plugin.mamut.viewer.MamutViewerPanel;
 import fiji.plugin.trackmate.Logger;
 import fiji.plugin.trackmate.Model;
@@ -154,12 +148,6 @@ public class MaMuT implements ModelChangeListener
 	/** The default height for new image viewers. */
 	public static final int DEFAULT_HEIGHT = 600;
 
-	/**
-	 * If <code>true</code>, the views position will be saved and retrieved to
-	 * and from MaMuT files.
-	 */
-	private static final boolean DO_SAVE_AND_LOAD_VIEWS = false;
-
 	private final KeyStroke moveSpotKeystroke = KeyStroke.getKeyStroke( KeyEvent.VK_SPACE, 0 );
 
 	private SetupAssignments setupAssignments;
@@ -169,7 +157,7 @@ public class MaMuT implements ModelChangeListener
 	private HelpDialog helpDialog;
 
 	/** The model shown and edited by this plugin. */
-	private Model model;
+	private final Model model;
 
 	/** The next created spot will be set with this radius. */
 	private double radius = DEFAULT_RADIUS;
@@ -214,7 +202,7 @@ public class MaMuT implements ModelChangeListener
 
 	private TrackMate trackmate;
 
-	private SourceSettings settings;
+	private final SourceSettings settings;
 
 	private SelectionModel selectionModel;
 
@@ -235,57 +223,60 @@ public class MaMuT implements ModelChangeListener
 
 	private static File mamutFile;
 
-	private static File imageFile;
-
-	public MaMuT()
+	public MaMuT( final File imageFile, final Model model, final SourceSettings settings )
 	{
+		this.model = model;
+		this.settings = settings;
+		setLaF();
 
-		// I can't stand the metal look. If this is a problem, contact me
-		// (jeanyves.tinevez@gmail.com)
-		if ( IJ.isMacOSX() || IJ.isWindows() )
-		{
-			try
-			{
-				UIManager.setLookAndFeel( UIManager.getSystemLookAndFeelClassName() );
-			}
-			catch ( final ClassNotFoundException e )
-			{
-				e.printStackTrace();
-			}
-			catch ( final InstantiationException e )
-			{
-				e.printStackTrace();
-			}
-			catch ( final IllegalAccessException e )
-			{
-				e.printStackTrace();
-			}
-			catch ( final UnsupportedLookAndFeelException e )
-			{
-				e.printStackTrace();
-			}
-		}
+		final String pf = imageFile.getParent();
+		String lf = imageFile.getName();
+		lf = lf.split( "\\." )[ 0 ] + "-mamut.xml";
+		mamutFile = new File( pf, lf );
 
+		launch( imageFile );
 	}
 
 	/*
-	 * PUBLIC METHODS
+	 * PROTECTED METHODS. They are all about configuring and preparing the MaMuT
+	 * session.
 	 */
 
-	@SuppressWarnings( { "rawtypes", "unchecked" } )
-	public void load( final File mamutfile ) throws ParserConfigurationException, SAXException, IOException, InstantiationException, IllegalAccessException, ClassNotFoundException
+	/**
+	 * Loads the specified image data (hd5/xml couple), configures and launches
+	 * MaMuT.
+	 * 
+	 * @param file
+	 *            the file that points to the xml file of the hd5/xml image data
+	 *            couple.
+	 */
+	@SuppressWarnings( { "unchecked", "rawtypes" } )
+	protected void launch( final File file )
 	{
 
-		MaMuT.mamutFile = mamutfile;
-
-		final MamutXmlReader reader = new MamutXmlReader( mamutfile );
-
 		/*
-		 * Read model
+		 * Prepare model & settings
 		 */
 
-		model = reader.getModel();
 		model.addModelChangeListener( this );
+
+		/*
+		 * Configure settings object with spot, edge and track analyzers as
+		 * specified in the providers.
+		 */
+
+		prepareSettingsObject();
+
+		/*
+		 * Auto-update features & declare them
+		 */
+
+		new ModelFeatureUpdater( model, settings );
+
+		trackmate = new TrackMate( model, settings );
+		trackmate.computeSpotFeatures( true );
+		trackmate.computeEdgeFeatures( true );
+		trackmate.computeTrackFeatures( true );
 
 		/*
 		 * Selection model
@@ -306,65 +297,7 @@ public class MaMuT implements ModelChangeListener
 		} );
 
 		/*
-		 * Read settings
-		 */
-
-		settings = new SourceSettings();
-		reader.readSettings( settings, null, null, new MamutSpotAnalyzerProvider(), new MamutEdgeAnalyzerProvider(), new MamutTrackAnalyzerProvider() );
-
-		/*
-		 * Read image source
-		 */
-
-		imageFile = new File( settings.imageFolder, settings.imageFileName );
-		if ( !imageFile.exists() )
-		{
-			// Then try relative path
-			imageFile = new File( mamutfile.getParent(), settings.imageFileName );
-		}
-
-		try
-		{
-			prepareSources( imageFile );
-		}
-		catch ( final JDOMException e )
-		{
-			e.printStackTrace();
-		}
-		reader.getSetupAssignments( setupAssignments );
-
-		/*
-		 * Update settings
-		 */
-
-		settings.setFrom( sources, imageFile, nTimepoints, cache );
-
-		/*
-		 * Configure settings object with spot, edge and track analyzers as
-		 * specified in the providers.
-		 */
-
-		prepareSettingsObject();
-
-		/*
-		 * Autoupdate features & declare them
-		 */
-
-		new ModelFeatureUpdater( model, settings );
-
-		trackmate = new TrackMate( model, settings );
-		trackmate.computeSpotFeatures( true );
-		trackmate.computeEdgeFeatures( true );
-		trackmate.computeTrackFeatures( true );
-
-		/*
-		 * Thumbnail updater
-		 */
-
-		thumbnailUpdater = new SourceSpotImageUpdater( settings, sources );
-
-		/*
-		 * Color provider
+		 * Color providers
 		 */
 
 		prepareColorProviders();
@@ -380,68 +313,8 @@ public class MaMuT implements ModelChangeListener
 		 * Control Panel
 		 */
 
-		gui = launchGUI();
+		launchGUI();
 
-		/*
-		 * Brightness
-		 */
-
-		brightnessDialog = new BrightnessDialog( gui, setupAssignments );
-
-		/*
-		 * Help
-		 */
-
-		helpDialog = new HelpDialog( gui, MaMuT.class.getResource( "Help.html" ) );
-
-		/*
-		 * Read and render views
-		 */
-
-		if ( DO_SAVE_AND_LOAD_VIEWS )
-		{
-			final MamutViewProvider provider = new MamutViewProvider();
-			final Collection< TrackMateModelView > views = reader.getViews( provider, model, settings, selectionModel );
-			for ( final TrackMateModelView view : views )
-			{
-				for ( final String key : guimodel.getDisplaySettings().keySet() )
-				{
-					view.setDisplaySettings( key, guimodel.getDisplaySettings().get( key ) );
-				}
-
-				if ( view.getKey().equals( MamutViewerFactory.KEY ) )
-				{
-					final MamutViewer viewer = ( MamutViewer ) view;
-					installKeyBindings( viewer );
-					installMouseListeners( viewer );
-
-					viewer.addWindowListener( new WindowAdapter()
-					{
-						@Override
-						public void windowClosed( final WindowEvent arg0 )
-						{
-							guimodel.getViews().remove( viewer );
-						}
-					} );
-
-					InitializeViewerState.initTransform( viewer.getViewerPanel() );
-				}
-				else if ( view instanceof TrackScheme )
-				{
-					final TrackScheme trackscheme = ( TrackScheme ) view;
-					trackscheme.setSpotImageUpdater( thumbnailUpdater );
-				}
-
-				view.render();
-				guimodel.addView( view );
-			}
-		}
-	}
-
-	@SuppressWarnings( { "unchecked", "rawtypes" } )
-	public void launch( final File file ) throws FormatException, IOException, ParserConfigurationException, SAXException, InstantiationException, IllegalAccessException, ClassNotFoundException
-	{
-		MaMuT.imageFile = file;
 
 		/*
 		 * Load image source
@@ -453,83 +326,51 @@ public class MaMuT implements ModelChangeListener
 		}
 		catch ( final JDOMException e )
 		{
-			e.printStackTrace();
+			logger.error( "Problem loading the image data file.\nFile " + file + " is not a properly formed XML file:\n" + e.getMessage() + "\n" );
+			return;
+		}
+		catch ( final ParserConfigurationException e )
+		{
+			logger.error( "Problem creating the XML parser:\n" + e.getMessage() + "\n" );
+			return;
+		}
+		catch ( final SAXException e )
+		{
+			logger.error( "Problem with the XML parser:\n" + e.getMessage() + "\n" );
+			return;
+		}
+		catch ( final IOException e )
+		{
+			logger.error( "Problem loading the image data file.\nCould not read file " + file + ":\n" + e.getMessage() + "\n" );
+			return;
+		}
+		catch ( final InstantiationException e )
+		{
+			logger.error( "Problem creating base classes:\n" + e.getMessage() + "\n" );
+			return;
+		}
+		catch ( final IllegalAccessException e )
+		{
+			logger.error( "Problem creating base classes:\n" + e.getMessage() + "\n" );
+			return;
+		}
+		catch ( final ClassNotFoundException e )
+		{
+			logger.error( "Problem finding base classes:\n" + e.getMessage() + "\n" );
+			return;
 		}
 
 		/*
-		 * Instantiate model
+		 * Update settings.
 		 */
 
-		model = new Model();
-		model.addModelChangeListener( this );
-
-		/*
-		 * Thumbnail updater
-		 */
-
-		thumbnailUpdater = new SourceSpotImageUpdater( settings, sources );
-
-		/*
-		 * Settings
-		 */
-
-		settings = new SourceSettings();
 		settings.setFrom( sources, file, nTimepoints, cache );
 
 		/*
-		 * Configure settings object with spot, edge and track analyzers as
-		 * specified in the providers.
+		 * Thumbnail updater. We need to have the sources loaded for it.
 		 */
 
-		prepareSettingsObject();
-
-		/*
-		 * Autoupdate features & declare them
-		 */
-
-		new ModelFeatureUpdater( model, settings );
-
-		trackmate = new TrackMate( model, settings );
-		trackmate.computeSpotFeatures( true );
-		trackmate.computeEdgeFeatures( true );
-		trackmate.computeTrackFeatures( true );
-
-		/*
-		 * Selection model
-		 */
-
-		selectionModel = new SelectionModel( model );
-		selectionModel.addSelectionChangeListener( new SelectionChangeListener()
-		{
-			@Override
-			public void selectionChanged( final SelectionChangeEvent event )
-			{
-				refresh();
-				if ( selectionModel.getSpotSelection().size() == 1 )
-				{
-					centerOnSpot( selectionModel.getSpotSelection().iterator().next() );
-				}
-			}
-		} );
-
-		/*
-		 * Color provider
-		 */
-
-		prepareColorProviders();
-
-		/*
-		 * GUI model
-		 */
-
-		guimodel = new MamutGUIModel();
-		guimodel.setDisplaySettings( createDisplaySettings( model ) );
-
-		/*
-		 * Control Panel
-		 */
-
-		gui = launchGUI();
+		thumbnailUpdater = new SourceSpotImageUpdater( settings, sources );
 
 		/*
 		 * Brightness
@@ -544,22 +385,31 @@ public class MaMuT implements ModelChangeListener
 		helpDialog = new HelpDialog( gui, MaMuT.class.getResource( "Help.html" ) );
 	}
 
-	@Override
-	public void modelChanged( final ModelChangeEvent event )
-	{
-		refresh();
-	}
-
-	/*
-	 * PRIVATE METHODS
+	/**
+	 * Instantiates and displays the MaMuT GUI.
+	 * <p>
+	 * This will sets the following fields:
+	 * <ul>
+	 * <li>{@link #gui}
+	 * <li>{@link #logger}
+	 * </ul>
+	 * This requires the following fields to be set:
+	 * <ul>
+	 * <li>{@link #trackmate}, properly instantiated with {@link #model} and
+	 * {@link #settings}
+	 * <li>{@link #spotColorProvider}
+	 * <li>{@link #edgeColorProvider}
+	 * <li>{@link #trackColorProvider}
+	 * <li>{@link #spotColorPerTrackFeatureProvider}
+	 * <li>{@link #manualSpotColorGenerator}
+	 * <li>{@link #manualEdgeColorGenerator}
+	 * </ul>
 	 */
-
-	private MamutGUI launchGUI()
+	protected void launchGUI()
 	{
+		gui = new MamutGUI( trackmate, this );
 
-		final MamutGUI mamutGUI = new MamutGUI( trackmate, this );
-
-		final MamutControlPanel viewPanel = mamutGUI.getViewPanel();
+		final MamutControlPanel viewPanel = gui.getViewPanel();
 		viewPanel.setSpotColorGenerator( spotColorProvider );
 		viewPanel.setSpotColorGeneratorPerTrackFeature( spotColorPerTrackFeatureProvider );
 		viewPanel.setManualSpotColorGenerator( manualSpotColorGenerator );
@@ -575,22 +425,18 @@ public class MaMuT implements ModelChangeListener
 				if ( event == viewPanel.TRACK_SCHEME_BUTTON_PRESSED )
 				{
 					launchTrackScheme( viewPanel.getTrackSchemeButton() );
-
 				}
 				else if ( event == viewPanel.DO_ANALYSIS_BUTTON_PRESSED )
 				{
 					launch3DViewer( viewPanel.getDoAnalysisButton() );
-
 				}
 				else if ( event == viewPanel.MAMUT_VIEWER_BUTTON_PRESSED )
 				{
 					newViewer();
-
 				}
 				else if ( event == viewPanel.MAMUT_SAVE_BUTTON_PRESSED )
 				{
 					save();
-
 				}
 				else
 				{
@@ -613,7 +459,7 @@ public class MaMuT implements ModelChangeListener
 			}
 		} );
 
-		final AnnotationPanel annotationPanel = mamutGUI.getAnnotationPanel();
+		final AnnotationPanel annotationPanel = gui.getAnnotationPanel();
 		logger = annotationPanel.getLogger();
 		annotationPanel.addActionListener( new ActionListener()
 		{
@@ -639,23 +485,20 @@ public class MaMuT implements ModelChangeListener
 				else if ( event == annotationPanel.SELECT_TRACK_UPWARD_BUTTON_PRESSED )
 				{
 					ModelTools.selectTrackUpward( selectionModel );
-
 				}
 				else
 				{
-					System.out.println( "[MaMuT] Caught unknown event: " + event );
+					logger.error( "Caught unknown event: " + event );
 				}
 			}
 		} );
-
-		return mamutGUI;
-
 	}
 
 	/**
 	 * Sets the {@link #settings} field with the analyzers configured for MaMuT.
+	 * This does not require the image sources to be loaded.
 	 */
-	private void prepareSettingsObject()
+	protected void prepareSettingsObject()
 	{
 		settings.clearSpotAnalyzerFactories();
 		final SpotAnalyzerProvider spotAnalyzerProvider = new MamutSpotAnalyzerProvider();
@@ -685,7 +528,52 @@ public class MaMuT implements ModelChangeListener
 		}
 	}
 
-	private void prepareColorProviders()
+	/**
+	 * Returns the starting display settings that will be passed to any new view
+	 * registered within this GUI.
+	 * 
+	 * @param model
+	 *            the model this GUI will configure; might be required by some
+	 *            display settings.
+	 * @return a map of display settings mappings.
+	 */
+	protected Map< String, Object > createDisplaySettings( final Model model )
+	{
+		final Map< String, Object > displaySettings = new HashMap< String, Object >();
+		displaySettings.put( KEY_COLOR, DEFAULT_SPOT_COLOR );
+		displaySettings.put( KEY_HIGHLIGHT_COLOR, DEFAULT_HIGHLIGHT_COLOR );
+		displaySettings.put( KEY_SPOTS_VISIBLE, true );
+		displaySettings.put( KEY_DISPLAY_SPOT_NAMES, false );
+		displaySettings.put( KEY_SPOT_RADIUS_RATIO, 1.0f );
+		displaySettings.put( KEY_TRACKS_VISIBLE, true );
+		displaySettings.put( KEY_TRACK_DISPLAY_MODE, DEFAULT_TRACK_DISPLAY_MODE );
+		displaySettings.put( KEY_TRACK_DISPLAY_DEPTH, DEFAULT_TRACK_DISPLAY_DEPTH );
+		displaySettings.put( KEY_TRACK_COLORING, trackColorProvider );
+		displaySettings.put( KEY_SPOT_COLORING, spotColorProvider );
+		displaySettings.put( KEY_COLORMAP, DEFAULT_COLOR_MAP );
+		displaySettings.put( KEY_LIMIT_DRAWING_DEPTH, DEFAULT_LIMIT_DRAWING_DEPTH );
+		displaySettings.put( KEY_DRAWING_DEPTH, DEFAULT_DRAWING_DEPTH );
+		return displaySettings;
+	}
+
+	/**
+	 * Instantiates the color providers of this MaMuT.
+	 * <p>
+	 * This needs the follwing fields to be set:
+	 * <ul>
+	 * <li>{@link #model}
+	 * </ul>
+	 * This will set the following fields:
+	 * <ul>
+	 * <li>{@link #spotColorProvider}
+	 * <li>{@link #edgeColorProvider}
+	 * <li>{@link #trackColorProvider}
+	 * <li>{@link #spotColorPerTrackFeatureProvider}
+	 * <li>{@link #manualSpotColorGenerator}
+	 * <li>{@link #manualEdgeColorGenerator}
+	 * </ul>
+	 */
+	protected void prepareColorProviders()
 	{
 		spotColorProvider = new SpotColorGenerator( model );
 		trackColorProvider = new PerTrackFeatureColorGenerator( model, TrackIndexAnalyzer.TRACK_ID );
@@ -695,7 +583,21 @@ public class MaMuT implements ModelChangeListener
 		manualEdgeColorGenerator = new ManualEdgeColorGenerator( model );
 	}
 
-	private void prepareSources( final File dataFile ) throws ParserConfigurationException, SAXException, IOException, InstantiationException, IllegalAccessException, ClassNotFoundException, JDOMException
+	/**
+	 * Loads and prepares the image sources from the specified files.
+	 * <p>
+	 * This instantiates and sets the following fields:
+	 * <ul>
+	 * <li>{@link #nTimepoints}
+	 * <li>{@link #sources}
+	 * <li>{@link #cache}
+	 * <li>{@link #setupAssignments}
+	 * <ul>
+	 * 
+	 * @param dataFile
+	 *            the file that points to the xml master file of the image data.
+	 */
+	protected void prepareSources( final File dataFile ) throws ParserConfigurationException, SAXException, IOException, InstantiationException, IllegalAccessException, ClassNotFoundException, JDOMException
 	{
 		final SequenceViewsLoader loader = new SequenceViewsLoader( dataFile.getAbsolutePath() );
 		final SequenceDescription seq = loader.getSequenceDescription();
@@ -748,6 +650,326 @@ public class MaMuT implements ModelChangeListener
 		}
 	}
 
+	/*
+	 * PUBLIC METHODS
+	 */
+
+	@Override
+	public void modelChanged( final ModelChangeEvent event )
+	{
+		refresh();
+	}
+
+	public void toggleBrightnessDialog()
+	{
+		brightnessDialog.setVisible( !brightnessDialog.isVisible() );
+	}
+
+	public void toggleHelpDialog()
+	{
+		helpDialog.setVisible( !helpDialog.isVisible() );
+	}
+
+	/**
+	 * Performs the semi-automatic detection of subsequent spots. For this to
+	 * work, exactly one spot must be in the selection.
+	 */
+	@SuppressWarnings( { "rawtypes", "unchecked" } )
+	public void semiAutoDetectSpot()
+	{
+		final SourceSemiAutoTracker autotracker = new SourceSemiAutoTracker( model, selectionModel, sources, logger );
+		autotracker.setNumThreads( 4 );
+		autotracker.setParameters( guimodel.qualityThreshold, guimodel.distanceTolerance );
+
+		new Thread( "MaMuT semi-automated tracking thread" )
+		{
+			@Override
+			public void run()
+			{
+				final boolean ok = autotracker.checkInput() && autotracker.process();
+				if ( !ok )
+				{
+					logger.error( autotracker.getErrorMessage() );
+				}
+			}
+		}.start();
+	}
+
+	/**
+	 * Adds a new spot at the mouse current location.
+	 * 
+	 * @param viewer
+	 *            the viewer in which the add spot request was made.
+	 */
+	public void addSpot( final MamutViewer viewer )
+	{
+
+		// Check if the mouse is not off-screen
+		final Point mouseScreenLocation = MouseInfo.getPointerInfo().getLocation();
+		final Point viewerPosition = viewer.getLocationOnScreen();
+		final Dimension viewerSize = viewer.getSize();
+		if ( mouseScreenLocation.x < viewerPosition.x || mouseScreenLocation.y < viewerPosition.y || mouseScreenLocation.x > viewerPosition.x + viewerSize.width || mouseScreenLocation.y > viewerPosition.y + viewerSize.height ) { return; }
+
+		final ViewerState state = viewer.getViewerPanel().getState();
+		final int frame = state.getCurrentTimepoint();
+		final int sourceId = state.getCurrentSource();
+
+		// Ok, then create this spot, wherever it is.
+		final double[] coordinates = new double[ 3 ];
+		viewer.getViewerPanel().getGlobalMouseCoordinates( RealPoint.wrap( coordinates ) );
+		final Spot spot = new Spot( coordinates[ 0 ], coordinates[ 1 ], coordinates[ 2 ], radius, -1d );
+
+		if ( testWithinSpot )
+		{
+			final Spot closestSpot = model.getSpots().getClosestSpot( spot, frame, true );
+			if ( null != closestSpot )
+			{
+				final double closestRadius = closestSpot.getFeature( Spot.RADIUS ).doubleValue();
+				if ( closestSpot.squareDistanceTo( spot ) < closestRadius * closestRadius )
+				{
+					final String message = "Cannot create spot: it is too close to spot " + closestSpot + ".\n";
+					viewer.getLogger().log( message );
+					return;
+				}
+			}
+		}
+
+		spot.putFeature( Spot.QUALITY, -1d );
+		spot.putFeature( Spot.POSITION_T, Double.valueOf( frame ) );
+		spot.putFeature( SpotSourceIdAnalyzerFactory.SOURCE_ID, Double.valueOf( sourceId ) );
+
+		model.beginUpdate();
+		try
+		{
+			model.addSpotTo( spot, frame );
+		}
+		finally
+		{
+			model.endUpdate();
+		}
+
+		String message = String.format( "Added spot " + spot + " at location X = %.1f, Y = %.1f, Z = %.1f, T = %.0f", spot.getFeature( Spot.POSITION_X ), spot.getFeature( Spot.POSITION_Y ), spot.getFeature( Spot.POSITION_Z ), spot.getFeature( Spot.FRAME ) );
+
+		// Then, possibly, the edge. We must do it in a subsequent update,
+		// otherwise the model gets confused.
+		final Set< Spot > spotSelection = selectionModel.getSpotSelection();
+
+		if ( isLinkingMode && spotSelection.size() == 1 )
+		{ // if we are in the
+			// right mode & if
+			// there is only one
+			// spot in
+			// selection
+			final Spot targetSpot = spotSelection.iterator().next();
+			if ( targetSpot.getFeature( Spot.FRAME ).intValue() != spot.getFeature( Spot.FRAME ).intValue() )
+			{ // & if they are on different
+				// frames
+				model.beginUpdate();
+				final DefaultWeightedEdge newedge;
+				try
+				{
+
+					// Create link
+					newedge = model.addEdge( targetSpot, spot, -1 );
+				}
+				finally
+				{
+					model.endUpdate();
+				}
+				message += ", linked to spot " + targetSpot + ".";
+				selectionModel.clearEdgeSelection();
+				selectionModel.addEdgeToSelection( newedge );
+			}
+			else
+			{
+				message += ".";
+			}
+		}
+		else
+		{
+			message += ".";
+		}
+		viewer.getLogger().log( message );
+
+		// Store new spot as the sole selection for this model
+		selectionModel.clearSpotSelection();
+		selectionModel.addSpotToSelection( spot );
+	}
+
+	/**
+	 * Remove spot at the mouse current location (if there is one).
+	 * 
+	 * @param viewer
+	 *            the viewer in which the delete spot request was made.
+	 */
+	public void deleteSpot( final MamutViewer viewer )
+	{
+		final Spot spot = getSpotWithinRadius( viewer.getViewerPanel() );
+		if ( null != spot )
+		{
+			// We can delete it
+			model.beginUpdate();
+			try
+			{
+				model.removeSpot( spot );
+			}
+			finally
+			{
+				model.endUpdate();
+				final String str = "Removed spot " + spot + ".";
+				viewer.getLogger().log( str );
+			}
+		}
+
+	}
+
+	/**
+	 * Increases (or decreases) the neighbor spot radius.
+	 * 
+	 * @param viewer
+	 *            the viewer in which the change radius was made.
+	 * @param factor
+	 *            the factor by which to change the radius. Negative value are
+	 *            used to decrease the radius.
+	 */
+	public void increaseSpotRadius( final MamutViewer viewer, final double factor )
+	{
+		final Spot spot = getSpotWithinRadius( viewer.getViewerPanel() );
+		if ( null != spot )
+		{
+			// Change the spot radius
+			double rad = spot.getFeature( Spot.RADIUS );
+			rad += factor * RADIUS_CHANGE_FACTOR * rad;
+
+			if ( rad < minRadius ) { return; }
+
+			radius = rad;
+			spot.putFeature( Spot.RADIUS, rad );
+			// Mark the spot for model update;
+			model.beginUpdate();
+			try
+			{
+				model.updateFeatures( spot );
+			}
+			finally
+			{
+				model.endUpdate();
+				final String str = String.format( "Changed spot " + spot + " radius to R = %.1f.", spot.getFeature( Spot.RADIUS ) );
+				viewer.getLogger().log( str );
+			}
+			refresh();
+		}
+	}
+
+	/**
+	 * Toggle the spot creation test on/off. If on, MaMuT will prevent a new
+	 * spot to be created within another one.
+	 */
+	public void toggleSpotCreationTest()
+	{
+		testWithinSpot = !testWithinSpot;
+	}
+
+	public void toggleLinkingMode( final Logger logger )
+	{
+		this.isLinkingMode = !isLinkingMode;
+		final String str = "Switched auto-linking mode " + ( isLinkingMode ? "on." : "off." );
+		logger.log( str );
+	}
+
+	/**
+	 * Toggles a link between two spots.
+	 * <p>
+	 * The two spots are taken from the selection, which must have exactly two
+	 * spots in it
+	 * 
+	 * @param logger
+	 *            the {@link Logger} to echo linking messages.
+	 */
+	public void toggleLink( final Logger logger )
+	{
+		/*
+		 * Toggle a link between two spots.
+		 */
+		final Set< Spot > selectedSpots = selectionModel.getSpotSelection();
+		if ( selectedSpots.size() == 2 )
+		{
+			final Iterator< Spot > it = selectedSpots.iterator();
+			final Spot source = it.next();
+			final Spot target = it.next();
+
+			if ( model.getTrackModel().containsEdge( source, target ) )
+			{
+				/*
+				 * Remove it
+				 */
+				model.beginUpdate();
+				try
+				{
+					model.removeEdge( source, target );
+					logger.log( "Removed the link between " + source + " and " + target + ".\n" );
+				}
+				finally
+				{
+					model.endUpdate();
+				}
+
+			}
+			else
+			{
+				/*
+				 * Create a new link
+				 */
+				final int ts = source.getFeature( Spot.FRAME ).intValue();
+				final int tt = target.getFeature( Spot.FRAME ).intValue();
+
+				if ( tt != ts )
+				{
+					model.beginUpdate();
+					try
+					{
+						model.addEdge( source, target, -1 );
+						logger.log( "Created a link between " + source + " and " + target + ".\n" );
+					}
+					finally
+					{
+						model.endUpdate();
+					}
+					/*
+					 * To emulate a kind of automatic linking, we put the last
+					 * spot to the selection, so several spots can be tracked in
+					 * a row without having to de-select one
+					 */
+					Spot single;
+					if ( tt > ts )
+					{
+						single = target;
+					}
+					else
+					{
+						single = source;
+					}
+					selectionModel.clearSpotSelection();
+					selectionModel.addSpotToSelection( single );
+
+				}
+				else
+				{
+					logger.error( "Cannot create a link between two spots belonging in the same frame." );
+				}
+			}
+
+		}
+		else
+		{
+			logger.error( "Expected selection to contain 2 spots, found " + selectedSpots.size() + ".\n" );
+		}
+	}
+
+	/*
+	 * PRIVATE METHODS
+	 */
+
 	private MamutViewer newViewer()
 	{
 		final MamutViewer viewer = new MamutViewer( DEFAULT_WIDTH, DEFAULT_HEIGHT, sources, nTimepoints, cache, model, selectionModel );
@@ -776,33 +998,10 @@ public class MaMuT implements ModelChangeListener
 
 	}
 
-	public void toggleBrightnessDialog()
-	{
-		brightnessDialog.setVisible( !brightnessDialog.isVisible() );
-	}
-
-	public void toggleHelpDialog()
-	{
-		helpDialog.setVisible( !helpDialog.isVisible() );
-	}
-
 	private void save()
 	{
 
 		final Logger logger = Logger.IJ_LOGGER;
-		if ( null == imageFile )
-		{
-			final File folder = new File( System.getProperty( "user.dir" ) ).getParentFile().getParentFile();
-			mamutFile = new File( folder.getPath() + File.separator + "MamutAnnotation.xml" );
-		}
-		else
-		{
-			final String pf = imageFile.getParent();
-			String lf = imageFile.getName();
-			lf = lf.split( "\\." )[ 0 ] + "-mamut.xml";
-			mamutFile = new File( pf, lf );
-		}
-
 		mamutFile = IOUtils.askForFileForSaving( mamutFile, IJ.getInstance(), logger );
 		if ( null == mamutFile )
 		{
@@ -1060,196 +1259,7 @@ public class MaMuT implements ModelChangeListener
 		}
 	}
 
-	/**
-	 * Performs the semi-automatic detection of subsequent spots. For this to
-	 * work, exactly one spot must be in the selection.
-	 */
-	@SuppressWarnings( { "rawtypes", "unchecked" } )
-	public void semiAutoDetectSpot()
-	{
-		final SourceSemiAutoTracker autotracker = new SourceSemiAutoTracker( model, selectionModel, sources, logger );
-		autotracker.setNumThreads( 4 );
-		autotracker.setParameters( guimodel.qualityThreshold, guimodel.distanceTolerance );
 
-		new Thread( "MaMuT semi-automated tracking thread" )
-		{
-			@Override
-			public void run()
-			{
-				final boolean ok = autotracker.checkInput() && autotracker.process();
-				if ( !ok )
-				{
-					logger.error( autotracker.getErrorMessage() );
-				}
-			}
-		}.start();
-	}
-
-	/**
-	 * Adds a new spot at the mouse current location.
-	 *
-	 * @param viewer
-	 *            the viewer in which the add spot request was made.
-	 */
-	public void addSpot( final MamutViewer viewer )
-	{
-
-		// Check if the mouse is not off-screen
-		final Point mouseScreenLocation = MouseInfo.getPointerInfo().getLocation();
-		final Point viewerPosition = viewer.getLocationOnScreen();
-		final Dimension viewerSize = viewer.getSize();
-		if ( mouseScreenLocation.x < viewerPosition.x || mouseScreenLocation.y < viewerPosition.y || mouseScreenLocation.x > viewerPosition.x + viewerSize.width || mouseScreenLocation.y > viewerPosition.y + viewerSize.height ) { return; }
-
-		final ViewerState state = viewer.getViewerPanel().getState();
-		final int frame = state.getCurrentTimepoint();
-		final int sourceId = state.getCurrentSource();
-
-		// Ok, then create this spot, wherever it is.
-		final double[] coordinates = new double[ 3 ];
-		viewer.getViewerPanel().getGlobalMouseCoordinates( RealPoint.wrap( coordinates ) );
-		final Spot spot = new Spot( coordinates[ 0 ], coordinates[ 1 ], coordinates[ 2 ], radius, -1d );
-
-		if ( testWithinSpot )
-		{
-			final Spot closestSpot = model.getSpots().getClosestSpot( spot, frame, true );
-			if ( null != closestSpot )
-			{
-				final double closestRadius = closestSpot.getFeature( Spot.RADIUS ).doubleValue();
-				if ( closestSpot.squareDistanceTo( spot ) < closestRadius * closestRadius )
-				{
-					final String message = "Cannot create spot: it is too close to spot " + closestSpot + ".\n";
-					viewer.getLogger().log( message );
-					return;
-				}
-			}
-		}
-
-		spot.putFeature( Spot.QUALITY, -1d );
-		spot.putFeature( Spot.POSITION_T, Double.valueOf( frame ) );
-		spot.putFeature( SpotSourceIdAnalyzerFactory.SOURCE_ID, Double.valueOf( sourceId ) );
-
-		model.beginUpdate();
-		try
-		{
-			model.addSpotTo( spot, frame );
-		}
-		finally
-		{
-			model.endUpdate();
-		}
-
-		String message = String.format( "Added spot " + spot + " at location X = %.1f, Y = %.1f, Z = %.1f, T = %.0f", spot.getFeature( Spot.POSITION_X ), spot.getFeature( Spot.POSITION_Y ), spot.getFeature( Spot.POSITION_Z ), spot.getFeature( Spot.FRAME ) );
-
-		// Then, possibly, the edge. We must do it in a subsequent update,
-		// otherwise the model gets confused.
-		final Set< Spot > spotSelection = selectionModel.getSpotSelection();
-
-		if ( isLinkingMode && spotSelection.size() == 1 )
-		{ // if we are in the
-			// right mode & if
-			// there is only one
-			// spot in
-			// selection
-			final Spot targetSpot = spotSelection.iterator().next();
-			if ( targetSpot.getFeature( Spot.FRAME ).intValue() != spot.getFeature( Spot.FRAME ).intValue() )
-			{ // & if they are on different
-				// frames
-				model.beginUpdate();
-				final DefaultWeightedEdge newedge;
-				try
-				{
-
-					// Create link
-					newedge = model.addEdge( targetSpot, spot, -1 );
-				}
-				finally
-				{
-					model.endUpdate();
-				}
-				message += ", linked to spot " + targetSpot + ".";
-				selectionModel.clearEdgeSelection();
-				selectionModel.addEdgeToSelection( newedge );
-			}
-			else
-			{
-				message += ".";
-			}
-		}
-		else
-		{
-			message += ".";
-		}
-		viewer.getLogger().log( message );
-
-		// Store new spot as the sole selection for this model
-		selectionModel.clearSpotSelection();
-		selectionModel.addSpotToSelection( spot );
-	}
-
-	/**
-	 * Remove spot at the mouse current location (if there is one).
-	 *
-	 * @param viewer
-	 *            the viewer in which the delete spot request was made.
-	 */
-	public void deleteSpot( final MamutViewer viewer )
-	{
-		final Spot spot = getSpotWithinRadius( viewer.getViewerPanel() );
-		if ( null != spot )
-		{
-			// We can delete it
-			model.beginUpdate();
-			try
-			{
-				model.removeSpot( spot );
-			}
-			finally
-			{
-				model.endUpdate();
-				final String str = "Removed spot " + spot + ".";
-				viewer.getLogger().log( str );
-			}
-		}
-
-	}
-
-	/**
-	 * Increases (or decreases) the neighbor spot radius.
-	 *
-	 * @param viewer
-	 *            the viewer in which the change radius was made.
-	 * @param factor
-	 *            the factor by which to change the radius. Negative value are
-	 *            used to decrease the radius.
-	 */
-	public void increaseSpotRadius( final MamutViewer viewer, final double factor )
-	{
-		final Spot spot = getSpotWithinRadius( viewer.getViewerPanel() );
-		if ( null != spot )
-		{
-			// Change the spot radius
-			double rad = spot.getFeature( Spot.RADIUS );
-			rad += factor * RADIUS_CHANGE_FACTOR * rad;
-
-			if ( rad < minRadius ) { return; }
-
-			radius = rad;
-			spot.putFeature( Spot.RADIUS, rad );
-			// Mark the spot for model update;
-			model.beginUpdate();
-			try
-			{
-				model.updateFeatures( spot );
-			}
-			finally
-			{
-				model.endUpdate();
-				final String str = String.format( "Changed spot " + spot + " radius to R = %.1f.", spot.getFeature( Spot.RADIUS ) );
-				viewer.getLogger().log( str );
-			}
-			refresh();
-		}
-	}
 
 	/**
 	 * Returns the closest {@link Spot} with respect to the current mouse
@@ -1290,138 +1300,10 @@ public class MaMuT implements ModelChangeListener
 
 	}
 
-	/**
-	 * Toggle the spot creation test on/off. If on, MaMuT will prevent a new
-	 * spot to be created within another one.
+
+	/*
+	 * GETTERS
 	 */
-	public void toggleSpotCreationTest()
-	{
-		testWithinSpot = !testWithinSpot;
-	}
-
-	public void toggleLinkingMode( final Logger logger )
-	{
-		this.isLinkingMode = !isLinkingMode;
-		final String str = "Switched auto-linking mode " + ( isLinkingMode ? "on." : "off." );
-		logger.log( str );
-	}
-
-	/**
-	 * Toggles a link between two spots.
-	 * <p>
-	 * The two spots are taken from the selection, which must have exactly two
-	 * spots in it
-	 *
-	 * @param logger
-	 *            the {@link Logger} to echo linking messages.
-	 */
-	public void toggleLink( final Logger logger )
-	{
-		/*
-		 * Toggle a link between two spots.
-		 */
-		final Set< Spot > selectedSpots = selectionModel.getSpotSelection();
-		if ( selectedSpots.size() == 2 )
-		{
-			final Iterator< Spot > it = selectedSpots.iterator();
-			final Spot source = it.next();
-			final Spot target = it.next();
-
-			if ( model.getTrackModel().containsEdge( source, target ) )
-			{
-				/*
-				 * Remove it
-				 */
-				model.beginUpdate();
-				try
-				{
-					model.removeEdge( source, target );
-					logger.log( "Removed the link between " + source + " and " + target + ".\n" );
-				}
-				finally
-				{
-					model.endUpdate();
-				}
-
-			}
-			else
-			{
-				/*
-				 * Create a new link
-				 */
-				final int ts = source.getFeature( Spot.FRAME ).intValue();
-				final int tt = target.getFeature( Spot.FRAME ).intValue();
-
-				if ( tt != ts )
-				{
-					model.beginUpdate();
-					try
-					{
-						model.addEdge( source, target, -1 );
-						logger.log( "Created a link between " + source + " and " + target + ".\n" );
-					}
-					finally
-					{
-						model.endUpdate();
-					}
-					/*
-					 * To emulate a kind of automatic linking, we put the last
-					 * spot to the selection, so several spots can be tracked in
-					 * a row without having to de-select one
-					 */
-					Spot single;
-					if ( tt > ts )
-					{
-						single = target;
-					}
-					else
-					{
-						single = source;
-					}
-					selectionModel.clearSpotSelection();
-					selectionModel.addSpotToSelection( single );
-
-				}
-				else
-				{
-					logger.error( "Cannot create a link between two spots belonging in the same frame." );
-				}
-			}
-
-		}
-		else
-		{
-			logger.error( "Expected selection to contain 2 spots, found " + selectedSpots.size() + ".\n" );
-		}
-	}
-
-	/**
-	 * Returns the starting display settings that will be passed to any new view
-	 * registered within this GUI.
-	 *
-	 * @param model
-	 *            the model this GUI will configure; might be required by some
-	 *            display settings.
-	 * @return a map of display settings mappings.
-	 */
-	protected Map< String, Object > createDisplaySettings( final Model model )
-	{
-		final Map< String, Object > displaySettings = new HashMap< String, Object >();
-		displaySettings.put( KEY_COLOR, DEFAULT_SPOT_COLOR );
-		displaySettings.put( KEY_HIGHLIGHT_COLOR, DEFAULT_HIGHLIGHT_COLOR );
-		displaySettings.put( KEY_SPOTS_VISIBLE, true );
-		displaySettings.put( KEY_DISPLAY_SPOT_NAMES, false );
-		displaySettings.put( KEY_SPOT_RADIUS_RATIO, 1.0f );
-		displaySettings.put( KEY_TRACKS_VISIBLE, true );
-		displaySettings.put( KEY_TRACK_DISPLAY_MODE, DEFAULT_TRACK_DISPLAY_MODE );
-		displaySettings.put( KEY_TRACK_DISPLAY_DEPTH, DEFAULT_TRACK_DISPLAY_DEPTH );
-		displaySettings.put( KEY_TRACK_COLORING, trackColorProvider );
-		displaySettings.put( KEY_SPOT_COLORING, spotColorProvider );
-		displaySettings.put( KEY_COLORMAP, DEFAULT_COLOR_MAP );
-		displaySettings.put( KEY_LIMIT_DRAWING_DEPTH, DEFAULT_LIMIT_DRAWING_DEPTH );
-		displaySettings.put( KEY_DRAWING_DEPTH, DEFAULT_DRAWING_DEPTH );
-		return displaySettings;
-	}
 
 	/**
 	 * Exposes the GUI model that stores this GUI states.
@@ -1465,6 +1347,21 @@ public class MaMuT implements ModelChangeListener
 		return trackmate;
 	}
 
+	/**
+	 * Exposes the {@link SetupAssignments} that controls the display in this
+	 * MaMuT session.
+	 * 
+	 * @return the {@link SetupAssignments}.
+	 */
+	public SetupAssignments getSetupAssignments()
+	{
+		return setupAssignments;
+	}
+
+	/*
+	 * PRIVATE CLASSES
+	 */
+
 	private class DeregisterWindowListener implements WindowListener
 	{
 
@@ -1505,5 +1402,37 @@ public class MaMuT implements ModelChangeListener
 		public void windowOpened( final WindowEvent arg0 )
 		{}
 
+	}
+
+	/*
+	 * STATIC METHODS
+	 */
+
+	private static final void setLaF() {
+		// I can't stand the metal look. If this is a problem, contact me
+		// (jeanyves.tinevez@gmail.com)
+		if ( IJ.isMacOSX() || IJ.isWindows() )
+		{
+			try
+			{
+				UIManager.setLookAndFeel( UIManager.getSystemLookAndFeelClassName() );
+			}
+			catch ( final ClassNotFoundException e )
+			{
+				e.printStackTrace();
+			}
+			catch ( final InstantiationException e )
+			{
+				e.printStackTrace();
+			}
+			catch ( final IllegalAccessException e )
+			{
+				e.printStackTrace();
+			}
+			catch ( final UnsupportedLookAndFeelException e )
+			{
+				e.printStackTrace();
+			}
+		}
 	}
 }

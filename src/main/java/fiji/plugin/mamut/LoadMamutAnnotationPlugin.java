@@ -1,17 +1,17 @@
 package fiji.plugin.mamut;
 
+import fiji.plugin.mamut.io.MamutXmlReader;
+import fiji.plugin.mamut.providers.MamutEdgeAnalyzerProvider;
+import fiji.plugin.mamut.providers.MamutSpotAnalyzerProvider;
+import fiji.plugin.mamut.providers.MamutTrackAnalyzerProvider;
 import fiji.plugin.trackmate.Logger;
+import fiji.plugin.trackmate.Model;
 import fiji.plugin.trackmate.io.IOUtils;
 import ij.IJ;
 import ij.ImageJ;
 import ij.plugin.PlugIn;
 
 import java.io.File;
-import java.io.IOException;
-
-import javax.xml.parsers.ParserConfigurationException;
-
-import org.xml.sax.SAXException;
 
 public class LoadMamutAnnotationPlugin implements PlugIn {
 
@@ -44,41 +44,59 @@ public class LoadMamutAnnotationPlugin implements PlugIn {
 			}
 		}
 
-		final MaMuT mamut = new MaMuT();
-		try {
-			mamut.load(file);
-		} catch (final ParserConfigurationException e) {
-			IJ.log(e.getMessage());
-			e.printStackTrace();
-		} catch (final SAXException e) {
-			IJ.log(e.getMessage());
-			e.printStackTrace();
-		} catch (final IOException e) {
-			IJ.log(e.getMessage());
-			e.printStackTrace();
-		} catch (final InstantiationException e) {
-			IJ.log(e.getMessage());
-			e.printStackTrace();
-		} catch (final IllegalAccessException e) {
-			IJ.log(e.getMessage());
-			e.printStackTrace();
-		} catch (final ClassNotFoundException e) {
-			IJ.log(e.getMessage());
-			e.printStackTrace();
+		load( file );
+
+	}
+
+	protected void load( final File mamutFile )
+	{
+
+		final MamutXmlReader reader = new MamutXmlReader( mamutFile );
+
+		/*
+		 * Read model
+		 */
+
+		final Model model = reader.getModel();
+
+
+		/*
+		 * Read settings
+		 */
+
+		final SourceSettings settings = new SourceSettings();
+		reader.readSettings( settings, null, null, new MamutSpotAnalyzerProvider(), new MamutEdgeAnalyzerProvider(), new MamutTrackAnalyzerProvider() );
+
+		/*
+		 * Read image source location from settings object.
+		 */
+
+		File imageFile = new File( settings.imageFolder, settings.imageFileName );
+		if ( !imageFile.exists() )
+		{
+			// Then try relative path
+			imageFile = new File( mamutFile.getParent(), settings.imageFileName );
 		}
+
+		/*
+		 * Launch MaMuT
+		 */
+
+		final MaMuT mamut = new MaMuT( imageFile, model, settings );
+
+		/*
+		 * Update setup assignments
+		 */
+
+		reader.getSetupAssignments( mamut.getSetupAssignments() );
+
 	}
 
 	public static void main(final String[] args) {
 		ImageJ.main(args);
 
 		final LoadMamutAnnotationPlugin plugin = new LoadMamutAnnotationPlugin();
-		//		plugin.run("/Users/tinevez/Desktop/Data/Mamut/parhyale-crop/parhyale-crop-2-mamut.xml");
-		// plugin.run("/Users/tinevez/Desktop/Data/Mamut/combined-mamut-20.xml");
-		// plugin.run( "/Users/JeanYves/Desktop/Data/Celegans-mamut.xml" );
-		plugin.run(
-		 "/Users/tinevez/Desktop/Data/Mamut/parhyale/BDV130418A325_NoTempReg-mamut_JY.xml"
-		 );
-//		plugin.run( "/Users/tinevez/Desktop/Data/Mamut/parhyale/" );
+		plugin.run( "/Users/tinevez/Desktop/Celegans-mamut.xml" );
 	}
 
 }
