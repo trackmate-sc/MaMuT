@@ -76,6 +76,8 @@ import bdv.tools.brightness.ConverterSetup;
 import bdv.tools.brightness.MinMaxGroup;
 import bdv.tools.brightness.RealARGBColorConverterSetup;
 import bdv.tools.brightness.SetupAssignments;
+import bdv.tools.transformation.ManualTransformation;
+import bdv.tools.transformation.ManualTransformationEditor;
 import bdv.viewer.SourceAndConverter;
 import bdv.viewer.state.ViewerState;
 import fiji.plugin.mamut.detection.SourceSemiAutoTracker;
@@ -221,6 +223,10 @@ public class MaMuT implements ModelChangeListener
 
 	private MamutGUI gui;
 
+	private ManualTransformation manualTransformation;
+
+	private ManualTransformationEditor manualTransformationEditor;
+
 	private static File mamutFile;
 
 	public MaMuT( final File imageFile, final Model model, final SourceSettings settings )
@@ -245,7 +251,7 @@ public class MaMuT implements ModelChangeListener
 	/**
 	 * Loads the specified image data (hd5/xml couple), configures and launches
 	 * MaMuT.
-	 * 
+	 *
 	 * @param file
 	 *            the file that points to the xml file of the hd5/xml image data
 	 *            couple.
@@ -531,7 +537,7 @@ public class MaMuT implements ModelChangeListener
 	/**
 	 * Returns the starting display settings that will be passed to any new view
 	 * registered within this GUI.
-	 * 
+	 *
 	 * @param model
 	 *            the model this GUI will configure; might be required by some
 	 *            display settings.
@@ -593,7 +599,7 @@ public class MaMuT implements ModelChangeListener
 	 * <li>{@link #cache}
 	 * <li>{@link #setupAssignments}
 	 * <ul>
-	 * 
+	 *
 	 * @param dataFile
 	 *            the file that points to the xml master file of the image data.
 	 */
@@ -665,6 +671,17 @@ public class MaMuT implements ModelChangeListener
 		brightnessDialog.setVisible( !brightnessDialog.isVisible() );
 	}
 
+	public void toggleManualTransformation( final MamutViewer viewer )
+	{
+		if ( null == manualTransformationEditor )
+		{
+			manualTransformationEditor = new ManualTransformationEditor( viewer.getViewerPanel(), viewer.getKeybindings() );
+			manualTransformation = new ManualTransformation( viewer.getViewerPanel() );
+		}
+		manualTransformationEditor.toggle();
+		manualTransformationEditor = null;
+	}
+
 	public void toggleHelpDialog()
 	{
 		helpDialog.setVisible( !helpDialog.isVisible() );
@@ -697,7 +714,7 @@ public class MaMuT implements ModelChangeListener
 
 	/**
 	 * Adds a new spot at the mouse current location.
-	 * 
+	 *
 	 * @param viewer
 	 *            the viewer in which the add spot request was made.
 	 */
@@ -798,7 +815,7 @@ public class MaMuT implements ModelChangeListener
 
 	/**
 	 * Remove spot at the mouse current location (if there is one).
-	 * 
+	 *
 	 * @param viewer
 	 *            the viewer in which the delete spot request was made.
 	 */
@@ -825,7 +842,7 @@ public class MaMuT implements ModelChangeListener
 
 	/**
 	 * Increases (or decreases) the neighbor spot radius.
-	 * 
+	 *
 	 * @param viewer
 	 *            the viewer in which the change radius was made.
 	 * @param factor
@@ -882,7 +899,7 @@ public class MaMuT implements ModelChangeListener
 	 * <p>
 	 * The two spots are taken from the selection, which must have exactly two
 	 * spots in it
-	 * 
+	 *
 	 * @param logger
 	 *            the {@link Logger} to echo linking messages.
 	 */
@@ -986,7 +1003,6 @@ public class MaMuT implements ModelChangeListener
 
 		InitializeViewerState.initTransform( viewer.getViewerPanel() );
 
-		// TODO: only initBrightness if it hasn't been done before.
 		InitializeViewerState.initBrightness( 0.001, 0.999, viewer.getViewerPanel(), setupAssignments );
 
 		viewer.render();
@@ -1350,7 +1366,7 @@ public class MaMuT implements ModelChangeListener
 	/**
 	 * Exposes the {@link SetupAssignments} that controls the display in this
 	 * MaMuT session.
-	 * 
+	 *
 	 * @return the {@link SetupAssignments}.
 	 */
 	public SetupAssignments getSetupAssignments()

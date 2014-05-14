@@ -10,6 +10,7 @@ import javax.swing.InputMap;
 import javax.swing.JComponent;
 import javax.swing.KeyStroke;
 
+import bdv.BigDataViewerActions;
 import bdv.util.KeyProperties;
 import bdv.viewer.NavigationActions;
 import fiji.FijiTools;
@@ -38,6 +39,7 @@ public class MamutKeyboardHandler {
 		DEFAULT_KEYBINGS.setProperty("I", "toggle interpolation");
 		DEFAULT_KEYBINGS.setProperty("F", "toggle fused mode");
 		DEFAULT_KEYBINGS.setProperty("G", "toggle grouping");
+		DEFAULT_KEYBINGS.setProperty( "T", BigDataViewerActions.MANUAL_TRANSFORM );
 
 		final String[] numkeys = new String[] { "1", "2", "3", "4", "5", "6", "7", "8", "9", "0" };
 		for (int i = 0; i < numkeys.length; ++i) {
@@ -137,6 +139,7 @@ public class MamutKeyboardHandler {
 		map.put( "step time forward", MamutActions.getStepWiseTimeBrowsingAction( mamut, viewer, true ) );
 		map.put( "step time backward", MamutActions.getStepWiseTimeBrowsingAction( mamut, viewer, false ) );
 
+		map.put( BigDataViewerActions.MANUAL_TRANSFORM, MamutActions.getToggleManualTransformAction( mamut, viewer ) );
 		return map;
 	}
 

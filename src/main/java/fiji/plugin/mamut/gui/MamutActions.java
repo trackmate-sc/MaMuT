@@ -39,6 +39,11 @@ public class MamutActions {
 		return new ToggleBrightnessDialogAction(mamut);
 	}
 
+	public static final Action getToggleManualTransformAction( final MaMuT mamut, final MamutViewer viewer )
+	{
+		return new ToggleManualTransformAction( mamut, viewer );
+	}
+
 	public static final Action getIncreaseRadiusAction(final MaMuT mamut, final MamutViewer viewer) {
 		return new IncreaseRadiusAction(mamut, viewer);
 	}
@@ -66,11 +71,11 @@ public class MamutActions {
 	public static final Action getToggleLinkingModeAction(final MaMuT mamut, final Logger logger) {
 		return new ToggleLinkingModeAction(mamut, logger);
 	}
-	
+
 	public static final Action getToggleLinkAction(final MaMuT mamut, final Logger logger) {
 		return new ToggleLinkAction(mamut, logger);
 	}
-	
+
 
 
 	/*
@@ -181,6 +186,29 @@ public class MamutActions {
 		@Override
 		public void actionPerformed(final ActionEvent e) {
 			mamut.toggleBrightnessDialog();
+		}
+
+	}
+
+	private static final class ToggleManualTransformAction extends AbstractAction
+	{
+
+		private static final long serialVersionUID = 1L;
+
+		private final MaMuT mamut;
+
+		private final MamutViewer viewer;
+
+		public ToggleManualTransformAction( final MaMuT mamut, final MamutViewer viewer )
+		{
+			this.mamut = mamut;
+			this.viewer = viewer;
+		}
+
+		@Override
+		public void actionPerformed( final ActionEvent e )
+		{
+			mamut.toggleManualTransformation( viewer );
 		}
 
 	}
