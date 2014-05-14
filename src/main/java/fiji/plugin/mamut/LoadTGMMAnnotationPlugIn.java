@@ -26,69 +26,98 @@ import bdv.SequenceViewsLoader;
 
 public class LoadTGMMAnnotationPlugIn implements PlugIn
 {
-	private static File tgmmFile;
+	private static File staticTGMMFolder;
 
-	private static File imageFile;
+	private static File staticImageFile;
 
-	@Override
-	public void run( final String fileStr )
+	protected final Logger logger = Logger.IJ_LOGGER;
+
+	private File askForImageFile()
 	{
-		final Logger logger = Logger.IJ_LOGGER;
-
-		if ( null != fileStr && fileStr.length() > 0 )
-		{
-			// Skip dialog
-			imageFile = new File( fileStr );
-			if ( imageFile.isDirectory() )
-			{
-				imageFile = IOUtils.askForFileForLoading( imageFile, "Open a MaMuT xml file", IJ.getInstance(), logger );
-				if ( null == imageFile ) { return; }
-			}
-			if ( !imageFile.exists() )
-			{
-				IJ.error( MaMuT.PLUGIN_NAME + " v" + MaMuT.PLUGIN_VERSION, "Cannot find image file " + fileStr );
-				return;
-			}
-			if ( !imageFile.canRead() )
-			{
-				IJ.error( MaMuT.PLUGIN_NAME + " v" + MaMuT.PLUGIN_VERSION, "Cannot read image file " + fileStr );
-				return;
-			}
-
-		}
-		else
-		{
-
-			if ( null == imageFile )
-			{
-				final File folder = new File( System.getProperty( "user.dir" ) ).getParentFile().getParentFile();
-				imageFile = new File( folder.getPath() + File.separator + "data.xml" );
-			}
-			imageFile = IOUtils.askForFileForLoading( imageFile, "Open a hdf5/xml file", IJ.getInstance(), logger );
-			if ( null == imageFile ) { return; }
-		}
-
-		if ( null == tgmmFile )
+		if ( null == staticImageFile )
 		{
 			final File folder = new File( System.getProperty( "user.dir" ) ).getParentFile().getParentFile();
-			tgmmFile = new File( folder.getPath() + File.separator + "data.xml" );
+			staticImageFile = new File( folder.getPath() + File.separator + "data.xml" );
 		}
-		tgmmFile = IOUtils.askForFolder( tgmmFile, "Open a TGMM /xml file", IJ.getInstance(), logger );
-		if ( null == tgmmFile ) { return; }
+		staticImageFile = IOUtils.askForFileForLoading( staticImageFile, "Open a hdf5/xml file", IJ.getInstance(), logger );
+		if ( null == staticImageFile ) { return null; }
+		return staticImageFile;
+	}
 
+	private File askForTGMMFolder()
+	{
+		if ( null == staticTGMMFolder )
+		{
+			final File folder = new File( System.getProperty( "user.dir" ) ).getParentFile().getParentFile();
+			staticTGMMFolder = new File( folder.getPath() + File.separator + "data.xml" );
+		}
+		staticTGMMFolder = IOUtils.askForFolder( staticTGMMFolder, "Open a TGMM /xml folder", IJ.getInstance(), logger );
+		if ( null == staticTGMMFolder ) { return null; }
+		return staticImageFile;
+	}
 
-		final Model model = createModel( tgmmFile, imageFile );
+	private int askForAngle( final String[] angles )
+	{
+		final Component frame = IJ.getInstance();
+		final Icon icon = MaMuT.MAMUT_ICON;
+		final String s = ( String ) JOptionPane.showInputDialog( frame, "Select the view that was used by the TGMM:", "MaMuT TGMM import", JOptionPane.PLAIN_MESSAGE, icon, angles, angles[ 0 ] );
+		if ( s == null || s.length() == 0 ) { return -1; }
+
+		final int setupID = Arrays.asList( angles ).indexOf( s );
+		return setupID;
+	}
+
+	@Override
+	public void run( final String ignored )
+	{
+		final File imageFile = askForImageFile();
+		if ( null == imageFile ) { return; }
+
+		final File tgmmFolder = askForTGMMFolder();
+		if ( null == tgmmFolder ) { return; }
+
+		final SequenceViewsLoader loader = createImageFileLoader( imageFile );
+		final String[] angles = readSetupNames( loader.getSequenceDescription() );
+		final int angleIndex = askForAngle( angles );
+		if ( angleIndex < 0 ) { return; }
+
+		launchMamut( imageFile, tgmmFolder, angleIndex, loader );
+
+	}
+
+	private SequenceViewsLoader createImageFileLoader( final File imageFile )
+	{
+		SequenceViewsLoader loader;
+		try
+		{
+			loader = new SequenceViewsLoader( imageFile.getAbsolutePath() );
+		}
+		catch ( final Exception e )
+		{
+			logger.error( "Problem reading the transforms in image data file:\n" + e.getMessage() + "\n" );
+			return null;
+		}
+		return loader;
+	}
+
+	public void launchMamut( final File imageFile, final File tgmmFile, final int setupID, final SequenceViewsLoader loader )
+	{
+		final Model model = createModel( tgmmFile, loader, setupID );
 		final SourceSettings settings = createSettings();
 		new MaMuT( imageFile, model, settings );
 	}
 
-	protected Model createModel( final File tgmmFile, final File imageFile )
+	public void launchMamut( final File imageFile, final File tgmmFolder, final int angleIndex )
 	{
-		final Logger logger = Logger.IJ_LOGGER;
+		final SequenceViewsLoader loader = createImageFileLoader( imageFile );
+		launchMamut( imageFile, tgmmFolder, angleIndex, loader );
+	}
 
-		final List< AffineTransform3D > transforms = pickTransform( imageFile );
+	protected Model createModel( final File tgmmFolder, final SequenceViewsLoader loader, final int setupID )
+	{
+		final List< AffineTransform3D > transforms = pickTransform( loader, setupID );
 
-		final TGMMImporter importer = new TGMMImporter( tgmmFile, transforms );
+		final TGMMImporter importer = new TGMMImporter( tgmmFolder, transforms, Logger.IJ_LOGGER );
 		if ( !importer.checkInput() || !importer.process() )
 		{
 			logger.error( importer.getErrorMessage() );
@@ -113,40 +142,25 @@ public class LoadTGMMAnnotationPlugIn implements PlugIn
 		return new SourceSettings();
 	}
 
-	protected List< AffineTransform3D > pickTransform( final File imageFile )
+	protected String[] readSetupNames( final SequenceDescription seq )
 	{
-		final Logger logger = Logger.IJ_LOGGER;
-		SequenceViewsLoader loader;
-		try
-		{
-			loader = new SequenceViewsLoader( imageFile.getAbsolutePath() );
-		}
-		catch ( final Exception e )
-		{
-			logger.error( "Problem reading the tranforms in image data file:\n" + e.getMessage() + "\n" );
-			return null;
-		}
-
-		final SequenceDescription seq = loader.getSequenceDescription();
 		final int numViewSetups = seq.numViewSetups();
 		final String[] angles = new String[ numViewSetups ];
 		for ( int setup = 0; setup < numViewSetups; setup++ )
 		{
 			angles[ setup ] = "angle " + seq.setups.get( setup ).getAngle();
 		}
+		return angles;
+	}
 
-		final Component frame = IJ.getInstance();
-		final Icon icon = MaMuT.MAMUT_ICON;
-		final String s = ( String ) JOptionPane.showInputDialog( frame, "Select the view that was used by the TGMM:", "Pick raw source ", JOptionPane.PLAIN_MESSAGE, icon, angles, angles[ 0 ] );
-		if ( s == null || s.length() == 0 ) { return null; }
-
-		final int setupID = Arrays.asList( angles ).indexOf( s );
+	protected List< AffineTransform3D > pickTransform( final SequenceViewsLoader loader, final int setupID )
+	{
+		final SequenceDescription seq = loader.getSequenceDescription();
 		final List< AffineTransform3D > transforms = new ArrayList< AffineTransform3D >( seq.numTimepoints() );
 		for ( int t = 0; t < seq.numTimepoints(); t++ )
 		{
 			transforms.add( loader.getView( t, setupID ).getModel() );
 		}
-
 		return transforms;
 	}
 
@@ -154,7 +168,12 @@ public class LoadTGMMAnnotationPlugIn implements PlugIn
 	{
 		ImageJ.main( args );
 
+		final File imageFile = new File( "/Users/tinevez/Desktop/Data/Mamut/parhyale/BDV130418A325_NoTempReg.xml" );
+		final File tgmmFolder = new File( "/Users/tinevez/Development/Fernando/extract" );
+		final int angleIndex = 0;
+
 		final LoadTGMMAnnotationPlugIn plugin = new LoadTGMMAnnotationPlugIn();
-		plugin.run( "/Users/tinevez/Desktop/Celegans.xml" );
+		plugin.launchMamut( imageFile, tgmmFolder, angleIndex );
 	}
+
 }
