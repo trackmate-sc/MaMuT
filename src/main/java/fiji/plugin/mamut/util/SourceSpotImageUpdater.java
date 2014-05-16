@@ -8,6 +8,7 @@ import java.util.List;
 
 import javax.imageio.ImageIO;
 
+import net.iharder.Base64;
 import net.imglib2.Interval;
 import net.imglib2.Point;
 import net.imglib2.RandomAccessibleInterval;
@@ -28,9 +29,6 @@ import net.imglib2.view.Views;
 import bdv.util.Affine3DHelpers;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
-
-import com.mxgraph.util.mxBase64;
-
 import fiji.plugin.mamut.feature.spot.SpotSourceIdAnalyzerFactory;
 import fiji.plugin.trackmate.Settings;
 import fiji.plugin.trackmate.Spot;
@@ -114,7 +112,7 @@ public class SourceSpotImageUpdater<T extends RealType<T>> extends SpotImageUpda
 				String baf;
 				try {
 					ImageIO.write(image, "png", bos);
-					baf = mxBase64.encodeToString(bos.toByteArray(), false);
+					baf = Base64.encodeBytes(bos.toByteArray());
 				} catch (final IOException e) {
 					e.printStackTrace();
 					baf = "";
