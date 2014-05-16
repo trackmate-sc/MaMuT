@@ -1,5 +1,7 @@
 package fiji.plugin.mamut.gui;
 
+import ij.IJ;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -12,7 +14,6 @@ import javax.swing.KeyStroke;
 
 import bdv.util.KeyProperties;
 import bdv.viewer.NavigationActions;
-import fiji.FijiTools;
 import fiji.plugin.mamut.MaMuT;
 import fiji.plugin.mamut.viewer.MamutViewer;
 
@@ -68,7 +69,7 @@ public class MamutKeyboardHandler {
 	protected InputMap readPropertyFile() {
 		Properties config = new Properties();
 
-		final String fijiDir = FijiTools.getImageJDir();
+		final String fijiDir = IJ.getDirectory("imagej");
 		File file = new File( fijiDir, "mamut.properties" );
 
 		try {
