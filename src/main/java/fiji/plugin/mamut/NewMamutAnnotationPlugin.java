@@ -11,8 +11,6 @@ import java.io.IOException;
 
 import javax.xml.parsers.ParserConfigurationException;
 
-import loci.formats.FormatException;
-
 import org.xml.sax.SAXException;
 
 public class NewMamutAnnotationPlugin implements PlugIn {
@@ -58,9 +56,6 @@ public class NewMamutAnnotationPlugin implements PlugIn {
 		final MaMuT mamut = new MaMuT();
 		try {
 			mamut.launch(file);
-		} catch (final FormatException e) {
-			IJ.log(e.getMessage());
-			e.printStackTrace();
 		} catch (final IOException e) {
 			IJ.log(e.getMessage());
 			e.printStackTrace();

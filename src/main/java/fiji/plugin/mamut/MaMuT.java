@@ -55,7 +55,6 @@ import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import javax.xml.parsers.ParserConfigurationException;
 
-import loci.formats.FormatException;
 import mpicbg.spim.data.SequenceDescription;
 import net.imglib2.RealPoint;
 import net.imglib2.display.RealARGBColorConverter;
@@ -439,7 +438,7 @@ public class MaMuT implements ModelChangeListener
 	}
 
 	@SuppressWarnings( { "unchecked", "rawtypes" } )
-	public void launch( final File file ) throws FormatException, IOException, ParserConfigurationException, SAXException, InstantiationException, IllegalAccessException, ClassNotFoundException
+	public void launch( final File file ) throws IOException, ParserConfigurationException, SAXException, InstantiationException, IllegalAccessException, ClassNotFoundException
 	{
 		MaMuT.imageFile = file;
 
