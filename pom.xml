@@ -70,7 +70,6 @@
 		<dependency>
 			<groupId>sc.fiji</groupId>
 			<artifactId>fiji-lib</artifactId>
-			<version>${fiji-lib.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>net.imagej</groupId>
@@ -79,30 +78,25 @@
 		<dependency>
 			<groupId>net.sf.jgrapht</groupId>
 			<artifactId>jgrapht</artifactId>
-			<version>${jgrapht.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>java3d</groupId>
 			<artifactId>j3d-core</artifactId>
-			<version>${java3d.version}</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>java3d</groupId>
 			<artifactId>j3d-core-utils</artifactId>
-			<version>${java3d.version}</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>java3d</groupId>
 			<artifactId>vecmath</artifactId>
-			<version>${java3d.version}</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>sc.fiji</groupId>
 			<artifactId>3D_Viewer</artifactId>
-			<version>${ImageJ_3D_Viewer.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>net.imglib2</groupId>
@@ -146,7 +140,6 @@
 		<dependency>
 			<groupId>mpicbg</groupId>
 			<artifactId>mpicbg</artifactId>
-			<version>${mpicbg.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>net.iharder</groupId>
