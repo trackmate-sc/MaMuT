@@ -4,6 +4,7 @@ import static fiji.plugin.mamut.MaMuT.PLUGIN_NAME;
 import static fiji.plugin.mamut.MaMuT.PLUGIN_VERSION;
 
 import java.awt.BorderLayout;
+import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,7 +28,13 @@ public class MamutGUI extends JFrame
 
 	private static final long serialVersionUID = 1L;
 
-	private final static ImageIcon ANNOTATION_ICON = new ImageIcon( TrackMateWizard.class.getResource( "images/TrackIcon_small.png" ) );
+	private final static ImageIcon ANNOTATION_ICON;
+	static
+	{
+		final Image image = new ImageIcon( TrackMateWizard.class.getResource( "images/Logo50x50-color-nofont-72p.png" ) ).getImage();
+		final Image newimg = image.getScaledInstance( 32, 32, java.awt.Image.SCALE_SMOOTH );
+		ANNOTATION_ICON = new ImageIcon( newimg );
+	}
 
 	private static final ImageIcon MAMUT_ICON = new ImageIcon( MaMuT.class.getResource( "mammouth-32x32.png" ) );
 
