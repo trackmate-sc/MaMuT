@@ -7,11 +7,8 @@ import ij.ImageJ;
 import ij.plugin.PlugIn;
 
 import java.io.File;
-import java.io.IOException;
 
-import javax.xml.parsers.ParserConfigurationException;
-
-import org.xml.sax.SAXException;
+import mpicbg.spim.data.SpimDataException;
 
 public class NewMamutAnnotationPlugin implements PlugIn {
 
@@ -56,22 +53,7 @@ public class NewMamutAnnotationPlugin implements PlugIn {
 		final MaMuT mamut = new MaMuT();
 		try {
 			mamut.launch(file);
-		} catch (final IOException e) {
-			IJ.log(e.getMessage());
-			e.printStackTrace();
-		} catch (final ParserConfigurationException e) {
-			IJ.log(e.getMessage());
-			e.printStackTrace();
-		} catch (final SAXException e) {
-			IJ.log(e.getMessage());
-			e.printStackTrace();
-		} catch (final InstantiationException e) {
-			IJ.log(e.getMessage());
-			e.printStackTrace();
-		} catch (final IllegalAccessException e) {
-			IJ.log(e.getMessage());
-			e.printStackTrace();
-		} catch (final ClassNotFoundException e) {
+		} catch (final SpimDataException e) {
 			IJ.log(e.getMessage());
 			e.printStackTrace();
 		}
