@@ -55,26 +55,15 @@ import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
 import mpicbg.spim.data.SpimDataException;
-import mpicbg.spim.data.generic.AbstractSpimData;
 import mpicbg.spim.data.generic.sequence.AbstractSequenceDescription;
-import mpicbg.spim.data.generic.sequence.BasicViewSetup;
-import mpicbg.spim.data.sequence.Angle;
-import mpicbg.spim.data.sequence.Channel;
 import mpicbg.spim.data.sequence.TimePoint;
 import net.imglib2.RealPoint;
-import net.imglib2.converter.Converter;
-import net.imglib2.converter.TypeIdentity;
-import net.imglib2.display.RealARGBColorConverter;
 import net.imglib2.type.numeric.ARGBType;
-import net.imglib2.type.numeric.RealType;
-import net.imglib2.type.volatiles.VolatileARGBType;
 
 import org.jgrapht.graph.DefaultWeightedEdge;
 
 import bdv.BigDataViewer;
-import bdv.SpimSource;
 import bdv.ViewerImgLoader;
-import bdv.VolatileSpimSource;
 import bdv.img.cache.Cache;
 import bdv.spimdata.SpimDataMinimal;
 import bdv.spimdata.WrapBasicImgLoader;
@@ -83,9 +72,7 @@ import bdv.tools.HelpDialog;
 import bdv.tools.InitializeViewerState;
 import bdv.tools.brightness.BrightnessDialog;
 import bdv.tools.brightness.ConverterSetup;
-import bdv.tools.brightness.RealARGBColorConverterSetup;
 import bdv.tools.brightness.SetupAssignments;
-import bdv.tools.transformation.TransformedSource;
 import bdv.viewer.SourceAndConverter;
 import bdv.viewer.state.ViewerState;
 import fiji.plugin.mamut.detection.SourceSemiAutoTracker;
@@ -741,115 +728,6 @@ public class MaMuT implements ModelChangeListener
 			});
 		}
 		setupAssignments = new SetupAssignments( converterSetups, 0, 65535 );
-	}
-
-	private < T extends RealType< T > > void initSetupsRealTypeNonVolatile(
-			final AbstractSpimData< ? > spimData,
-			final T type,
-			final List< ConverterSetup > converterSetups,
-			final List< SourceAndConverter< ? > > sources )
-	{
-		final double typeMin = type.getMinValue();
-		final double typeMax = type.getMaxValue();
-		final AbstractSequenceDescription< ?, ?, ? > seq = spimData.getSequenceDescription();
-		for ( final BasicViewSetup setup : seq.getViewSetupsOrdered() )
-		{
-			final RealARGBColorConverter< T > converter = new RealARGBColorConverter.Imp1< T >( typeMin, typeMax )
-			{
-				/*
-				 * Add a callback to refresh the views after modifying the range
-				 * or color.
-				 */
-
-				@Override
-				public void setMax( final double max )
-				{
-					super.setMax( max );
-					requestRepaintAllViewers();
-				}
-
-				@Override
-				public void setMin( final double min )
-				{
-					super.setMin( min );
-					requestRepaintAllViewers();
-				}
-
-				@Override
-				public void setColor( final ARGBType color )
-				{
-					super.setColor( color );
-					requestRepaintAllViewers();
-				}
-			};
-			converter.setColor( new ARGBType( 0xffffffff ) );
-
-			final int setupId = setup.getId();
-			final String setupName = createSetupName( setup );
-			final SpimSource< T > s = new SpimSource< T >( spimData, setupId, setupName );
-
-			// Decorate each source with an extra transformation, that can be
-			// edited manually in this viewer.
-			final TransformedSource< T > ts = new TransformedSource< T >( s );
-			final SourceAndConverter< T > soc = new SourceAndConverter< T >( ts, converter );
-
-			sources.add( soc );
-			converterSetups.add( new RealARGBColorConverterSetup( setupId, converter ) );
-		}
-	}
-
-	private static void initSetupsARGBType(
-			final AbstractSpimData< ? > spimData,
-			final ARGBType type,
-			final List< ConverterSetup > converterSetups,
-			final List< SourceAndConverter< ? > > sources )
-	{
-		final AbstractSequenceDescription< ?, ?, ? > seq = spimData.getSequenceDescription();
-		for ( final BasicViewSetup setup : seq.getViewSetupsOrdered() )
-		{
-			final Converter< VolatileARGBType, ARGBType > vconverter = new Converter< VolatileARGBType, ARGBType >()
-			{
-				@Override
-				public void convert( final VolatileARGBType input, final ARGBType output )
-				{
-					output.set( input.get() );
-				}
-			};
-			final TypeIdentity< ARGBType > converter = new TypeIdentity< ARGBType >();
-
-			final int setupId = setup.getId();
-			final String setupName = createSetupName( setup );
-			final VolatileSpimSource< ARGBType, VolatileARGBType > vs = new VolatileSpimSource< ARGBType, VolatileARGBType >( spimData, setupId, setupName );
-			final SpimSource< ARGBType > s = vs.nonVolatile();
-
-			// Decorate each source with an extra transformation, that can be
-			// edited manually in this viewer.
-			final TransformedSource< VolatileARGBType > tvs = new TransformedSource< VolatileARGBType >( vs );
-			final TransformedSource< ARGBType > ts = new TransformedSource< ARGBType >( s, tvs );
-
-			final SourceAndConverter< VolatileARGBType > vsoc = new SourceAndConverter< VolatileARGBType >( tvs, vconverter );
-			final SourceAndConverter< ARGBType > soc = new SourceAndConverter< ARGBType >( ts, converter, vsoc );
-
-			sources.add( soc );
-		}
-	}
-
-	private static String createSetupName( final BasicViewSetup setup )
-	{
-		if ( setup.hasName() )
-			return setup.getName();
-
-		String name = "";
-
-		final Angle angle = setup.getAttribute( Angle.class );
-		if ( angle != null )
-			name += ( name.isEmpty() ? "" : " " ) + "a " + angle.getName();
-
-		final Channel channel = setup.getAttribute( Channel.class );
-		if ( channel != null )
-			name += ( name.isEmpty() ? "" : " " ) + "c " + channel.getName();
-
-		return name;
 	}
 
 	private MamutViewer newViewer()
