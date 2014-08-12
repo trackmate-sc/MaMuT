@@ -51,32 +51,26 @@ import javax.swing.JButton;
 import javax.swing.KeyStroke;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
-import javax.xml.parsers.ParserConfigurationException;
 
-import mpicbg.spim.data.SequenceDescription;
+import mpicbg.spim.data.SpimDataException;
+import mpicbg.spim.data.generic.sequence.AbstractSequenceDescription;
+import mpicbg.spim.data.sequence.TimePoint;
 import net.imglib2.RealPoint;
-import net.imglib2.display.RealARGBColorConverter;
 import net.imglib2.type.numeric.ARGBType;
-import net.imglib2.type.numeric.integer.UnsignedShortType;
-import net.imglib2.type.volatiles.VolatileUnsignedShortType;
 
-import org.jdom2.JDOMException;
 import org.jgrapht.graph.DefaultWeightedEdge;
-import org.xml.sax.SAXException;
 
-import bdv.SequenceViewsLoader;
-import bdv.SpimSource;
-import bdv.VolatileSpimSource;
+import bdv.BigDataViewer;
+import bdv.ViewerImgLoader;
 import bdv.img.cache.Cache;
-import bdv.img.hdf5.Hdf5ImageLoader;
+import bdv.spimdata.SpimDataMinimal;
+import bdv.spimdata.WrapBasicImgLoader;
+import bdv.spimdata.XmlIoSpimDataMinimal;
 import bdv.tools.HelpDialog;
 import bdv.tools.InitializeViewerState;
 import bdv.tools.brightness.BrightnessDialog;
 import bdv.tools.brightness.ConverterSetup;
-import bdv.tools.brightness.MinMaxGroup;
-import bdv.tools.brightness.RealARGBColorConverterSetup;
 import bdv.tools.brightness.SetupAssignments;
-import bdv.tools.transformation.ManualTransformation;
 import bdv.tools.transformation.ManualTransformationEditor;
 import bdv.viewer.SourceAndConverter;
 import bdv.viewer.state.ViewerState;
@@ -223,8 +217,6 @@ public class MaMuT implements ModelChangeListener
 
 	private MamutGUI gui;
 
-	private ManualTransformation manualTransformation;
-
 	private ManualTransformationEditor manualTransformationEditor;
 
 	private static File mamutFile;
@@ -330,39 +322,9 @@ public class MaMuT implements ModelChangeListener
 		{
 			prepareSources( file );
 		}
-		catch ( final JDOMException e )
+		catch ( final SpimDataException e )
 		{
-			logger.error( "Problem loading the image data file.\nFile " + file + " is not a properly formed XML file:\n" + e.getMessage() + "\n" );
-			return;
-		}
-		catch ( final ParserConfigurationException e )
-		{
-			logger.error( "Problem creating the XML parser:\n" + e.getMessage() + "\n" );
-			return;
-		}
-		catch ( final SAXException e )
-		{
-			logger.error( "Problem with the XML parser:\n" + e.getMessage() + "\n" );
-			return;
-		}
-		catch ( final IOException e )
-		{
-			logger.error( "Problem loading the image data file.\nCould not read file " + file + ":\n" + e.getMessage() + "\n" );
-			return;
-		}
-		catch ( final InstantiationException e )
-		{
-			logger.error( "Problem creating base classes:\n" + e.getMessage() + "\n" );
-			return;
-		}
-		catch ( final IllegalAccessException e )
-		{
-			logger.error( "Problem creating base classes:\n" + e.getMessage() + "\n" );
-			return;
-		}
-		catch ( final ClassNotFoundException e )
-		{
-			logger.error( "Problem finding base classes:\n" + e.getMessage() + "\n" );
+			logger.error( "Problem loading the image data file " + file + ".\n" + e.getMessage() + "\n" );
 			return;
 		}
 
@@ -603,57 +565,57 @@ public class MaMuT implements ModelChangeListener
 	 * @param dataFile
 	 *            the file that points to the xml master file of the image data.
 	 */
-	protected void prepareSources( final File dataFile ) throws ParserConfigurationException, SAXException, IOException, InstantiationException, IllegalAccessException, ClassNotFoundException, JDOMException
+	private void prepareSources( final File dataFile ) throws SpimDataException
 	{
-		final SequenceViewsLoader loader = new SequenceViewsLoader( dataFile.getAbsolutePath() );
-		final SequenceDescription seq = loader.getSequenceDescription();
-		nTimepoints = seq.numTimepoints();
-		sources = new ArrayList< SourceAndConverter< ? >>();
-		cache = ( ( Hdf5ImageLoader ) seq.imgLoader ).getCache();
-		final ArrayList< ConverterSetup > converterSetups = new ArrayList< ConverterSetup >();
-		for ( int setup = 0; setup < seq.numViewSetups(); ++setup )
-		{
-			final RealARGBColorConverter< VolatileUnsignedShortType > vconverter = new RealARGBColorConverter< VolatileUnsignedShortType >( 0, 65535 );
-			vconverter.setColor( new ARGBType( ARGBType.rgba( 255, 255, 255, 255 ) ) );
-			final RealARGBColorConverter< UnsignedShortType > converter = new RealARGBColorConverter< UnsignedShortType >( 0, 65535 );
-			converter.setColor( new ARGBType( ARGBType.rgba( 255, 255, 255, 255 ) ) );
-			@SuppressWarnings( "rawtypes" )
-			final VolatileSpimSource vs = new VolatileSpimSource( loader, setup, "angle " + seq.setups.get( setup ).getAngle() );
-			@SuppressWarnings( "rawtypes" )
-			final SpimSource s = vs.nonVolatile();
-			@SuppressWarnings( "unchecked" )
-			final SourceAndConverter< VolatileUnsignedShortType > vsoc = new SourceAndConverter< VolatileUnsignedShortType >( vs, vconverter );
-			@SuppressWarnings( "unchecked" )
-			final SourceAndConverter< UnsignedShortType > soc = new SourceAndConverter< UnsignedShortType >( s, converter, vsoc );
-			sources.add( soc );
-			converterSetups.add( new RealARGBColorConverterSetup( setup, converter, vconverter )
-			{
-				@Override
-				public void setDisplayRange( final int min, final int max )
-				{
-					super.setDisplayRange( min, max );
-					requestRepaintAllViewers();
-				}
-
-				@Override
-				public void setColor( final ARGBType color )
-				{
-					super.setColor( color );
-					requestRepaintAllViewers();
-				}
-			} );
+		final SpimDataMinimal spimData = new XmlIoSpimDataMinimal().load(dataFile.getAbsolutePath());
+		if (WrapBasicImgLoader.wrapImgLoaderIfNecessary(spimData)) {
+			System.err.println("WARNING:\nOpening <SpimData> dataset that is not suited for suited for interactive browsing.\nConsider resaving as HDF5 for better performance.");
 		}
+		final AbstractSequenceDescription<?, ?, ?> seq = spimData.getSequenceDescription();
+		final List< TimePoint > timepoints = seq.getTimePoints().getTimePointsOrdered();
+		nTimepoints = timepoints.size();
+		sources = new ArrayList<SourceAndConverter<?>>();
+		cache = ((ViewerImgLoader<?, ?>) seq.getImgLoader()).getCache();
+		final ArrayList<ConverterSetup> converterSetups = new ArrayList<ConverterSetup>();
+		BigDataViewer.initSetups(spimData, converterSetups, sources);
+		for (int i = 0; i < converterSetups.size(); ++i) {
+			final ConverterSetup s = converterSetups.get(i);
+			converterSetups.set(i, new ConverterSetup() {
 
-		/*
-		 * Create setup assignments (for managing brightness and color).
-		 */
+				@Override
+				public void setDisplayRange(final int min, final int max) {
+					s.setDisplayRange(min, max);
+					requestRepaintAllViewers();
+				}
 
+				@Override
+				public void setColor(final ARGBType color) {
+					s.setColor(color);
+					requestRepaintAllViewers();
+				}
+
+				@Override
+				public int getSetupId() {
+					return s.getSetupId();
+				}
+
+				@Override
+				public int getDisplayRangeMin() {
+					return s.getDisplayRangeMin();
+				}
+
+				@Override
+				public int getDisplayRangeMax() {
+					return s.getDisplayRangeMax();
+				}
+
+				@Override
+				public ARGBType getColor() {
+					return s.getColor();
+				}
+			});
+		}
 		setupAssignments = new SetupAssignments( converterSetups, 0, 65535 );
-		final MinMaxGroup group = setupAssignments.getMinMaxGroups().get( 0 );
-		for ( final ConverterSetup setup : setupAssignments.getConverterSetups() )
-		{
-			setupAssignments.moveSetupToGroup( setup, group );
-		}
 	}
 
 	/*
@@ -676,7 +638,6 @@ public class MaMuT implements ModelChangeListener
 		if ( null == manualTransformationEditor )
 		{
 			manualTransformationEditor = new ManualTransformationEditor( viewer.getViewerPanel(), viewer.getKeybindings() );
-			manualTransformation = new ManualTransformation( viewer.getViewerPanel() );
 		}
 		manualTransformationEditor.toggle();
 		manualTransformationEditor = null;
