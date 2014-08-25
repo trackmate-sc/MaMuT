@@ -4,7 +4,6 @@ import static fiji.plugin.mamut.MaMuT.PLUGIN_NAME;
 import static fiji.plugin.mamut.MaMuT.PLUGIN_VERSION;
 
 import java.awt.BorderLayout;
-import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.List;

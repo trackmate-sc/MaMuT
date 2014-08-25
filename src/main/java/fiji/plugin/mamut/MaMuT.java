@@ -941,7 +941,6 @@ public class MaMuT implements ModelChangeListener
 		{
 			logger.error( "Expected selection to contain 2 spots, found " + selectedSpots.size() + ".\n" );
 		}
-		setupAssignments = new SetupAssignments( converterSetups, 0, 65535 );
 	}
 
 	/*
