@@ -60,7 +60,7 @@ public class LoadTGMMAnnotationPlugIn implements PlugIn
 		}
 		staticTGMMFolder = IOUtils.askForFolder( staticTGMMFolder, "Open a TGMM /xml folder", IJ.getInstance(), logger );
 		if ( null == staticTGMMFolder ) { return null; }
-		return staticImageFile;
+		return staticTGMMFolder;
 	}
 
 	private int askForAngle( final String[] angles )
