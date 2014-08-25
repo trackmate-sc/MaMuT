@@ -20,20 +20,19 @@ import fiji.plugin.mamut.action.MamutActionFactory;
 import fiji.plugin.mamut.providers.MamutActionProvider;
 import fiji.plugin.trackmate.TrackMate;
 import fiji.plugin.trackmate.action.TrackMateAction;
-import fiji.plugin.trackmate.gui.TrackMateWizard;
 
 public class MamutGUI extends JFrame
 {
 
 	private static final long serialVersionUID = 1L;
 
-	private final static ImageIcon ANNOTATION_ICON = new ImageIcon( TrackMateWizard.class.getResource( "images/TrackIcon_small.png" ) );
+	private final static ImageIcon ANNOTATION_ICON = new ImageIcon( MaMuT.class.getResource( "Logo50x50-color-nofont-72p.png" ) );
 
 	private static final ImageIcon MAMUT_ICON = new ImageIcon( MaMuT.class.getResource( "mammouth-32x32.png" ) );
 
 	private static final ImageIcon ACTION_ICON = new ImageIcon( MaMuT.class.getResource( "cog.png" ) );
 
-	private static final Icon EXECUTE_ICON = new ImageIcon( TrackMateWizard.class.getResource( "images/control_play_blue.png" ) );
+	private static final Icon EXECUTE_ICON = new ImageIcon( MaMuT.class.getResource( "control_play_blue.png" ) );
 
 	private final MamutControlPanel viewPanel;
 
