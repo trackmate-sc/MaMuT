@@ -8,7 +8,6 @@ import java.util.List;
 
 import javax.imageio.ImageIO;
 
-import net.iharder.Base64;
 import net.imglib2.Interval;
 import net.imglib2.Point;
 import net.imglib2.RandomAccessibleInterval;
