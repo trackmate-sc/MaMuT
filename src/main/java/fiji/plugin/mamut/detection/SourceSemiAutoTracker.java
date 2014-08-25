@@ -147,6 +147,13 @@ public class SourceSemiAutoTracker< T extends RealType< T > & NativeType< T >> e
 		final AffineTransform3D sourceToGlobal = source.getSourceTransform( frame, level );
 		final RandomAccessibleInterval< T > rai = source.getSource( frame, level );
 
+		// Protection against missing data.
+		final long size = rai.dimension( 0 ) * rai.dimension( 1 ) * rai.dimension( 2 );
+		if ( size < 10 )
+		{
+			return null;
+		}
+
 		/*
 		 * Extract scales
 		 */

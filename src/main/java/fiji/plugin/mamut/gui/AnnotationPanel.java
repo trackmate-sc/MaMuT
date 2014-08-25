@@ -27,8 +27,8 @@ import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyleContext;
 
+import fiji.plugin.mamut.MaMuT;
 import fiji.plugin.trackmate.Logger;
-import fiji.plugin.trackmate.gui.TrackMateWizard;
 import fiji.plugin.trackmate.gui.panels.ActionListenablePanel;
 import fiji.plugin.trackmate.gui.panels.components.JNumericTextField;
 
@@ -53,22 +53,28 @@ public class AnnotationPanel extends ActionListenablePanel
 
 	private static final long serialVersionUID = 1L;
 
-	private final static ImageIcon SELECT_TRACK_ICON = new ImageIcon( TrackMateWizard.class.getResource( "images/arrow_updown.png" ) );
+	private final static ImageIcon SELECT_TRACK_ICON = new ImageIcon( MaMuT.class.getResource( "arrow_updown.png" ) );
 
-	private final static ImageIcon SELECT_TRACK_ICON_UPWARDS = new ImageIcon( TrackMateWizard.class.getResource( "images/arrow_up.png" ) );
+	private final static ImageIcon SELECT_TRACK_ICON_UPWARDS = new ImageIcon( MaMuT.class.getResource( "arrow_up.png" ) );
 
-	private final static ImageIcon SELECT_TRACK_ICON_DOWNWARDS = new ImageIcon( TrackMateWizard.class.getResource( "images/arrow_down.png" ) );
+	private final static ImageIcon SELECT_TRACK_ICON_DOWNWARDS = new ImageIcon( MaMuT.class.getResource( "arrow_down.png" ) );
 
 	private final static ImageIcon SEMIAUTO_TRACKING_ICON;
 	static
 	{
-		final Image image = new ImageIcon( TrackMateWizard.class.getResource( "images/Icon1_print_transparency.png" ) ).getImage();
+		final Image image = new ImageIcon( MaMuT.class.getResource( "Icon1_print_transparency.png" ) ).getImage();
 		final Image newimg = image.getScaledInstance( 32, 32, java.awt.Image.SCALE_SMOOTH );
 		SEMIAUTO_TRACKING_ICON = new ImageIcon( newimg );
 	}
 
 	@SuppressWarnings( "unused" )
-	private final static ImageIcon LINK_SPOTS_ICON = new ImageIcon( TrackMateWizard.class.getResource( "images/Icon2_print_transparency.png" ) );
+	private final static ImageIcon LINK_SPOTS_ICON;
+	static
+	{
+		final Image image = new ImageIcon( MaMuT.class.getResource( "Icon2_print_transparency.png" ) ).getImage();
+		final Image newimg = image.getScaledInstance( 32, 32, java.awt.Image.SCALE_SMOOTH );
+		LINK_SPOTS_ICON = new ImageIcon( newimg );
+	}
 
 	private final Logger logger;
 

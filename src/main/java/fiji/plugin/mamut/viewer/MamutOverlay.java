@@ -82,7 +82,7 @@ public class MamutOverlay
 		if ( ( Boolean ) viewer.displaySettings.get( KEY_SPOTS_VISIBLE ) )
 		{
 
-			final float radiusRatio = ( Float ) viewer.displaySettings.get( KEY_SPOT_RADIUS_RATIO );
+			final double radiusRatio = ( Double ) viewer.displaySettings.get( KEY_SPOT_RADIUS_RATIO );
 			final boolean doDisplayNames = ( Boolean ) viewer.displaySettings.get( KEY_DISPLAY_SPOT_NAMES );
 
 			/*

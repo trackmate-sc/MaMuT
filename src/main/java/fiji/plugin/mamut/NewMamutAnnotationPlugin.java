@@ -1,14 +1,13 @@
 package fiji.plugin.mamut;
 
 import fiji.plugin.trackmate.Logger;
+import fiji.plugin.trackmate.Model;
 import fiji.plugin.trackmate.io.IOUtils;
 import ij.IJ;
 import ij.ImageJ;
 import ij.plugin.PlugIn;
 
 import java.io.File;
-
-import mpicbg.spim.data.SpimDataException;
 
 public class NewMamutAnnotationPlugin implements PlugIn {
 
@@ -50,22 +49,29 @@ public class NewMamutAnnotationPlugin implements PlugIn {
 			}
 		}
 
-		final MaMuT mamut = new MaMuT();
-		try {
-			mamut.launch(file);
-		} catch (final SpimDataException e) {
-			IJ.log(e.getMessage());
-			e.printStackTrace();
-		}
+		final Model model = createModel();
+		final SourceSettings settings = createSettings();
+		new MaMuT( file, model, settings );
+	}
 
+	protected SourceSettings createSettings()
+	{
+		return new SourceSettings();
+	}
+
+	protected Model createModel()
+	{
+		return new Model();
 	}
 
 	public static void main(final String[] args) {
 		ImageJ.main(args);
 
 		final NewMamutAnnotationPlugin plugin = new NewMamutAnnotationPlugin();
-		plugin.run( "/Users/tinevez/Desktop/Data/Mamut/parhyale/BDV130418A325_NoTempReg.xml" );
-		// plugin.run( "/Users/JeanYves/Desktop/Data/Celegans.xml" );
+		// plugin.run(
+		// "/Users/tinevez/Desktop/Data/Mamut/parhyale/BDV130418A325_NoTempReg.xml"
+		// );
+		plugin.run( "/Users/tinevez/Desktop/Celegans.xml" );
 	}
 
 }
