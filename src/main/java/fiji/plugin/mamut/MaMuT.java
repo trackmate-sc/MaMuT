@@ -307,13 +307,6 @@ public class MaMuT implements ModelChangeListener
 		guimodel.setDisplaySettings( createDisplaySettings( model ) );
 
 		/*
-		 * Control Panel
-		 */
-
-		launchGUI();
-
-
-		/*
 		 * Load image source
 		 */
 
@@ -350,6 +343,13 @@ public class MaMuT implements ModelChangeListener
 		 */
 
 		helpDialog = new HelpDialog( gui, MaMuT.class.getResource( "Help.html" ) );
+
+		/*
+		 * Control Panel
+		 */
+
+		launchGUI();
+
 	}
 
 	/**
