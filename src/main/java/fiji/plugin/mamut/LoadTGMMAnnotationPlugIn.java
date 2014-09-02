@@ -43,8 +43,7 @@ public class LoadTGMMAnnotationPlugIn implements PlugIn
 	{
 		if ( null == staticImageFile )
 		{
-			final File folder = new File( System.getProperty( "user.dir" ) ).getParentFile().getParentFile();
-			staticImageFile = new File( folder.getPath() + File.separator + "data.xml" );
+			staticImageFile = NewMamutAnnotationPlugin.proposeBdvXmlFileToOpen();
 		}
 		staticImageFile = IOUtils.askForFileForLoading( staticImageFile, "Open a hdf5/xml file", IJ.getInstance(), logger );
 		if ( null == staticImageFile ) { return null; }
@@ -55,8 +54,12 @@ public class LoadTGMMAnnotationPlugIn implements PlugIn
 	{
 		if ( null == staticTGMMFolder )
 		{
-			final File folder = new File( System.getProperty( "user.dir" ) ).getParentFile().getParentFile();
-			staticTGMMFolder = new File( folder.getPath() + File.separator + "data.xml" );
+			File folder = new File(System.getProperty("user.dir"));
+			if ( folder != null && folder.getParentFile() != null )
+				folder = folder.getParentFile();
+			if ( folder == null )
+				folder = new File("./");
+			staticTGMMFolder = folder;
 		}
 		staticTGMMFolder = IOUtils.askForFolder( staticTGMMFolder, "Open a TGMM /xml folder", IJ.getInstance(), logger );
 		if ( null == staticTGMMFolder ) { return null; }

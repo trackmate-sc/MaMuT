@@ -40,8 +40,7 @@ public class NewMamutAnnotationPlugin implements PlugIn {
 		} else {
 
 			if (null == file) {
-				final File folder = new File(System.getProperty("user.dir")).getParentFile().getParentFile();
-				file = new File(folder.getPath() + File.separator + "data.xml");
+				file = proposeBdvXmlFileToOpen();
 			}
 			file = IOUtils.askForFileForLoading(file, "Open a hdf5/xml file", IJ.getInstance(), logger);
 			if (null == file) {
@@ -52,6 +51,17 @@ public class NewMamutAnnotationPlugin implements PlugIn {
 		final Model model = createModel();
 		final SourceSettings settings = createSettings();
 		new MaMuT( file, model, settings );
+	}
+
+	public static File proposeBdvXmlFileToOpen()
+	{
+		File folder = new File(System.getProperty("user.dir"));
+		if ( folder != null && folder.getParentFile() != null )
+			folder = folder.getParentFile();
+		if ( folder != null )
+			return new File(folder.getPath() + File.separator + "data.xml");
+		else
+			return new File("data.xml");
 	}
 
 	protected SourceSettings createSettings()

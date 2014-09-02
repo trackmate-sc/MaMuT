@@ -35,8 +35,7 @@ public class LoadMamutAnnotationPlugin implements PlugIn {
 		} else {
 
 			if (null == file) {
-				final File folder = new File(System.getProperty("user.dir")).getParentFile().getParentFile();
-				file = new File(folder.getPath() + File.separator + "data.xml");
+				file = NewMamutAnnotationPlugin.proposeBdvXmlFileToOpen();
 			}
 			file = IOUtils.askForFileForLoading(file, "Open a MaMuT xml file", IJ.getInstance(), logger);
 			if (null == file) {
