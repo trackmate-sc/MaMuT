@@ -21,6 +21,7 @@ import static fiji.plugin.trackmate.visualization.TrackMateModelView.KEY_TRACK_C
 import static fiji.plugin.trackmate.visualization.TrackMateModelView.KEY_TRACK_DISPLAY_DEPTH;
 import static fiji.plugin.trackmate.visualization.TrackMateModelView.KEY_TRACK_DISPLAY_MODE;
 import ij.IJ;
+import ij.text.TextWindow;
 import ij3d.Image3DUniverse;
 import ij3d.ImageWindow3D;
 
@@ -935,7 +936,6 @@ public class MaMuT implements ModelChangeListener
 					logger.error( "Cannot create a link between two spots belonging in the same frame." );
 				}
 			}
-
 		}
 		else
 		{
@@ -976,7 +976,6 @@ public class MaMuT implements ModelChangeListener
 
 	private void save()
 	{
-
 		final Logger logger = Logger.IJ_LOGGER;
 		mamutFile = IOUtils.askForFileForSaving( mamutFile, IJ.getInstance(), logger );
 		if ( null == mamutFile )
@@ -985,26 +984,57 @@ public class MaMuT implements ModelChangeListener
 			return;
 		}
 
-		logger.log( "Saving to " + mamutFile + '\n' );
-
-		final MamutXmlWriter writer = new MamutXmlWriter( mamutFile, logger );
-		writer.appendModel( model );
-		writer.appendSettings( settings );
-		writer.appendMamutState( guimodel, setupAssignments );
+		MamutXmlWriter writer = null;
 		try
 		{
+			logger.log( "Saving to " + mamutFile + '\n' );
+			writer = new MamutXmlWriter( mamutFile, logger );
+			writer.appendModel( model );
+			writer.appendSettings( settings );
+			writer.appendMamutState( guimodel, setupAssignments );
 			writer.writeToFile();
 			logger.log( "Done.\n" );
 		}
 		catch ( final FileNotFoundException e )
 		{
 			logger.error( "Could not find file " + mamutFile + ";\n" + e.getMessage() );
+			if ( null != writer )
+			{
+				final String text = "A problem occured when saving to a file. "
+						+ "To recuperate your work, ust copy/paste the text "
+						+ "below the line and save it to an XML file.\n"
+						+ "__________________________\n"
+						+ writer.toString();
+				new TextWindow( PLUGIN_NAME + " v" + PLUGIN_VERSION + " save file dump", text, 600, 800 );
+			}
+
 		}
 		catch ( final IOException e )
 		{
 			logger.error( "Could not write to " + mamutFile + ";\n" + e.getMessage() );
+			if ( null != writer )
+			{
+				final String text = "A problem occured when saving to a file. "
+						+ "To recuperate your work, ust copy/paste the text "
+						+ "below the line and save it to an XML file.\n"
+						+ "__________________________\n"
+						+ writer.toString();
+				new TextWindow( PLUGIN_NAME + " v" + PLUGIN_VERSION + " save file dump", text, 600, 800 );
+			}
 		}
-
+		catch ( final Exception e )
+		{
+			logger.error( "Something wrong happened while saving to " + mamutFile + ";\n" + e.getMessage() );
+			if ( null != writer )
+			{
+				final String text = "A problem occured when saving to a file. "
+						+ "To recuperate your work, ust copy/paste the text "
+						+ "below the line and save it to an XML file.\n"
+						+ "__________________________\n"
+						+ writer.toString();
+				new TextWindow( PLUGIN_NAME + " v" + PLUGIN_VERSION + " save file dump", text, 600, 800 );
+			}
+		}
 	}
 
 	private void requestRepaintAllViewers()
