@@ -2,8 +2,6 @@ package fiji.plugin.mamut.gui;
 
 import static fiji.plugin.trackmate.gui.TrackMateWizard.SMALL_FONT;
 
-import java.awt.Dimension;
-import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -34,14 +32,18 @@ public class MamutControlPanel extends ConfigureViewsPanel
 
 	public final ActionEvent MAMUT_SAVE_BUTTON_PRESSED = new ActionEvent( this, 3, "MamutSaveButtonPushed" );
 
+	/*
+	 * CONSTRUCTORS
+	 */
+
+	public MamutControlPanel()
+	{
+		this( new Model() );
+	}
+
 	public MamutControlPanel( final Model model )
 	{
 		super( model );
-
-		// Move trackscheme button
-		final Point btp = jButtonShowTrackScheme.getLocation();
-		jButtonShowTrackScheme.setLocation( btp.x, btp.y + 50 );
-		final Dimension btd = jButtonShowTrackScheme.getSize();
 
 		// Hijack the do analysis bytton
 		jButtonDoAnalysis.setText( "3D Viewer" );
@@ -51,8 +53,6 @@ public class MamutControlPanel extends ConfigureViewsPanel
 		// New Mamut viewer button
 		jButtonMamutViewer = new JButton( "Mamut Viewer", MAMUT_ICON );
 		jButtonMamutViewer.setFont( SMALL_FONT );
-		jButtonMamutViewer.setLocation( btp );
-		jButtonMamutViewer.setSize( btd );
 		jButtonMamutViewer.addActionListener( new ActionListener()
 		{
 			@Override
@@ -61,14 +61,10 @@ public class MamutControlPanel extends ConfigureViewsPanel
 				fireAction( MAMUT_VIEWER_BUTTON_PRESSED );
 			}
 		} );
-		add( jButtonMamutViewer );
 
 		// Save button
-		final Point atp = jButtonDoAnalysis.getLocation();
 		jButtonSaveButton = new JButton( "Save", SAVE_ICON );
 		jButtonSaveButton.setFont( SMALL_FONT );
-		jButtonSaveButton.setLocation( atp.x, atp.y + 50 );
-		jButtonSaveButton.setSize( btd );
 		jButtonSaveButton.addActionListener( new ActionListener()
 		{
 			@Override
@@ -77,6 +73,9 @@ public class MamutControlPanel extends ConfigureViewsPanel
 				fireAction( MAMUT_SAVE_BUTTON_PRESSED );
 			}
 		} );
-		add( jButtonSaveButton );
+
+		jPanelButtons.add( jButtonMamutViewer );
+		jPanelButtons.add( jButtonSaveButton );
+		resizeButtons();
 	}
 }

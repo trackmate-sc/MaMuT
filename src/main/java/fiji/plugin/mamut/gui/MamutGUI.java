@@ -44,7 +44,7 @@ public class MamutGUI extends JFrame
 	{
 		setTitle( PLUGIN_NAME + " v" + PLUGIN_VERSION );
 		setIconImage( MAMUT_ICON.getImage() );
-		setSize( 320, 576 );
+		setSize( 340, 580 );
 
 		final JTabbedPane tabbedPane = new JTabbedPane( JTabbedPane.TOP );
 		getContentPane().add( tabbedPane, BorderLayout.CENTER );
