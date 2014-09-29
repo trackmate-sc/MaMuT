@@ -56,10 +56,18 @@ public class ImgPlusSource< T extends NumericType< T >> implements Source< T >
 	}
 
 	@Override
+	public void getSourceTransform( final int t, final int level, final AffineTransform3D transform )
+	{
+		transform.set( TransformUtils.getTransformFromCalibration( img ).inverse() );
+	}
+
+	@Override
+	@Deprecated
 	public AffineTransform3D getSourceTransform( final int t, final int level )
 	{
-		final AffineTransform3D identity = TransformUtils.getTransformFromCalibration( img ).inverse();
-		return identity;
+		final AffineTransform3D transform = new AffineTransform3D();
+		getSourceTransform( t, level, transform );
+		return transform;
 	}
 
 	@Override
