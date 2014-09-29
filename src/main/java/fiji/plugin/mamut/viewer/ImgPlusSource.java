@@ -1,5 +1,6 @@
 package fiji.plugin.mamut.viewer;
 
+import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.RandomAccessible;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealRandomAccessible;
@@ -14,7 +15,7 @@ import bdv.viewer.Interpolation;
 import bdv.viewer.Source;
 import fiji.plugin.mamut.util.TransformUtils;
 
-public class ImgPlusSource< T extends NumericType< T >> implements Source< T >
+public class ImgPlusSource< T extends NumericType< T > > implements Source< T >
 {
 
 	private final ImgPlus< T > img;
@@ -86,6 +87,11 @@ public class ImgPlusSource< T extends NumericType< T >> implements Source< T >
 	public int getNumMipmapLevels()
 	{
 		return 1;
+	}
+
+	@Override
+	public VoxelDimensions getVoxelDimensions() {
+		return null;
 	}
 
 }
