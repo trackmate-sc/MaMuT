@@ -29,6 +29,17 @@ public class LoadMamutAnnotationPlugin implements PlugIn
 			// Skip dialog
 			file = new File( fileStr );
 
+			if ( !file.exists() )
+			{
+				IJ.error( MaMuT.PLUGIN_NAME + " v" + MaMuT.PLUGIN_VERSION, "Cannot find the MaMuT file " + file );
+				return;
+			}
+			if ( !file.canRead() )
+			{
+				IJ.error( MaMuT.PLUGIN_NAME + " v" + MaMuT.PLUGIN_VERSION, "Cannot read the MaMuT file " + file );
+				return;
+			}
+
 			if ( file.isDirectory() )
 			{
 				file = IOUtils.askForFileForLoading( file, "Open a MaMuT xml file", IJ.getInstance(), logger );
