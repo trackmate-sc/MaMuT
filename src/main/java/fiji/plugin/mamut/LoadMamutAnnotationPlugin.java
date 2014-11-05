@@ -13,18 +13,21 @@ import ij.plugin.PlugIn;
 
 import java.io.File;
 
-public class LoadMamutAnnotationPlugin implements PlugIn {
+public class LoadMamutAnnotationPlugin implements PlugIn
+{
 
 	private static File file;
 
 	@Override
-	public void run(final String fileStr) {
+	public void run( final String fileStr )
+	{
 
 		final Logger logger = Logger.IJ_LOGGER;
 
-		if (null != fileStr && fileStr.length() > 0) {
+		if ( null != fileStr && fileStr.length() > 0 )
+		{
 			// Skip dialog
-			file = new File(fileStr);
+			file = new File( fileStr );
 
 			if ( file.isDirectory() )
 			{
@@ -32,15 +35,16 @@ public class LoadMamutAnnotationPlugin implements PlugIn {
 				if ( null == file ) { return; }
 			}
 
-		} else {
+		}
+		else
+		{
 
-			if (null == file) {
+			if ( null == file )
+			{
 				file = NewMamutAnnotationPlugin.proposeBdvXmlFileToOpen();
 			}
-			file = IOUtils.askForFileForLoading(file, "Open a MaMuT xml file", IJ.getInstance(), logger);
-			if (null == file) {
-				return;
-			}
+			file = IOUtils.askForFileForLoading( file, "Open a MaMuT xml file", IJ.getInstance(), logger );
+			if ( null == file ) { return; }
 		}
 
 		load( file );
@@ -57,7 +61,6 @@ public class LoadMamutAnnotationPlugin implements PlugIn {
 		 */
 
 		final Model model = reader.getModel();
-
 
 		/*
 		 * Read settings
@@ -91,8 +94,9 @@ public class LoadMamutAnnotationPlugin implements PlugIn {
 
 	}
 
-	public static void main(final String[] args) {
-		ImageJ.main(args);
+	public static void main( final String[] args )
+	{
+		ImageJ.main( args );
 
 		final LoadMamutAnnotationPlugin plugin = new LoadMamutAnnotationPlugin();
 		plugin.run( "/Users/tinevez/Desktop/Data/Mamut/parhyale/BDV130418A325_NoTempReg-mamut_JY2.xml" );
