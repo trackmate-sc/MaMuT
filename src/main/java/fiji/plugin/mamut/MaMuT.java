@@ -998,42 +998,33 @@ public class MaMuT implements ModelChangeListener
 		catch ( final FileNotFoundException e )
 		{
 			logger.error( "Could not find file " + mamutFile + ";\n" + e.getMessage() );
-			if ( null != writer )
-			{
-				final String text = "A problem occured when saving to a file. "
-						+ "To recuperate your work, ust copy/paste the text "
-						+ "below the line and save it to an XML file.\n"
-						+ "__________________________\n"
-						+ writer.toString();
-				new TextWindow( PLUGIN_NAME + " v" + PLUGIN_VERSION + " save file dump", text, 600, 800 );
-			}
-
+			somethingWrongHappenedWhileSaving( writer );
+			e.printStackTrace();
 		}
 		catch ( final IOException e )
 		{
 			logger.error( "Could not write to " + mamutFile + ";\n" + e.getMessage() );
-			if ( null != writer )
-			{
-				final String text = "A problem occured when saving to a file. "
-						+ "To recuperate your work, ust copy/paste the text "
-						+ "below the line and save it to an XML file.\n"
-						+ "__________________________\n"
-						+ writer.toString();
-				new TextWindow( PLUGIN_NAME + " v" + PLUGIN_VERSION + " save file dump", text, 600, 800 );
-			}
+			somethingWrongHappenedWhileSaving( writer );
+			e.printStackTrace();
 		}
 		catch ( final Exception e )
 		{
 			logger.error( "Something wrong happened while saving to " + mamutFile + ";\n" + e.getMessage() );
-			if ( null != writer )
-			{
-				final String text = "A problem occured when saving to a file. "
-						+ "To recuperate your work, ust copy/paste the text "
-						+ "below the line and save it to an XML file.\n"
-						+ "__________________________\n"
-						+ writer.toString();
-				new TextWindow( PLUGIN_NAME + " v" + PLUGIN_VERSION + " save file dump", text, 600, 800 );
-			}
+			somethingWrongHappenedWhileSaving( writer );
+			e.printStackTrace();
+		}
+	}
+
+	private void somethingWrongHappenedWhileSaving( final MamutXmlWriter writer )
+	{
+		if ( null != writer )
+		{
+			final String text = "A problem occured when saving to a file. "
+					+ "To recuperate your work, ust copy/paste the text "
+					+ "below the line and save it to an XML file.\n"
+					+ "__________________________\n"
+					+ writer.toString();
+			new TextWindow( PLUGIN_NAME + " v" + PLUGIN_VERSION + " save file dump", text, 600, 800 );
 		}
 	}
 
