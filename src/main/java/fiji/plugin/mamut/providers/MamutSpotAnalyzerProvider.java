@@ -5,6 +5,7 @@ import java.util.List;
 
 import fiji.plugin.mamut.feature.spot.CellDivisionTimeAnalyzerSpotFactory;
 import fiji.plugin.mamut.feature.spot.SpotSourceIdAnalyzerFactory;
+import fiji.plugin.trackmate.features.manual.ManualSpotColorAnalyzerFactory;
 import fiji.plugin.trackmate.features.spot.SpotAnalyzerFactory;
 import fiji.plugin.trackmate.providers.SpotAnalyzerProvider;
 
@@ -18,9 +19,10 @@ public class MamutSpotAnalyzerProvider extends SpotAnalyzerProvider
 
 	static
 	{
-		KEYS = new ArrayList< String >( 2 );
+		KEYS = new ArrayList< String >( 3 );
 		KEYS.add( SpotSourceIdAnalyzerFactory.KEY );
 		KEYS.add( CellDivisionTimeAnalyzerSpotFactory.KEY );
+		KEYS.add( ManualSpotColorAnalyzerFactory.KEY );
 	}
 
 	private final SpotSourceIdAnalyzerFactory spotSourceIdAnalyzerFactory;

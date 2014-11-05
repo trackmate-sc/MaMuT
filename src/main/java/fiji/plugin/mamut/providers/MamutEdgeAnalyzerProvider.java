@@ -6,6 +6,7 @@ import java.util.List;
 import fiji.plugin.trackmate.features.edges.EdgeAnalyzer;
 import fiji.plugin.trackmate.features.edges.EdgeTargetAnalyzer;
 import fiji.plugin.trackmate.features.edges.EdgeVelocityAnalyzer;
+import fiji.plugin.trackmate.features.manual.ManualEdgeColorAnalyzer;
 import fiji.plugin.trackmate.providers.EdgeAnalyzerProvider;
 
 public class MamutEdgeAnalyzerProvider extends EdgeAnalyzerProvider
@@ -15,9 +16,10 @@ public class MamutEdgeAnalyzerProvider extends EdgeAnalyzerProvider
 
 	static
 	{
-		KEYS = new ArrayList< String >( 2 );
+		KEYS = new ArrayList< String >( 3 );
 		KEYS.add( EdgeTargetAnalyzer.KEY );
 		KEYS.add( EdgeVelocityAnalyzer.KEY );
+		KEYS.add( ManualEdgeColorAnalyzer.KEY );
 	}
 
 	@Override
