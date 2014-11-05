@@ -1,14 +1,14 @@
 package fiji.plugin.mamut;
 
+import bdv.img.cache.Cache;
+import bdv.viewer.SourceAndConverter;
+import fiji.plugin.trackmate.Settings;
 import ij.ImagePlus;
 
 import java.io.File;
 import java.util.List;
 
 import net.imglib2.RandomAccessibleInterval;
-import bdv.img.cache.Cache;
-import bdv.viewer.SourceAndConverter;
-import fiji.plugin.trackmate.Settings;
 
 public class SourceSettings extends Settings {
 

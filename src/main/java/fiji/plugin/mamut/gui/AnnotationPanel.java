@@ -2,6 +2,10 @@ package fiji.plugin.mamut.gui;
 
 import static fiji.plugin.trackmate.gui.TrackMateWizard.FONT;
 import static fiji.plugin.trackmate.gui.TrackMateWizard.SMALL_FONT;
+import fiji.plugin.mamut.MaMuT;
+import fiji.plugin.trackmate.Logger;
+import fiji.plugin.trackmate.gui.panels.ActionListenablePanel;
+import fiji.plugin.trackmate.gui.panels.components.JNumericTextField;
 
 import java.awt.Color;
 import java.awt.Font;
@@ -28,11 +32,6 @@ import javax.swing.text.AttributeSet;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyleContext;
-
-import fiji.plugin.mamut.MaMuT;
-import fiji.plugin.trackmate.Logger;
-import fiji.plugin.trackmate.gui.panels.ActionListenablePanel;
-import fiji.plugin.trackmate.gui.panels.components.JNumericTextField;
 
 public class AnnotationPanel extends ActionListenablePanel
 {

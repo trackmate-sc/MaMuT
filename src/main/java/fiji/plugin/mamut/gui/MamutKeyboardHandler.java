@@ -1,5 +1,10 @@
 package fiji.plugin.mamut.gui;
 
+import bdv.BigDataViewerActions;
+import bdv.util.KeyProperties;
+import bdv.viewer.NavigationActions;
+import fiji.plugin.mamut.MaMuT;
+import fiji.plugin.mamut.viewer.MamutViewer;
 import ij.IJ;
 
 import java.io.File;
@@ -11,12 +16,6 @@ import javax.swing.ActionMap;
 import javax.swing.InputMap;
 import javax.swing.JComponent;
 import javax.swing.KeyStroke;
-
-import bdv.BigDataViewerActions;
-import bdv.util.KeyProperties;
-import bdv.viewer.NavigationActions;
-import fiji.plugin.mamut.MaMuT;
-import fiji.plugin.mamut.viewer.MamutViewer;
 
 public class MamutKeyboardHandler {
 

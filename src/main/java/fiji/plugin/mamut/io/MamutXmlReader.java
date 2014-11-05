@@ -7,15 +7,6 @@ import static fiji.plugin.trackmate.io.TmXmlKeys.GUI_VIEW_ATTRIBUTE_POSITION_WID
 import static fiji.plugin.trackmate.io.TmXmlKeys.GUI_VIEW_ATTRIBUTE_POSITION_X;
 import static fiji.plugin.trackmate.io.TmXmlKeys.GUI_VIEW_ATTRIBUTE_POSITION_Y;
 import static fiji.plugin.trackmate.io.TmXmlKeys.GUI_VIEW_ELEMENT_KEY;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
-import org.jdom2.DataConversionException;
-import org.jdom2.Element;
-
 import bdv.tools.brightness.SetupAssignments;
 import fiji.plugin.mamut.viewer.MamutViewer;
 import fiji.plugin.mamut.viewer.MamutViewerFactory;
@@ -27,6 +18,14 @@ import fiji.plugin.trackmate.providers.ViewProvider;
 import fiji.plugin.trackmate.visualization.TrackMateModelView;
 import fiji.plugin.trackmate.visualization.ViewFactory;
 import fiji.plugin.trackmate.visualization.trackscheme.TrackScheme;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+import org.jdom2.DataConversionException;
+import org.jdom2.Element;
 
 public class MamutXmlReader extends TmXmlReader {
 

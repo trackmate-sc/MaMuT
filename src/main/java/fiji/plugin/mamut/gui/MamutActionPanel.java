@@ -1,6 +1,8 @@
 package fiji.plugin.mamut.gui;
 
 import static fiji.plugin.trackmate.gui.TrackMateWizard.FONT;
+import fiji.plugin.trackmate.gui.LogPanel;
+import fiji.plugin.trackmate.gui.panels.ListChooserPanel;
 
 import java.awt.Component;
 import java.awt.Dimension;
@@ -14,9 +16,6 @@ import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.SpringLayout;
-
-import fiji.plugin.trackmate.gui.LogPanel;
-import fiji.plugin.trackmate.gui.panels.ListChooserPanel;
 
 public class MamutActionPanel extends ListChooserPanel
 {

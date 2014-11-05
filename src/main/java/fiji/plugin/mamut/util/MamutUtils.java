@@ -1,5 +1,10 @@
 package fiji.plugin.mamut.util;
 
+import bdv.viewer.Source;
+import bdv.viewer.SourceAndConverter;
+import fiji.plugin.mamut.feature.spot.SpotSourceIdAnalyzerFactory;
+import fiji.plugin.trackmate.Spot;
+
 import java.util.List;
 
 import net.imglib2.Cursor;
@@ -21,10 +26,6 @@ import net.imglib2.util.Intervals;
 import net.imglib2.util.Util;
 import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
-import bdv.viewer.Source;
-import bdv.viewer.SourceAndConverter;
-import fiji.plugin.mamut.feature.spot.SpotSourceIdAnalyzerFactory;
-import fiji.plugin.trackmate.Spot;
 
 public class MamutUtils
 {

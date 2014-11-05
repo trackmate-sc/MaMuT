@@ -2,6 +2,11 @@ package fiji.plugin.mamut.gui;
 
 import static fiji.plugin.mamut.MaMuT.PLUGIN_NAME;
 import static fiji.plugin.mamut.MaMuT.PLUGIN_VERSION;
+import fiji.plugin.mamut.MaMuT;
+import fiji.plugin.mamut.action.MamutActionFactory;
+import fiji.plugin.mamut.providers.MamutActionProvider;
+import fiji.plugin.trackmate.TrackMate;
+import fiji.plugin.trackmate.action.TrackMateAction;
 
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
@@ -14,12 +19,6 @@ import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JTabbedPane;
-
-import fiji.plugin.mamut.MaMuT;
-import fiji.plugin.mamut.action.MamutActionFactory;
-import fiji.plugin.mamut.providers.MamutActionProvider;
-import fiji.plugin.trackmate.TrackMate;
-import fiji.plugin.trackmate.action.TrackMateAction;
 
 public class MamutGUI extends JFrame
 {

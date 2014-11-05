@@ -1,5 +1,16 @@
 package fiji.plugin.mamut.detection;
 
+import bdv.util.Affine3DHelpers;
+import bdv.viewer.Source;
+import bdv.viewer.SourceAndConverter;
+import fiji.plugin.mamut.feature.spot.SpotSourceIdAnalyzerFactory;
+import fiji.plugin.trackmate.Logger;
+import fiji.plugin.trackmate.Model;
+import fiji.plugin.trackmate.SelectionModel;
+import fiji.plugin.trackmate.Spot;
+import fiji.plugin.trackmate.detection.SpotDetector;
+import fiji.plugin.trackmate.detection.semiauto.AbstractSemiAutoTracker;
+
 import java.util.List;
 
 import net.imglib2.FinalInterval;
@@ -11,16 +22,6 @@ import net.imglib2.position.transform.Round;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
-import bdv.util.Affine3DHelpers;
-import bdv.viewer.Source;
-import bdv.viewer.SourceAndConverter;
-import fiji.plugin.mamut.feature.spot.SpotSourceIdAnalyzerFactory;
-import fiji.plugin.trackmate.Logger;
-import fiji.plugin.trackmate.Model;
-import fiji.plugin.trackmate.SelectionModel;
-import fiji.plugin.trackmate.Spot;
-import fiji.plugin.trackmate.detection.SpotDetector;
-import fiji.plugin.trackmate.detection.semiauto.AbstractSemiAutoTracker;
 
 /**
  * A class made to perform semi-automated tracking of spots in MaMuT.

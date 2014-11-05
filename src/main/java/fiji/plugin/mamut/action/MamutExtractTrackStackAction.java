@@ -1,5 +1,16 @@
 package fiji.plugin.mamut.action;
 
+import bdv.util.Affine3DHelpers;
+import bdv.viewer.Source;
+import fiji.plugin.mamut.SourceSettings;
+import fiji.plugin.mamut.util.MamutUtils;
+import fiji.plugin.trackmate.Model;
+import fiji.plugin.trackmate.SelectionModel;
+import fiji.plugin.trackmate.Settings;
+import fiji.plugin.trackmate.Spot;
+import fiji.plugin.trackmate.TrackMate;
+import fiji.plugin.trackmate.action.AbstractTMAction;
+import fiji.plugin.trackmate.gui.TrackMateWizard;
 import ij.ImagePlus;
 import ij.ImageStack;
 import ij.measure.Calibration;
@@ -19,18 +30,6 @@ import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.view.Views;
 
 import org.jgrapht.graph.DefaultWeightedEdge;
-
-import bdv.util.Affine3DHelpers;
-import bdv.viewer.Source;
-import fiji.plugin.mamut.SourceSettings;
-import fiji.plugin.mamut.util.MamutUtils;
-import fiji.plugin.trackmate.Model;
-import fiji.plugin.trackmate.SelectionModel;
-import fiji.plugin.trackmate.Settings;
-import fiji.plugin.trackmate.Spot;
-import fiji.plugin.trackmate.TrackMate;
-import fiji.plugin.trackmate.action.AbstractTMAction;
-import fiji.plugin.trackmate.gui.TrackMateWizard;
 
 public class MamutExtractTrackStackAction extends AbstractTMAction
 {

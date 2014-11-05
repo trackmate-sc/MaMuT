@@ -1,6 +1,15 @@
 package fiji.plugin.mamut.feature.track;
 
 import static fiji.plugin.mamut.feature.spot.CellDivisionTimeAnalyzerSpotFactory.CELL_DIVISION_TIME;
+import fiji.plugin.trackmate.Dimension;
+import fiji.plugin.trackmate.FeatureModel;
+import fiji.plugin.trackmate.Model;
+import fiji.plugin.trackmate.Spot;
+import fiji.plugin.trackmate.TrackModel;
+import fiji.plugin.trackmate.features.track.TrackAnalyzer;
+import fiji.plugin.trackmate.graph.ConvexBranchesDecomposition;
+import fiji.plugin.trackmate.graph.ConvexBranchesDecomposition.TrackBranchDecomposition;
+import fiji.plugin.trackmate.graph.TimeDirectedNeighborIndex;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -12,16 +21,6 @@ import java.util.Set;
 import javax.swing.ImageIcon;
 
 import org.scijava.plugin.Plugin;
-
-import fiji.plugin.trackmate.Dimension;
-import fiji.plugin.trackmate.FeatureModel;
-import fiji.plugin.trackmate.Model;
-import fiji.plugin.trackmate.Spot;
-import fiji.plugin.trackmate.TrackModel;
-import fiji.plugin.trackmate.features.track.TrackAnalyzer;
-import fiji.plugin.trackmate.graph.ConvexBranchesDecomposition;
-import fiji.plugin.trackmate.graph.ConvexBranchesDecomposition.TrackBranchDecomposition;
-import fiji.plugin.trackmate.graph.TimeDirectedNeighborIndex;
 
 @Plugin( type = TrackAnalyzer.class )
 public class CellDivisionTimeAnalyzer implements TrackAnalyzer

@@ -1,11 +1,5 @@
 package fiji.plugin.mamut;
 
-import ij.ImageJ;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-
 import fiji.plugin.trackmate.Model;
 import fiji.plugin.trackmate.SelectionModel;
 import fiji.plugin.trackmate.Spot;
@@ -16,6 +10,11 @@ import fiji.plugin.trackmate.visualization.SpotColorGenerator;
 import fiji.plugin.trackmate.visualization.TrackMateModelView;
 import fiji.plugin.trackmate.visualization.ViewFactory;
 import fiji.plugin.trackmate.visualization.trackscheme.TrackSchemeFactory;
+import ij.ImageJ;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 
 public class CreateLargeModelExample
 {

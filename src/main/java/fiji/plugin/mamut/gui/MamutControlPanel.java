@@ -1,6 +1,9 @@
 package fiji.plugin.mamut.gui;
 
 import static fiji.plugin.trackmate.gui.TrackMateWizard.SMALL_FONT;
+import fiji.plugin.mamut.MaMuT;
+import fiji.plugin.trackmate.Model;
+import fiji.plugin.trackmate.gui.panels.ConfigureViewsPanel;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -8,10 +11,6 @@ import java.awt.event.ActionListener;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
-
-import fiji.plugin.mamut.MaMuT;
-import fiji.plugin.trackmate.Model;
-import fiji.plugin.trackmate.gui.panels.ConfigureViewsPanel;
 
 public class MamutControlPanel extends ConfigureViewsPanel
 {

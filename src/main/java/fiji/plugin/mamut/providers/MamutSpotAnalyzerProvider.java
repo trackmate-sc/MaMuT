@@ -1,13 +1,13 @@
 package fiji.plugin.mamut.providers;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import fiji.plugin.mamut.feature.spot.CellDivisionTimeAnalyzerSpotFactory;
 import fiji.plugin.mamut.feature.spot.SpotSourceIdAnalyzerFactory;
 import fiji.plugin.trackmate.features.manual.ManualSpotColorAnalyzerFactory;
 import fiji.plugin.trackmate.features.spot.SpotAnalyzerFactory;
 import fiji.plugin.trackmate.providers.SpotAnalyzerProvider;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A provider for the spot analyzer factories for MaMuT only.
