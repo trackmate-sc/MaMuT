@@ -1,5 +1,20 @@
 package fiji.plugin.mamut.viewer;
 
+import bdv.img.cache.Cache;
+import bdv.viewer.InputActionBindings;
+import bdv.viewer.SourceAndConverter;
+import bdv.viewer.ViewerPanel;
+import bdv.viewer.ViewerPanel.Options;
+import bdv.viewer.animate.MessageOverlayAnimator;
+import fiji.plugin.mamut.MaMuT;
+import fiji.plugin.trackmate.Logger;
+import fiji.plugin.trackmate.Model;
+import fiji.plugin.trackmate.SelectionModel;
+import fiji.plugin.trackmate.Spot;
+import fiji.plugin.trackmate.visualization.FeatureColorGenerator;
+import fiji.plugin.trackmate.visualization.TrackColorGenerator;
+import fiji.plugin.trackmate.visualization.TrackMateModelView;
+
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -16,20 +31,6 @@ import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 
 import net.imglib2.ui.util.GuiUtil;
-import bdv.img.cache.Cache;
-import bdv.viewer.InputActionBindings;
-import bdv.viewer.SourceAndConverter;
-import bdv.viewer.ViewerPanel;
-import bdv.viewer.ViewerPanel.Options;
-import bdv.viewer.animate.MessageOverlayAnimator;
-import fiji.plugin.mamut.MaMuT;
-import fiji.plugin.trackmate.Logger;
-import fiji.plugin.trackmate.Model;
-import fiji.plugin.trackmate.SelectionModel;
-import fiji.plugin.trackmate.Spot;
-import fiji.plugin.trackmate.visualization.FeatureColorGenerator;
-import fiji.plugin.trackmate.visualization.TrackColorGenerator;
-import fiji.plugin.trackmate.visualization.TrackMateModelView;
 
 /**
  * A {@link JFrame} containing a {@link ViewerPanel} and associated

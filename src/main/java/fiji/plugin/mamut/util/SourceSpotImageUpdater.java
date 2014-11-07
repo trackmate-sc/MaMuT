@@ -1,5 +1,13 @@
 package fiji.plugin.mamut.util;
 
+import bdv.util.Affine3DHelpers;
+import bdv.viewer.Source;
+import bdv.viewer.SourceAndConverter;
+import fiji.plugin.mamut.feature.spot.SpotSourceIdAnalyzerFactory;
+import fiji.plugin.trackmate.Settings;
+import fiji.plugin.trackmate.Spot;
+import fiji.plugin.trackmate.visualization.trackscheme.SpotImageUpdater;
+
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.io.ByteArrayOutputStream;
@@ -25,13 +33,6 @@ import net.imglib2.type.numeric.integer.UnsignedByteType;
 import net.imglib2.util.Intervals;
 import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
-import bdv.util.Affine3DHelpers;
-import bdv.viewer.Source;
-import bdv.viewer.SourceAndConverter;
-import fiji.plugin.mamut.feature.spot.SpotSourceIdAnalyzerFactory;
-import fiji.plugin.trackmate.Settings;
-import fiji.plugin.trackmate.Spot;
-import fiji.plugin.trackmate.visualization.trackscheme.SpotImageUpdater;
 
 public class SourceSpotImageUpdater<T extends RealType<T>> extends SpotImageUpdater {
 

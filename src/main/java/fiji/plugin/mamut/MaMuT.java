@@ -20,47 +20,6 @@ import static fiji.plugin.trackmate.visualization.TrackMateModelView.KEY_TRACKS_
 import static fiji.plugin.trackmate.visualization.TrackMateModelView.KEY_TRACK_COLORING;
 import static fiji.plugin.trackmate.visualization.TrackMateModelView.KEY_TRACK_DISPLAY_DEPTH;
 import static fiji.plugin.trackmate.visualization.TrackMateModelView.KEY_TRACK_DISPLAY_MODE;
-import ij.IJ;
-import ij.text.TextWindow;
-import ij3d.Image3DUniverse;
-import ij3d.ImageWindow3D;
-
-import java.awt.Dimension;
-import java.awt.MouseInfo;
-import java.awt.Point;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseMotionListener;
-import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.KeyStroke;
-import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
-
-import mpicbg.spim.data.SpimDataException;
-import mpicbg.spim.data.generic.sequence.AbstractSequenceDescription;
-import mpicbg.spim.data.sequence.TimePoint;
-import net.imglib2.RealPoint;
-import net.imglib2.type.numeric.ARGBType;
-
-import org.jgrapht.graph.DefaultWeightedEdge;
-
 import bdv.BigDataViewer;
 import bdv.ViewerImgLoader;
 import bdv.img.cache.Cache;
@@ -121,6 +80,46 @@ import fiji.plugin.trackmate.visualization.SpotColorGeneratorPerTrackFeature;
 import fiji.plugin.trackmate.visualization.TrackMateModelView;
 import fiji.plugin.trackmate.visualization.threedviewer.SpotDisplayer3D;
 import fiji.plugin.trackmate.visualization.trackscheme.TrackScheme;
+import ij.IJ;
+import ij.text.TextWindow;
+import ij3d.Image3DUniverse;
+import ij3d.ImageWindow3D;
+
+import java.awt.Dimension;
+import java.awt.MouseInfo;
+import java.awt.Point;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.KeyStroke;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
+
+import mpicbg.spim.data.SpimDataException;
+import mpicbg.spim.data.generic.sequence.AbstractSequenceDescription;
+import mpicbg.spim.data.sequence.TimePoint;
+import net.imglib2.RealPoint;
+import net.imglib2.type.numeric.ARGBType;
+
+import org.jgrapht.graph.DefaultWeightedEdge;
 
 public class MaMuT implements ModelChangeListener
 {

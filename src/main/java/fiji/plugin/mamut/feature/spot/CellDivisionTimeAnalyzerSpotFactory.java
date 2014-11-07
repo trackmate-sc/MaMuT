@@ -1,5 +1,11 @@
 package fiji.plugin.mamut.feature.spot;
 
+import fiji.plugin.mamut.feature.track.CellDivisionTimeAnalyzer;
+import fiji.plugin.trackmate.Dimension;
+import fiji.plugin.trackmate.Model;
+import fiji.plugin.trackmate.features.spot.SpotAnalyzer;
+import fiji.plugin.trackmate.features.spot.SpotAnalyzerFactory;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -10,11 +16,6 @@ import javax.swing.ImageIcon;
 import net.imglib2.meta.ImgPlus;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
-import fiji.plugin.mamut.feature.track.CellDivisionTimeAnalyzer;
-import fiji.plugin.trackmate.Dimension;
-import fiji.plugin.trackmate.Model;
-import fiji.plugin.trackmate.features.spot.SpotAnalyzer;
-import fiji.plugin.trackmate.features.spot.SpotAnalyzerFactory;
 
 /**
  * A dummy {@link SpotAnalyzerFactory}, made to simply register the spot

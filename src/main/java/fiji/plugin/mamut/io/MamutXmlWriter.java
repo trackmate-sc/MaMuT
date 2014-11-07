@@ -8,13 +8,6 @@ import static fiji.plugin.trackmate.io.TmXmlKeys.GUI_VIEW_ATTRIBUTE_POSITION_X;
 import static fiji.plugin.trackmate.io.TmXmlKeys.GUI_VIEW_ATTRIBUTE_POSITION_Y;
 import static fiji.plugin.trackmate.io.TmXmlKeys.GUI_VIEW_ELEMENT_KEY;
 import static fiji.plugin.trackmate.io.TmXmlKeys.SETTINGS_ELEMENT_KEY;
-
-import java.awt.Dimension;
-import java.awt.Point;
-import java.io.File;
-
-import org.jdom2.Element;
-
 import bdv.tools.brightness.SetupAssignments;
 import fiji.plugin.mamut.SourceSettings;
 import fiji.plugin.mamut.viewer.MamutViewer;
@@ -25,6 +18,12 @@ import fiji.plugin.trackmate.gui.TrackMateGUIModel;
 import fiji.plugin.trackmate.io.TmXmlWriter;
 import fiji.plugin.trackmate.visualization.TrackMateModelView;
 import fiji.plugin.trackmate.visualization.trackscheme.TrackScheme;
+
+import java.awt.Dimension;
+import java.awt.Point;
+import java.io.File;
+
+import org.jdom2.Element;
 
 public class MamutXmlWriter extends TmXmlWriter
 {

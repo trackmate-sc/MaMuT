@@ -1,14 +1,14 @@
 package fiji.plugin.mamut.gui;
 
-import java.awt.event.ActionEvent;
-
-import javax.swing.AbstractAction;
-import javax.swing.Action;
-
 import bdv.tools.HelpDialog;
 import fiji.plugin.mamut.MaMuT;
 import fiji.plugin.mamut.viewer.MamutViewer;
 import fiji.plugin.trackmate.Logger;
+
+import java.awt.event.ActionEvent;
+
+import javax.swing.AbstractAction;
+import javax.swing.Action;
 
 public class MamutActions {
 

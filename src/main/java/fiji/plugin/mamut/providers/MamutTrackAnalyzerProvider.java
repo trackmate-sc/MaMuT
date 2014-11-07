@@ -1,14 +1,14 @@
 package fiji.plugin.mamut.providers;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import fiji.plugin.mamut.feature.track.CellDivisionTimeAnalyzer;
 import fiji.plugin.trackmate.features.track.TrackAnalyzer;
 import fiji.plugin.trackmate.features.track.TrackBranchingAnalyzer;
 import fiji.plugin.trackmate.features.track.TrackDurationAnalyzer;
 import fiji.plugin.trackmate.features.track.TrackIndexAnalyzer;
 import fiji.plugin.trackmate.providers.TrackAnalyzerProvider;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A provider for the track analyzer factories for MaMuT only.

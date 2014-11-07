@@ -1,5 +1,8 @@
 package fiji.plugin.mamut;
 
+import bdv.spimdata.SequenceDescriptionMinimal;
+import bdv.spimdata.SpimDataMinimal;
+import bdv.spimdata.XmlIoSpimDataMinimal;
 import fiji.plugin.trackmate.Logger;
 import fiji.plugin.trackmate.Model;
 import fiji.plugin.trackmate.Settings;
@@ -27,9 +30,6 @@ import mpicbg.spim.data.registration.ViewRegistrations;
 import mpicbg.spim.data.sequence.Angle;
 import mpicbg.spim.data.sequence.TimePoint;
 import net.imglib2.realtransform.AffineTransform3D;
-import bdv.spimdata.SequenceDescriptionMinimal;
-import bdv.spimdata.SpimDataMinimal;
-import bdv.spimdata.XmlIoSpimDataMinimal;
 
 public class LoadTGMMAnnotationPlugIn implements PlugIn
 {

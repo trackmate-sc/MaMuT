@@ -3,6 +3,12 @@ package fiji.plugin.mamut.viewer;
 import static fiji.plugin.trackmate.visualization.TrackMateModelView.KEY_DISPLAY_SPOT_NAMES;
 import static fiji.plugin.trackmate.visualization.TrackMateModelView.KEY_SPOTS_VISIBLE;
 import static fiji.plugin.trackmate.visualization.TrackMateModelView.KEY_SPOT_RADIUS_RATIO;
+import bdv.viewer.state.ViewerState;
+import fiji.plugin.trackmate.Model;
+import fiji.plugin.trackmate.SelectionModel;
+import fiji.plugin.trackmate.Spot;
+import fiji.plugin.trackmate.visualization.AbstractTrackMateModelView;
+import fiji.plugin.trackmate.visualization.TrackMateModelView;
 
 import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
@@ -18,13 +24,6 @@ import java.util.Set;
 import net.imglib2.realtransform.AffineTransform3D;
 
 import org.jgrapht.graph.DefaultWeightedEdge;
-
-import bdv.viewer.state.ViewerState;
-import fiji.plugin.trackmate.Model;
-import fiji.plugin.trackmate.SelectionModel;
-import fiji.plugin.trackmate.Spot;
-import fiji.plugin.trackmate.visualization.AbstractTrackMateModelView;
-import fiji.plugin.trackmate.visualization.TrackMateModelView;
 
 public class MamutOverlay
 {

@@ -1,9 +1,5 @@
 package fiji.plugin.mamut.viewer;
 
-import java.util.List;
-
-import javax.swing.ImageIcon;
-
 import bdv.img.cache.Cache;
 import bdv.viewer.SourceAndConverter;
 import fiji.plugin.mamut.SourceSettings;
@@ -12,6 +8,10 @@ import fiji.plugin.trackmate.SelectionModel;
 import fiji.plugin.trackmate.Settings;
 import fiji.plugin.trackmate.visualization.TrackMateModelView;
 import fiji.plugin.trackmate.visualization.ViewFactory;
+
+import java.util.List;
+
+import javax.swing.ImageIcon;
 
 public class MamutViewerFactory implements ViewFactory
 {

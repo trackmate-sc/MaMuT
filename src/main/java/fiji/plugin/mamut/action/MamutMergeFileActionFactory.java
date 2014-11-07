@@ -1,12 +1,12 @@
 package fiji.plugin.mamut.action;
 
-import javax.swing.ImageIcon;
-
-import org.scijava.plugin.Plugin;
-
 import fiji.plugin.mamut.MaMuT;
 import fiji.plugin.trackmate.action.MergeFileAction;
 import fiji.plugin.trackmate.action.TrackMateAction;
+
+import javax.swing.ImageIcon;
+
+import org.scijava.plugin.Plugin;
 
 @Plugin( type = MamutActionFactory.class )
 public class MamutMergeFileActionFactory implements MamutActionFactory

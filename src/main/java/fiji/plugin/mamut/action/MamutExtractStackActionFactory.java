@@ -1,5 +1,10 @@
 package fiji.plugin.mamut.action;
 
+import fiji.plugin.mamut.MaMuT;
+import fiji.plugin.mamut.SourceSettings;
+import fiji.plugin.trackmate.Logger;
+import fiji.plugin.trackmate.TrackMate;
+import fiji.plugin.trackmate.action.TrackMateAction;
 import ij.gui.GenericDialog;
 
 import java.util.Arrays;
@@ -7,12 +12,6 @@ import java.util.Arrays;
 import javax.swing.ImageIcon;
 
 import org.scijava.plugin.Plugin;
-
-import fiji.plugin.mamut.MaMuT;
-import fiji.plugin.mamut.SourceSettings;
-import fiji.plugin.trackmate.Logger;
-import fiji.plugin.trackmate.TrackMate;
-import fiji.plugin.trackmate.action.TrackMateAction;
 
 @Plugin( type = MamutActionFactory.class )
 public class MamutExtractStackActionFactory implements MamutActionFactory
