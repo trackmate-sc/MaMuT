@@ -30,7 +30,8 @@ public class MamutUtils
 	{
 		final int frame = spot.getFeature( Spot.FRAME ).intValue();
 		// Get spot coords
-		final AffineTransform3D sourceToGlobal = source.getSourceTransform( frame, 0 );
+		final AffineTransform3D sourceToGlobal = new AffineTransform3D();
+		source.getSourceTransform( frame, 0, sourceToGlobal );
 		final Point roundedSourcePos = new Point( 3 );
 		sourceToGlobal.applyInverse( new Round< Point >( roundedSourcePos ), spot );
 		final long x = roundedSourcePos.getLongPosition( 0 );
@@ -45,7 +46,8 @@ public class MamutUtils
 	{
 		final int frame = spot.getFeature( Spot.FRAME ).intValue();
 		// Get spot coords
-		final AffineTransform3D sourceToGlobal = source.getSourceTransform( frame, 0 );
+		final AffineTransform3D sourceToGlobal = new AffineTransform3D();
+		source.getSourceTransform( frame, 0, sourceToGlobal );
 		final Point roundedSourcePos = new Point( 3 );
 		sourceToGlobal.applyInverse( new Round< Point >( roundedSourcePos ), spot );
 		final long x = roundedSourcePos.getLongPosition( 0 );
