@@ -1,14 +1,6 @@
 package fiji.plugin.mamut.util;
 
-import bdv.viewer.Source;
-import bdv.viewer.SourceAndConverter;
-import fiji.plugin.mamut.feature.spot.SpotSourceIdAnalyzerFactory;
-import fiji.plugin.trackmate.Spot;
-
-import java.util.List;
-
 import net.imglib2.Cursor;
-import net.imglib2.ExtendedRandomAccessibleInterval;
 import net.imglib2.Interval;
 import net.imglib2.Point;
 import net.imglib2.RandomAccess;
@@ -16,7 +8,7 @@ import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.converter.TypeIdentity;
 import net.imglib2.display.projector.IterableIntervalProjector2D;
 import net.imglib2.img.Img;
-import net.imglib2.img.constant.ConstantImg;
+import net.imglib2.img.array.ArrayImgFactory;
 import net.imglib2.position.transform.Round;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.NativeType;
@@ -24,36 +16,22 @@ import net.imglib2.type.Type;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.util.Intervals;
 import net.imglib2.util.Util;
+import net.imglib2.view.ExtendedRandomAccessibleInterval;
 import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
+import bdv.viewer.Source;
+import fiji.plugin.trackmate.Spot;
 
 public class MamutUtils
 {
-	@SuppressWarnings( { "rawtypes", "unchecked" } )
-	public static final Img< ? > getImgAround( final Spot spot, final int width, final int height, final List< SourceAndConverter< ? > > list )
-	{
-		// Retrieve source ID
-		final Double si = spot.getFeature( SpotSourceIdAnalyzerFactory.SOURCE_ID );
-		if ( null == si )
-		{
-			final Type type = ( Type ) list.iterator().next().getSpimSource().getType();
-			final RealType rtype = ( RealType ) type.createVariable();
-			rtype.setZero();
-			final long[] size = new long[] { width, height };
-			final Img ret = new ConstantImg( size, rtype );
-			return ret;
-		}
-
-		final int sourceIndex = si.intValue();
-		return getSliceAround( spot, width, height, list.get( sourceIndex ).getSpimSource() );
-	}
 
 	@SuppressWarnings( "rawtypes" )
 	public static final Img< ? > getSliceAround( final Spot spot, final int width, final int height, final Source source )
 	{
 		final int frame = spot.getFeature( Spot.FRAME ).intValue();
 		// Get spot coords
-		final AffineTransform3D sourceToGlobal = source.getSourceTransform( frame, 0 );
+		final AffineTransform3D sourceToGlobal = new AffineTransform3D();
+		source.getSourceTransform( frame, 0, sourceToGlobal );
 		final Point roundedSourcePos = new Point( 3 );
 		sourceToGlobal.applyInverse( new Round< Point >( roundedSourcePos ), spot );
 		final long x = roundedSourcePos.getLongPosition( 0 );
@@ -68,7 +46,8 @@ public class MamutUtils
 	{
 		final int frame = spot.getFeature( Spot.FRAME ).intValue();
 		// Get spot coords
-		final AffineTransform3D sourceToGlobal = source.getSourceTransform( frame, 0 );
+		final AffineTransform3D sourceToGlobal = new AffineTransform3D();
+		source.getSourceTransform( frame, 0, sourceToGlobal );
 		final Point roundedSourcePos = new Point( 3 );
 		sourceToGlobal.applyInverse( new Round< Point >( roundedSourcePos ), spot );
 		final long x = roundedSourcePos.getLongPosition( 0 );
@@ -110,7 +89,7 @@ public class MamutUtils
 
 		if ( isEmpty( cropInterval ) )
 		{
-			final Img ret = new ConstantImg( size, type );
+			final Img ret = new ArrayImgFactory().create( size, ntype );
 			return ret;
 		}
 		else
@@ -165,7 +144,7 @@ public class MamutUtils
 
 		if ( isEmpty( cropInterval ) )
 		{
-			final Img ret = new ConstantImg( size, type );
+			final Img ret = new ArrayImgFactory().create( size, ntype );
 			return ret;
 		}
 		else

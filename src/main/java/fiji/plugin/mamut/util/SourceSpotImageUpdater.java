@@ -1,13 +1,5 @@
 package fiji.plugin.mamut.util;
 
-import bdv.util.Affine3DHelpers;
-import bdv.viewer.Source;
-import bdv.viewer.SourceAndConverter;
-import fiji.plugin.mamut.feature.spot.SpotSourceIdAnalyzerFactory;
-import fiji.plugin.trackmate.Settings;
-import fiji.plugin.trackmate.Spot;
-import fiji.plugin.trackmate.visualization.trackscheme.SpotImageUpdater;
-
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.io.ByteArrayOutputStream;
@@ -33,6 +25,13 @@ import net.imglib2.type.numeric.integer.UnsignedByteType;
 import net.imglib2.util.Intervals;
 import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
+import bdv.util.Affine3DHelpers;
+import bdv.viewer.Source;
+import bdv.viewer.SourceAndConverter;
+import fiji.plugin.mamut.feature.spot.SpotSourceIdAnalyzerFactory;
+import fiji.plugin.trackmate.Settings;
+import fiji.plugin.trackmate.Spot;
+import fiji.plugin.trackmate.visualization.trackscheme.SpotImageUpdater;
 
 public class SourceSpotImageUpdater<T extends RealType<T>> extends SpotImageUpdater {
 
@@ -75,7 +74,8 @@ public class SourceSpotImageUpdater<T extends RealType<T>> extends SpotImageUpda
 				final RandomAccessibleInterval<T> img = source.getSource(frame, 0);
 
 				// Get spot coords
-				final AffineTransform3D sourceToGlobal = source.getSourceTransform(frame, 0);
+				final AffineTransform3D sourceToGlobal = new AffineTransform3D();
+				source.getSourceTransform( frame, 0, sourceToGlobal );
 				final Point roundedSourcePos = new Point(3);
 				sourceToGlobal.applyInverse(new Round<Point>(roundedSourcePos), spot);
 				final long x = roundedSourcePos.getLongPosition(0);

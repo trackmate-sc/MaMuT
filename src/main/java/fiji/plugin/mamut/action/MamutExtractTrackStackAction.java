@@ -1,16 +1,5 @@
 package fiji.plugin.mamut.action;
 
-import bdv.util.Affine3DHelpers;
-import bdv.viewer.Source;
-import fiji.plugin.mamut.SourceSettings;
-import fiji.plugin.mamut.util.MamutUtils;
-import fiji.plugin.trackmate.Model;
-import fiji.plugin.trackmate.SelectionModel;
-import fiji.plugin.trackmate.Settings;
-import fiji.plugin.trackmate.Spot;
-import fiji.plugin.trackmate.TrackMate;
-import fiji.plugin.trackmate.action.AbstractTMAction;
-import fiji.plugin.trackmate.gui.TrackMateWizard;
 import ij.ImagePlus;
 import ij.ImageStack;
 import ij.measure.Calibration;
@@ -30,6 +19,18 @@ import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.view.Views;
 
 import org.jgrapht.graph.DefaultWeightedEdge;
+
+import bdv.util.Affine3DHelpers;
+import bdv.viewer.Source;
+import fiji.plugin.mamut.SourceSettings;
+import fiji.plugin.mamut.util.MamutUtils;
+import fiji.plugin.trackmate.Model;
+import fiji.plugin.trackmate.SelectionModel;
+import fiji.plugin.trackmate.Settings;
+import fiji.plugin.trackmate.Spot;
+import fiji.plugin.trackmate.TrackMate;
+import fiji.plugin.trackmate.action.AbstractTMAction;
+import fiji.plugin.trackmate.gui.TrackMateWizard;
 
 public class MamutExtractTrackStackAction extends AbstractTMAction
 {
@@ -62,7 +63,7 @@ public class MamutExtractTrackStackAction extends AbstractTMAction
 	/**
 	 * Instantiates a new action that extract the image context around a track
 	 * joining two spots.
-	 *
+	 * 
 	 * @param selectionModel
 	 *            the {@link SelectionModel} model in which exactly two spots
 	 *            must be selected.
@@ -171,7 +172,8 @@ public class MamutExtractTrackStackAction extends AbstractTMAction
 		final Source source = settings.getSources().get( targetSourceIndex ).getSpimSource();
 
 		// Get scale
-		final AffineTransform3D sourceToGlobal = source.getSourceTransform( frameLargest, 0 );
+		final AffineTransform3D sourceToGlobal = new AffineTransform3D();
+		source.getSourceTransform( frameLargest, 0, sourceToGlobal );
 		final double dx = Affine3DHelpers.extractScale( sourceToGlobal, 0 );
 		final double dy = Affine3DHelpers.extractScale( sourceToGlobal, 1 );
 		final double dz = Affine3DHelpers.extractScale( sourceToGlobal, 2 );
