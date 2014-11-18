@@ -72,22 +72,22 @@
 	</repositories>
 
 	<dependencies>
-		<!-- FIXME - SNAPSHOT couplings -->
+		<!-- BigDataViewer dependencies -->
 		<dependency>
 			<groupId>sc.fiji</groupId>
 			<artifactId>bigdataviewer-core</artifactId>
-			<version>1.0.0-SNAPSHOT</version>
+			<version>1.0.0</version>
+		</dependency>
+		<dependency>
+			<groupId>sc.fiji</groupId>
+			<artifactId>spim_data</artifactId>
+			<version>1.0.0-beta-3</version>
 		</dependency>
 
 		<!-- Fiji dependencies -->
 		<dependency>
 			<groupId>sc.fiji</groupId>
 			<artifactId>3D_Viewer</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>sc.fiji</groupId>
-			<artifactId>spim_data</artifactId>
-			<version>1.0.0-beta-2</version>
 		</dependency>
 		<dependency>
 			<groupId>sc.fiji</groupId>
