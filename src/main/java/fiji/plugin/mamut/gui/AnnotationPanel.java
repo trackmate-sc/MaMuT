@@ -2,10 +2,6 @@ package fiji.plugin.mamut.gui;
 
 import static fiji.plugin.trackmate.gui.TrackMateWizard.FONT;
 import static fiji.plugin.trackmate.gui.TrackMateWizard.SMALL_FONT;
-import fiji.plugin.mamut.MaMuT;
-import fiji.plugin.trackmate.Logger;
-import fiji.plugin.trackmate.gui.panels.ActionListenablePanel;
-import fiji.plugin.trackmate.gui.panels.components.JNumericTextField;
 
 import java.awt.Color;
 import java.awt.Font;
@@ -32,6 +28,11 @@ import javax.swing.text.AttributeSet;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyleContext;
+
+import fiji.plugin.mamut.MaMuT;
+import fiji.plugin.trackmate.Logger;
+import fiji.plugin.trackmate.gui.panels.ActionListenablePanel;
+import fiji.plugin.trackmate.gui.panels.components.JNumericTextField;
 
 public class AnnotationPanel extends ActionListenablePanel
 {
@@ -92,6 +93,8 @@ public class AnnotationPanel extends ActionListenablePanel
 	private JLabel lblJumpToEvery;
 
 	private JLabel lblFrames;
+
+	private final JNumericTextField jNFNFrames;
 
 	public AnnotationPanel()
 	{
@@ -160,6 +163,17 @@ public class AnnotationPanel extends ActionListenablePanel
 		jNFDistanceTolerance.setFont( SMALL_FONT );
 		jNFDistanceTolerance.addActionListener( al );
 		jNFDistanceTolerance.addFocusListener( fl );
+
+		final JLabel lblNFrames = new JLabel( "Max nFrames" );
+		lblNFrames.setToolTipText( "<html>How many frames to process at max. <br/>Make it 0 or negative for no limit.</html>" );
+		lblNFrames.setFont( SMALL_FONT );
+
+		jNFNFrames = new JNumericTextField( ( double ) guiModel.maxNFrames );
+		jNFNFrames.setFormat( "%.0f" );
+		jNFNFrames.setHorizontalAlignment( SwingConstants.CENTER );
+		jNFNFrames.setFont( SMALL_FONT );
+		jNFNFrames.addActionListener( al );
+		jNFNFrames.addFocusListener( fl );
 
 		final JButton buttonSemiAutoTracking = new JButton( SEMIAUTO_TRACKING_ICON );
 		buttonSemiAutoTracking.addActionListener( new ActionListener()
@@ -275,18 +289,11 @@ public class AnnotationPanel extends ActionListenablePanel
 						.addGroup( groupLayout.createSequentialGroup()
 								.addContainerGap()
 								.addGroup( groupLayout.createParallelGroup( Alignment.LEADING )
-										.addGroup( groupLayout.createSequentialGroup()
-												.addComponent( scrollPane, GroupLayout.DEFAULT_SIZE, 288, Short.MAX_VALUE )
-												.addContainerGap() )
-										.addGroup( Alignment.TRAILING, groupLayout.createSequentialGroup()
-												.addComponent( stepWisePanel, GroupLayout.DEFAULT_SIZE, 288, Short.MAX_VALUE )
-												.addContainerGap() )
-										.addGroup( Alignment.TRAILING, groupLayout.createSequentialGroup()
-												.addComponent( panelSemiAutoParams, GroupLayout.DEFAULT_SIZE, 288, Short.MAX_VALUE )
-												.addContainerGap() )
-										.addGroup( Alignment.TRAILING, groupLayout.createSequentialGroup()
-												.addComponent( panelButtons, GroupLayout.DEFAULT_SIZE, 288, Short.MAX_VALUE )
-												.addContainerGap() ) ) )
+										.addComponent( panelButtons, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 288, Short.MAX_VALUE )
+										.addComponent( scrollPane, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 288, Short.MAX_VALUE )
+										.addComponent( stepWisePanel, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 288, Short.MAX_VALUE )
+										.addComponent( panelSemiAutoParams, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 288, Short.MAX_VALUE ) )
+								.addContainerGap() )
 				);
 		groupLayout.setVerticalGroup(
 				groupLayout.createParallelGroup( Alignment.LEADING )
@@ -301,32 +308,35 @@ public class AnnotationPanel extends ActionListenablePanel
 								.addComponent( scrollPane, GroupLayout.DEFAULT_SIZE, 209, Short.MAX_VALUE )
 								.addContainerGap() )
 				);
+
 		final GroupLayout gl_panelSemiAutoParams = new GroupLayout( panelSemiAutoParams );
 		gl_panelSemiAutoParams.setHorizontalGroup(
 				gl_panelSemiAutoParams.createParallelGroup( Alignment.LEADING )
 						.addGroup( gl_panelSemiAutoParams.createSequentialGroup()
 								.addGap( 5 )
 								.addGroup( gl_panelSemiAutoParams.createParallelGroup( Alignment.LEADING )
+										.addComponent( lblSemiAutoTracking, GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE )
 										.addGroup( gl_panelSemiAutoParams.createSequentialGroup()
-												.addComponent( lblSemiAutoTracking, GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE )
-												.addContainerGap() )
+												.addComponent( buttonSemiAutoTracking, GroupLayout.PREFERRED_SIZE, 33, GroupLayout.PREFERRED_SIZE )
+												.addGap( 10 )
+												.addComponent( labelSemiAutoTracking, GroupLayout.DEFAULT_SIZE, 232, Short.MAX_VALUE ) ) )
+								.addContainerGap() )
+						.addGroup( gl_panelSemiAutoParams.createSequentialGroup()
+								.addContainerGap()
+								.addGroup( gl_panelSemiAutoParams.createParallelGroup( Alignment.TRAILING )
 										.addGroup( gl_panelSemiAutoParams.createSequentialGroup()
+												.addComponent( lblQualityThreshold, GroupLayout.DEFAULT_SIZE, 119, Short.MAX_VALUE )
+												.addGap( 12 )
+												.addComponent( jNFQualityThreshold, GroupLayout.PREFERRED_SIZE, 49, GroupLayout.PREFERRED_SIZE ) )
+										.addGroup( gl_panelSemiAutoParams.createSequentialGroup()
+												.addGroup( gl_panelSemiAutoParams.createParallelGroup( Alignment.TRAILING )
+														.addComponent( lblNFrames, Alignment.LEADING, GroupLayout.PREFERRED_SIZE, 119, GroupLayout.PREFERRED_SIZE )
+														.addComponent( lblDistanceTolerance, GroupLayout.DEFAULT_SIZE, 119, Short.MAX_VALUE ) )
+												.addGap( 12 )
 												.addGroup( gl_panelSemiAutoParams.createParallelGroup( Alignment.LEADING )
-														.addGroup( gl_panelSemiAutoParams.createSequentialGroup()
-																.addComponent( buttonSemiAutoTracking, GroupLayout.PREFERRED_SIZE, 33, GroupLayout.PREFERRED_SIZE )
-																.addGap( 10 )
-																.addComponent( labelSemiAutoTracking, GroupLayout.DEFAULT_SIZE, 232, Short.MAX_VALUE ) )
-														.addGroup( gl_panelSemiAutoParams.createSequentialGroup()
-																.addComponent( lblQualityThreshold, GroupLayout.DEFAULT_SIZE, 119, Short.MAX_VALUE )
-																.addGap( 12 )
-																.addComponent( jNFQualityThreshold, GroupLayout.PREFERRED_SIZE, 49, GroupLayout.PREFERRED_SIZE )
-																.addGap( 95 ) )
-														.addGroup( gl_panelSemiAutoParams.createSequentialGroup()
-																.addComponent( lblDistanceTolerance, GroupLayout.DEFAULT_SIZE, 119, Short.MAX_VALUE )
-																.addGap( 12 )
-																.addComponent( jNFDistanceTolerance, GroupLayout.PREFERRED_SIZE, 49, GroupLayout.PREFERRED_SIZE )
-																.addGap( 95 ) ) )
-												.addContainerGap() ) ) )
+														.addComponent( jNFNFrames, GroupLayout.PREFERRED_SIZE, 49, GroupLayout.PREFERRED_SIZE )
+														.addComponent( jNFDistanceTolerance, GroupLayout.PREFERRED_SIZE, 49, GroupLayout.PREFERRED_SIZE ) ) ) )
+								.addGap( 100 ) )
 				);
 		gl_panelSemiAutoParams.setVerticalGroup(
 				gl_panelSemiAutoParams.createParallelGroup( Alignment.LEADING )
@@ -337,7 +347,7 @@ public class AnnotationPanel extends ActionListenablePanel
 								.addGroup( gl_panelSemiAutoParams.createParallelGroup( Alignment.LEADING )
 										.addComponent( buttonSemiAutoTracking, GroupLayout.PREFERRED_SIZE, 23, GroupLayout.PREFERRED_SIZE )
 										.addComponent( labelSemiAutoTracking, GroupLayout.PREFERRED_SIZE, 23, GroupLayout.PREFERRED_SIZE ) )
-								.addGap( 10 )
+								.addPreferredGap( ComponentPlacement.RELATED )
 								.addGroup( gl_panelSemiAutoParams.createParallelGroup( Alignment.LEADING )
 										.addGroup( gl_panelSemiAutoParams.createSequentialGroup()
 												.addGap( 2 )
@@ -348,7 +358,12 @@ public class AnnotationPanel extends ActionListenablePanel
 										.addGroup( gl_panelSemiAutoParams.createSequentialGroup()
 												.addGap( 2 )
 												.addComponent( lblDistanceTolerance, GroupLayout.PREFERRED_SIZE, 16, GroupLayout.PREFERRED_SIZE ) )
-										.addComponent( jNFDistanceTolerance, GroupLayout.PREFERRED_SIZE, 18, GroupLayout.PREFERRED_SIZE ) ) )
+										.addComponent( jNFDistanceTolerance, GroupLayout.PREFERRED_SIZE, 18, GroupLayout.PREFERRED_SIZE ) )
+								.addGap( 2 )
+								.addGroup( gl_panelSemiAutoParams.createParallelGroup( Alignment.BASELINE )
+										.addComponent( lblNFrames, GroupLayout.PREFERRED_SIZE, 16, GroupLayout.PREFERRED_SIZE )
+										.addComponent( jNFNFrames, GroupLayout.PREFERRED_SIZE, 18, GroupLayout.PREFERRED_SIZE ) )
+								.addContainerGap() )
 				);
 		panelSemiAutoParams.setLayout( gl_panelSemiAutoParams );
 		final GroupLayout gl_stepWisePanel = new GroupLayout( stepWisePanel );
@@ -439,6 +454,7 @@ public class AnnotationPanel extends ActionListenablePanel
 	{
 		guiModel.distanceTolerance = jNFDistanceTolerance.getValue();
 		guiModel.qualityThreshold = jNFQualityThreshold.getValue();
+		guiModel.maxNFrames = ( int ) jNFNFrames.getValue();
 		guiModel.timeStep = ( int ) jTimeStep.getValue();
 	}
 }
