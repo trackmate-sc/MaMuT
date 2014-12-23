@@ -129,7 +129,7 @@ public class MaMuT implements ModelChangeListener
 
 	public static final String PLUGIN_NAME = "MaMuT";
 
-	public static final String PLUGIN_VERSION = "0.13.1-SNAPSHOT";
+	public static final String PLUGIN_VERSION = "0.14.0";
 
 	private static final double DEFAULT_RADIUS = 10;
 
