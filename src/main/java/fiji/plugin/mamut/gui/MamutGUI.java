@@ -2,13 +2,9 @@ package fiji.plugin.mamut.gui;
 
 import static fiji.plugin.mamut.MaMuT.PLUGIN_NAME;
 import static fiji.plugin.mamut.MaMuT.PLUGIN_VERSION;
-import fiji.plugin.mamut.MaMuT;
-import fiji.plugin.mamut.action.MamutActionFactory;
-import fiji.plugin.mamut.providers.MamutActionProvider;
-import fiji.plugin.trackmate.TrackMate;
-import fiji.plugin.trackmate.action.TrackMateAction;
 
 import java.awt.BorderLayout;
+import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,16 +16,44 @@ import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JTabbedPane;
 
+import fiji.plugin.mamut.MaMuT;
+import fiji.plugin.mamut.action.MamutActionFactory;
+import fiji.plugin.mamut.providers.MamutActionProvider;
+import fiji.plugin.trackmate.TrackMate;
+import fiji.plugin.trackmate.action.TrackMateAction;
+
 public class MamutGUI extends JFrame
 {
 
 	private static final long serialVersionUID = 1L;
 
-	private final static ImageIcon ANNOTATION_ICON = new ImageIcon( MaMuT.class.getResource( "Logo50x50-color-nofont-72p.png" ) );
+	private final static ImageIcon ANNOTATION_ICON_ORIG = new ImageIcon( MaMuT.class.getResource( "Logo50x50-color-nofont-72p.png" ) );
 
-	private static final ImageIcon MAMUT_ICON = new ImageIcon( MaMuT.class.getResource( "mammouth-32x32.png" ) );
+	private final static ImageIcon ANNOTATION_ICON;
 
-	private static final ImageIcon ACTION_ICON = new ImageIcon( MaMuT.class.getResource( "cog.png" ) );
+	private static final ImageIcon MAMUT_ICON_ORIG = new ImageIcon( MaMuT.class.getResource( "mammouth-256x256.png" ) );
+
+	private static final ImageIcon MAMUT_ICON;
+
+	private static final ImageIcon ACTION_ICON_ORIG = new ImageIcon( MaMuT.class.getResource( "cog.png" ) );
+
+	private static final ImageIcon ACTION_ICON;
+
+	static
+	{
+		final Image image1 = ANNOTATION_ICON_ORIG.getImage();
+		final Image newimg1 = image1.getScaledInstance( 32, 32, java.awt.Image.SCALE_SMOOTH );
+		ANNOTATION_ICON = new ImageIcon( newimg1 );
+
+		final Image image2 = MAMUT_ICON_ORIG.getImage();
+		final Image newimg2 = image2.getScaledInstance( 32, 32, java.awt.Image.SCALE_SMOOTH );
+		MAMUT_ICON = new ImageIcon( newimg2 );
+
+		final Image image3 = ACTION_ICON_ORIG.getImage();
+		final Image newimg3 = image3.getScaledInstance( 32, 32, java.awt.Image.SCALE_SMOOTH );
+		ACTION_ICON = new ImageIcon( newimg3 );
+	}
+
 
 	private static final Icon EXECUTE_ICON = new ImageIcon( MaMuT.class.getResource( "control_play_blue.png" ) );
 
