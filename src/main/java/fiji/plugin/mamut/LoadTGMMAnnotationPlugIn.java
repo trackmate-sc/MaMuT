@@ -1,8 +1,5 @@
 package fiji.plugin.mamut;
 
-import bdv.spimdata.SequenceDescriptionMinimal;
-import bdv.spimdata.SpimDataMinimal;
-import bdv.spimdata.XmlIoSpimDataMinimal;
 import fiji.plugin.trackmate.Logger;
 import fiji.plugin.trackmate.Model;
 import fiji.plugin.trackmate.Settings;
@@ -30,6 +27,9 @@ import mpicbg.spim.data.registration.ViewRegistrations;
 import mpicbg.spim.data.sequence.Angle;
 import mpicbg.spim.data.sequence.TimePoint;
 import net.imglib2.realtransform.AffineTransform3D;
+import bdv.spimdata.SequenceDescriptionMinimal;
+import bdv.spimdata.SpimDataMinimal;
+import bdv.spimdata.XmlIoSpimDataMinimal;
 
 public class LoadTGMMAnnotationPlugIn implements PlugIn
 {
@@ -96,7 +96,10 @@ public class LoadTGMMAnnotationPlugIn implements PlugIn
 		final String[] angles = readSetupNames( spimData.getSequenceDescription() );
 		final int angleIndex = askForAngle( angles );
 		if ( angleIndex < 0 ) { return; }
-		launchMamut( imageFile, tgmmFolder, angleIndex, spimData );
+
+		final int setupID = spimData.getSequenceDescription().getViewSetupsOrdered().get( angleIndex ).getId();
+		launchMamut( imageFile, tgmmFolder, setupID, spimData );
+//		launchMamut( imageFile, tgmmFolder, angleIndex, spimData );
 	}
 
 	public void launchMamut( final File imageFile, final File tgmmFile, final int setupID, final SpimDataMinimal spimData )
@@ -169,17 +172,18 @@ public class LoadTGMMAnnotationPlugIn implements PlugIn
 	public static void main( final String[] args )
 	{
 		ImageJ.main( args );
-
-		final File imageFile = new File( "/Users/tinevez/Desktop/Data/Mamut/parhyale/BDV130418A325_NoTempReg.xml" );
-		final File tgmmFolder = new File( "/Users/tinevez/Development/Fernando/extract" );
-		final int angleIndex = 0;
-
-		final LoadTGMMAnnotationPlugIn plugin = new LoadTGMMAnnotationPlugIn();
-		try {
-			plugin.launchMamut( imageFile, tgmmFolder, angleIndex );
-		} catch (final SpimDataException e) {
-			e.printStackTrace();
-		}
+		new LoadTGMMAnnotationPlugIn().run( "" );
+//
+//		final File imageFile = new File( "/Users/tinevez/Desktop/Data/Mamut/parhyale/BDV130418A325_NoTempReg.xml" );
+//		final File tgmmFolder = new File( "/Users/tinevez/Development/Fernando/extract" );
+//		final int angleIndex = 0;
+//
+//		final LoadTGMMAnnotationPlugIn plugin = new LoadTGMMAnnotationPlugIn();
+//		try {
+//			plugin.launchMamut( imageFile, tgmmFolder, angleIndex );
+//		} catch (final SpimDataException e) {
+//			e.printStackTrace();
+//		}
 	}
 
 }
