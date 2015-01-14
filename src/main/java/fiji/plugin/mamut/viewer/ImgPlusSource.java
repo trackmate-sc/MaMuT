@@ -1,19 +1,19 @@
 package fiji.plugin.mamut.viewer;
 
-import bdv.viewer.Interpolation;
-import bdv.viewer.Source;
-import fiji.plugin.mamut.util.TransformUtils;
 import mpicbg.spim.data.sequence.VoxelDimensions;
+import net.imagej.ImgPlus;
 import net.imglib2.RandomAccessible;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealRandomAccessible;
 import net.imglib2.interpolation.InterpolatorFactory;
 import net.imglib2.interpolation.randomaccess.NLinearInterpolatorFactory;
 import net.imglib2.interpolation.randomaccess.NearestNeighborInterpolatorFactory;
-import net.imglib2.meta.ImgPlus;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.NumericType;
 import net.imglib2.view.Views;
+import bdv.viewer.Interpolation;
+import bdv.viewer.Source;
+import fiji.plugin.mamut.util.TransformUtils;
 
 public class ImgPlusSource< T extends NumericType< T > > implements Source< T >
 {

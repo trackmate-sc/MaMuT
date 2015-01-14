@@ -92,7 +92,6 @@
 		<dependency>
 			<groupId>sc.fiji</groupId>
 			<artifactId>TrackMate_</artifactId>
-			<version>2.6.5</version>
 		</dependency>
 
 		<!-- ImageJ dependencies -->

@@ -7,7 +7,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 
-import net.imglib2.meta.ImgPlus;
+import net.imagej.ImgPlus;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.util.Util;
 
