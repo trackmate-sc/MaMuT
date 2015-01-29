@@ -209,6 +209,7 @@ public class ImportTGMMAnnotationPlugin_ implements PlugIn
 		final Settings settings = createSettings( new File( xmlHDF5Path ) );
 
 		final TrackMate trackmate = new TrackMate( model, settings );
+		trackmate.setNumThreads( 1 );
 		trackmate.computeSpotFeatures( true );
 		trackmate.computeEdgeFeatures( true );
 		trackmate.computeTrackFeatures( true );
@@ -314,7 +315,6 @@ public class ImportTGMMAnnotationPlugin_ implements PlugIn
 		if ( !importer.checkInput() || !importer.process() )
 		{
 			logger.error( importer.getErrorMessage() );
-			return new Model();
 		}
 		final Model model = importer.getResult();
 
@@ -338,6 +338,7 @@ public class ImportTGMMAnnotationPlugin_ implements PlugIn
 		final String outputPath = "/Users/tinevez/Desktop/MaMuT_Importer_test.xml";
 
 		final ImportTGMMAnnotationPlugin_ importer = new ImportTGMMAnnotationPlugin_();
+		importer.run( null );
 
 //		importer.defaultOutputPath = outputPath;
 //		importer.defaultTGMMPath = tgmmPath;
@@ -345,6 +346,6 @@ public class ImportTGMMAnnotationPlugin_ implements PlugIn
 //		ImageJ.main( args );
 //		importer.run( "" );
 
-		importer.exec( xmlHDF5Path, setupID, tgmmPath, outputPath );
+//		importer.exec( xmlHDF5Path, setupID, tgmmPath, outputPath );
 	}
 }
