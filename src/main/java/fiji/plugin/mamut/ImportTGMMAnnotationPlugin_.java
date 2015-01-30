@@ -3,6 +3,7 @@ package fiji.plugin.mamut;
 import static fiji.plugin.mamut.MaMuT.PLUGIN_NAME;
 import static fiji.plugin.mamut.MaMuT.PLUGIN_VERSION;
 import fiji.plugin.mamut.io.MamutXmlWriter;
+import fiji.plugin.mamut.io.TGMMImporter2;
 import fiji.plugin.mamut.providers.MamutEdgeAnalyzerProvider;
 import fiji.plugin.mamut.providers.MamutSpotAnalyzerProvider;
 import fiji.plugin.mamut.providers.MamutTrackAnalyzerProvider;
@@ -14,7 +15,6 @@ import fiji.plugin.trackmate.action.ResetSpotTimeFeatureAction;
 import fiji.plugin.trackmate.features.edges.EdgeAnalyzer;
 import fiji.plugin.trackmate.features.spot.SpotAnalyzerFactory;
 import fiji.plugin.trackmate.features.track.TrackAnalyzer;
-import fiji.plugin.trackmate.io.TGMMImporter;
 import fiji.plugin.trackmate.providers.EdgeAnalyzerProvider;
 import fiji.plugin.trackmate.providers.SpotAnalyzerProvider;
 import fiji.plugin.trackmate.providers.TrackAnalyzerProvider;
@@ -35,6 +35,8 @@ import mpicbg.spim.data.generic.sequence.BasicViewSetup;
 import mpicbg.spim.data.registration.ViewRegistrations;
 import mpicbg.spim.data.sequence.Angle;
 import mpicbg.spim.data.sequence.TimePoint;
+import net.imglib2.FinalInterval;
+import net.imglib2.RealInterval;
 import net.imglib2.realtransform.AffineTransform3D;
 import bdv.spimdata.SequenceDescriptionMinimal;
 import bdv.spimdata.SpimDataMinimal;
@@ -84,6 +86,8 @@ public class ImportTGMMAnnotationPlugin_ implements PlugIn
 	private String defaultOutputPath;
 
 	private Logger logger = Logger.DEFAULT_LOGGER;
+
+	private RealInterval interval;
 
 	@Override
 	public void run( final String arg )
@@ -311,7 +315,7 @@ public class ImportTGMMAnnotationPlugin_ implements PlugIn
 			transforms.add( regs.getViewRegistration( t.getId(), setupID ).getModel() );
 		}
 
-		final TGMMImporter importer = new TGMMImporter( tgmmFolder, transforms, logger);
+		final TGMMImporter2 importer = new TGMMImporter2( tgmmFolder, transforms, TGMMImporter2.DEFAULT_PATTERN, logger, interval );
 		if ( !importer.checkInput() || !importer.process() )
 		{
 			logger.error( importer.getErrorMessage() );
@@ -332,20 +336,20 @@ public class ImportTGMMAnnotationPlugin_ implements PlugIn
 
 	public static void main( final String[] args )
 	{
-		final String xmlHDF5Path = "/Users/tinevez/Desktop/iconas/Data/Mamut/parhyale/BDV130418A325_NoTempReg.xml";
+		final String xmlHDF5Path = "/Volumes/Data/BDV_MVD_5v_final.xml";
 		final int setupID = 1;
-		final String tgmmPath = "/Users/tinevez/Development/Fernando2";
-		final String outputPath = "/Users/tinevez/Desktop/MaMuT_Importer_test.xml";
+		final String tgmmPath = "/Volumes/Data/TGMM_TL0-528_xmls_curated";
+		final String outputPath = "/Volumes/Data/BDV_MVD_5v_final_mamut.xml";
+		final long[] min = new long[] { 200, 550, 150 };
+		final long[] max = new long[] { 550, 950, 550 };
+		final RealInterval interval = new FinalInterval( min, max );
 
 		final ImportTGMMAnnotationPlugin_ importer = new ImportTGMMAnnotationPlugin_();
-		importer.run( null );
+		importer.defaultOutputPath = outputPath;
+		importer.defaultTGMMPath = tgmmPath;
+		importer.defaultXMLHDF5Path = xmlHDF5Path;
+		importer.interval = interval;
 
-//		importer.defaultOutputPath = outputPath;
-//		importer.defaultTGMMPath = tgmmPath;
-//		importer.defaultXMLHDF5Path = xmlHDF5Path;
-//		ImageJ.main( args );
-//		importer.run( "" );
-
-//		importer.exec( xmlHDF5Path, setupID, tgmmPath, outputPath );
+		importer.exec( xmlHDF5Path, setupID, tgmmPath, outputPath );
 	}
 }
