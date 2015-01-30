@@ -54,11 +54,11 @@ public class LoadTGMMAnnotationPlugIn implements PlugIn
 	{
 		if ( null == staticTGMMFolder )
 		{
-			File folder = new File(System.getProperty("user.dir"));
+			File folder = new File( System.getProperty( "user.dir" ) );
 			if ( folder != null && folder.getParentFile() != null )
 				folder = folder.getParentFile();
 			if ( folder == null )
-				folder = new File("./");
+				folder = new File( "./" );
 			staticTGMMFolder = folder;
 		}
 		staticTGMMFolder = IOUtils.askForFolder( staticTGMMFolder, "Open a TGMM /xml folder", IJ.getInstance(), logger );
@@ -87,9 +87,12 @@ public class LoadTGMMAnnotationPlugIn implements PlugIn
 		if ( null == tgmmFolder ) { return; }
 
 		SpimDataMinimal spimData;
-		try {
+		try
+		{
 			spimData = new XmlIoSpimDataMinimal().load( imageFile.getAbsolutePath() );
-		} catch (final SpimDataException e) {
+		}
+		catch ( final SpimDataException e )
+		{
 			logger.error( "Problem reading the transforms in image data file:\n" + e.getMessage() + "\n" );
 			return;
 		}
@@ -144,7 +147,7 @@ public class LoadTGMMAnnotationPlugIn implements PlugIn
 		return new SourceSettings();
 	}
 
-	protected String[] readSetupNames( final AbstractSequenceDescription<?,?,?> sequenceDescriptionMinimal )
+	protected String[] readSetupNames( final AbstractSequenceDescription< ?, ?, ? > sequenceDescriptionMinimal )
 	{
 		final List< ? extends BasicViewSetup > viewSetupsOrdered = sequenceDescriptionMinimal.getViewSetupsOrdered();
 		final int numViewSetups = viewSetupsOrdered.size();
