@@ -83,17 +83,23 @@ public class TGMMImporter2 implements OutputAlgorithm< Model >, Benchmark
 
 	private final RealInterval interval;
 
+	private final int tFrom;
+
+	private final int tTo;
+
 	/*
 	 * CONSTRUCTORS
 	 */
 
-	public TGMMImporter2( final File file, final List< AffineTransform3D > transforms, final Pattern framePattern, final Logger logger, final RealInterval interval )
+	public TGMMImporter2( final File file, final List< AffineTransform3D > transforms, final Pattern framePattern, final Logger logger, final RealInterval interval, final int tFrom, final int tTo )
 	{
 		this.file = file;
 		this.framePattern = framePattern;
 		this.transforms = transforms;
 		this.logger = logger;
 		this.interval = interval;
+		this.tFrom = tFrom;
+		this.tTo = tTo;
 	}
 
 	/*
@@ -191,6 +197,11 @@ public class TGMMImporter2 implements OutputAlgorithm< Model >, Benchmark
 
 			for ( int t = 0; t < frames.length; t++ )
 			{
+				if ( frames[ t ] < tFrom || frames[ t ] > tTo )
+				{
+					continue;
+				}
+
 				logger.log( "Processing frame " + frames[ t ] + ". " );
 				final AffineTransform3D transform = transforms.get( frames[ t ] );
 

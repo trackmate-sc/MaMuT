@@ -22,7 +22,11 @@ import fiji.util.gui.GenericDialogPlus;
 import ij.plugin.PlugIn;
 import ij.text.TextWindow;
 
+import java.awt.Checkbox;
 import java.awt.Font;
+import java.awt.TextField;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -36,6 +40,7 @@ import mpicbg.spim.data.registration.ViewRegistrations;
 import mpicbg.spim.data.sequence.Angle;
 import mpicbg.spim.data.sequence.TimePoint;
 import net.imglib2.FinalInterval;
+import net.imglib2.FinalRealInterval;
 import net.imglib2.RealInterval;
 import net.imglib2.realtransform.AffineTransform3D;
 import bdv.spimdata.SequenceDescriptionMinimal;
@@ -79,15 +84,31 @@ public class ImportTGMMAnnotationPlugin_ implements PlugIn
 
 	private static final String ANGLE_HELP_MESSAGE = "<html>Patati, patata.</html>";
 
-	private String defaultXMLHDF5Path;
-
-	private String defaultTGMMPath;
-
-	private String defaultOutputPath;
-
 	private Logger logger = Logger.DEFAULT_LOGGER;
 
-	private RealInterval interval;
+	private static int defaultTTo = 99;
+
+	private static int defaultTFrom = 0;
+
+	private static double defaultZTo = 511;
+
+	private static double defaultZFrom = 0;
+
+	private static double defaultYTo = 511;
+
+	private static double defaultYFrom = 0;
+
+	private static double defaultXTo = 511;
+
+	private static double defaultXFrom = 0;
+
+	private static boolean defaultDoCrop = false;
+
+	private static String defaultOutputPath;
+
+	private static String defaultTGMMPath;
+
+	private static String defaultXmlHDF5Path;
 
 	@Override
 	public void run( final String arg )
@@ -103,14 +124,14 @@ public class ImportTGMMAnnotationPlugin_ implements PlugIn
 		dialog.addMessage( "Import TGMM annotations", BIG_FONT );
 		dialog.addImage( MaMuT.MAMUT_ICON );
 
-		if ( null == defaultXMLHDF5Path )
+		if ( null == defaultXmlHDF5Path )
 		{
 			final File folder = new File( System.getProperty( "user.dir" ) );
 			final File parent = folder.getParentFile();
-			defaultXMLHDF5Path = parent == null ? null : parent.getParentFile().getAbsolutePath();
+			defaultXmlHDF5Path = parent == null ? null : parent.getParentFile().getAbsolutePath();
 		}
 		dialog.addMessage( "Select the image data (XML of the xml/hdf5 couple)." );
-		dialog.addFileField( "Image data", defaultXMLHDF5Path, 30 );
+		dialog.addFileField( "Image data", defaultXmlHDF5Path, 30 );
 
 		if ( null == defaultTGMMPath )
 		{
@@ -130,6 +151,40 @@ public class ImportTGMMAnnotationPlugin_ implements PlugIn
 		dialog.addMessage( "Output to file:" );
 		dialog.addFileField( "MaMuT file", defaultOutputPath, 30 );
 
+		/*
+		 * Interval controls
+		 */
+
+		dialog.addCheckbox( "Crop on import", defaultDoCrop );
+		final Checkbox checkbox = ( Checkbox ) dialog.getCheckboxes().get( 0 );
+
+		dialog.addNumericField( "X from", defaultXFrom, 1 );
+		dialog.addNumericField( "X to", defaultXTo, 1 );
+		dialog.addNumericField( "Y from", defaultYFrom, 1 );
+		dialog.addNumericField( "Y to", defaultYTo, 1 );
+		dialog.addNumericField( "Z from", defaultZFrom, 1 );
+		dialog.addNumericField( "Z to", defaultZTo, 1 );
+		dialog.addNumericField( "T from", defaultTFrom, 0 );
+		dialog.addNumericField( "T to", defaultTTo, 0 );
+
+		checkbox.addItemListener( new ItemListener()
+		{
+			@Override
+			public void itemStateChanged( final ItemEvent arg0 )
+			{
+				for ( final Object o : dialog.getNumericFields() )
+				{
+					final TextField tf = ( TextField ) o;
+					tf.setEnabled( checkbox.getState() );
+				}
+			}
+		} );
+		for ( final Object o : dialog.getNumericFields() )
+		{
+			final TextField tf = ( TextField ) o;
+			tf.setEnabled( checkbox.getState() );
+		}
+
 		dialog.addHelp( HELP_MESSAGE );
 
 		dialog.showDialog();
@@ -140,9 +195,48 @@ public class ImportTGMMAnnotationPlugin_ implements PlugIn
 
 		if ( dialog.wasCanceled() ) { return; }
 
-		defaultXMLHDF5Path = dialog.getNextString();
-		defaultTGMMPath = dialog.getNextString();
-		defaultOutputPath = dialog.getNextString();
+		final String xmlHDF5Path = dialog.getNextString();
+		final String tgmmPath = dialog.getNextString();
+		final String outputPath = dialog.getNextString();
+		final boolean doCrop = dialog.getNextBoolean();
+		final RealInterval interval;
+		int tFrom = 0;
+		int tTo = 100;
+		if ( doCrop )
+		{
+			final double xfrom = dialog.getNextNumber();
+			final double xto = dialog.getNextNumber();
+			final double yfrom = dialog.getNextNumber();
+			final double yto = dialog.getNextNumber();
+			final double zfrom = dialog.getNextNumber();
+			final double zto = dialog.getNextNumber();
+			tFrom = ( int ) dialog.getNextNumber();
+			tTo = ( int ) dialog.getNextNumber();
+			final double[] min = new double[] { xfrom, yfrom, zfrom };
+			final double[] max = new double[] { xto, yto, zto };
+			interval = new FinalRealInterval( min, max );
+			defaultXFrom = xfrom;
+			defaultXTo = xto;
+			defaultYFrom = yfrom;
+			defaultYTo = yto;
+			defaultZFrom = zfrom;
+			defaultZTo = zto;
+			defaultTFrom = tFrom;
+			defaultTTo = tTo;
+		}
+		else
+		{
+			interval = null;
+		}
+
+		/*
+		 * Copy to default
+		 */
+
+		defaultXmlHDF5Path = xmlHDF5Path;
+		defaultTGMMPath = tgmmPath;
+		defaultOutputPath = outputPath;
+		defaultDoCrop = doCrop;
 
 		/*
 		 * Ask for a view setup
@@ -151,7 +245,7 @@ public class ImportTGMMAnnotationPlugin_ implements PlugIn
 		SpimDataMinimal spimData;
 		try
 		{
-			spimData = new XmlIoSpimDataMinimal().load( defaultXMLHDF5Path );
+			spimData = new XmlIoSpimDataMinimal().load( xmlHDF5Path );
 		}
 		catch ( final SpimDataException e )
 		{
@@ -193,10 +287,10 @@ public class ImportTGMMAnnotationPlugin_ implements PlugIn
 
 		final int angleIndex = dialogAngles.getNextChoiceIndex();
 		final int setupID = spimData.getSequenceDescription().getViewSetupsOrdered().get( angleIndex ).getId();
-		exec( defaultXMLHDF5Path, setupID, defaultTGMMPath, defaultOutputPath );
+		exec( xmlHDF5Path, setupID, tgmmPath, outputPath, doCrop, interval, tFrom, tTo );
 	}
 
-	public void exec( final String xmlHDF5Path, final int setupID, final String tgmmPath, final String outputPath )
+	public void exec( final String xmlHDF5Path, final int setupID, final String tgmmPath, final String outputPath, final boolean doCrop, final RealInterval interval, final int tFrom, final int tTo )
 	{
 		SpimDataMinimal spimData;
 		try
@@ -208,7 +302,7 @@ public class ImportTGMMAnnotationPlugin_ implements PlugIn
 			logger.error( "Problem reading the transforms in image data file:\n" + e.getMessage() + "\n" );
 			return;
 		}
-		final Model model = createModel( new File( tgmmPath ), spimData, setupID );
+		final Model model = createModel( new File( tgmmPath ), spimData, setupID, interval, tFrom, tTo );
 		model.setLogger( logger );
 		final Settings settings = createSettings( new File( xmlHDF5Path ) );
 
@@ -304,7 +398,7 @@ public class ImportTGMMAnnotationPlugin_ implements PlugIn
 		return settings;
 	}
 
-	protected Model createModel( final File tgmmFolder, final SpimDataMinimal spimData, final int setupID )
+	protected Model createModel( final File tgmmFolder, final SpimDataMinimal spimData, final int setupID, final RealInterval interval, final int tFrom, final int tTo )
 	{
 
 		final SequenceDescriptionMinimal seq = spimData.getSequenceDescription();
@@ -315,7 +409,7 @@ public class ImportTGMMAnnotationPlugin_ implements PlugIn
 			transforms.add( regs.getViewRegistration( t.getId(), setupID ).getModel() );
 		}
 
-		final TGMMImporter2 importer = new TGMMImporter2( tgmmFolder, transforms, TGMMImporter2.DEFAULT_PATTERN, logger, interval );
+		final TGMMImporter2 importer = new TGMMImporter2( tgmmFolder, transforms, TGMMImporter2.DEFAULT_PATTERN, logger, interval, tFrom, tTo );
 		if ( !importer.checkInput() || !importer.process() )
 		{
 			logger.error( importer.getErrorMessage() );
@@ -347,9 +441,9 @@ public class ImportTGMMAnnotationPlugin_ implements PlugIn
 		final ImportTGMMAnnotationPlugin_ importer = new ImportTGMMAnnotationPlugin_();
 		importer.defaultOutputPath = outputPath;
 		importer.defaultTGMMPath = tgmmPath;
-		importer.defaultXMLHDF5Path = xmlHDF5Path;
-		importer.interval = interval;
+		importer.defaultXmlHDF5Path = xmlHDF5Path;
+//		importer.interval = interval;
 
-		importer.exec( xmlHDF5Path, setupID, tgmmPath, outputPath );
+		importer.run( null );
 	}
 }

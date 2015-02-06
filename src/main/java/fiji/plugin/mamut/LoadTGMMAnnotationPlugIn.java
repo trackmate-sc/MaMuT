@@ -1,12 +1,12 @@
 package fiji.plugin.mamut;
 
+import fiji.plugin.mamut.io.TGMMImporter2;
 import fiji.plugin.trackmate.Logger;
 import fiji.plugin.trackmate.Model;
 import fiji.plugin.trackmate.Settings;
 import fiji.plugin.trackmate.TrackMate;
 import fiji.plugin.trackmate.action.ResetSpotTimeFeatureAction;
 import fiji.plugin.trackmate.io.IOUtils;
-import fiji.plugin.trackmate.io.TGMMImporter;
 import ij.IJ;
 import ij.ImageJ;
 import ij.plugin.PlugIn;
@@ -26,6 +26,8 @@ import mpicbg.spim.data.generic.sequence.BasicViewSetup;
 import mpicbg.spim.data.registration.ViewRegistrations;
 import mpicbg.spim.data.sequence.Angle;
 import mpicbg.spim.data.sequence.TimePoint;
+import net.imglib2.FinalInterval;
+import net.imglib2.RealInterval;
 import net.imglib2.realtransform.AffineTransform3D;
 import bdv.spimdata.SequenceDescriptionMinimal;
 import bdv.spimdata.SpimDataMinimal;
@@ -37,7 +39,9 @@ public class LoadTGMMAnnotationPlugIn implements PlugIn
 
 	private static File staticImageFile;
 
-	protected final Logger logger = Logger.IJ_LOGGER;
+	protected Logger logger = Logger.IJ_LOGGER;
+
+	private RealInterval interval;
 
 	private File askForImageFile()
 	{
@@ -101,28 +105,31 @@ public class LoadTGMMAnnotationPlugIn implements PlugIn
 		if ( angleIndex < 0 ) { return; }
 
 		final int setupID = spimData.getSequenceDescription().getViewSetupsOrdered().get( angleIndex ).getId();
-		launchMamut( imageFile, tgmmFolder, setupID, spimData );
-//		launchMamut( imageFile, tgmmFolder, angleIndex, spimData );
+		launchMamut( imageFile, tgmmFolder, setupID, interval );
 	}
 
-	public void launchMamut( final File imageFile, final File tgmmFile, final int setupID, final SpimDataMinimal spimData )
+	public void launchMamut( final File imageFile, final File tgmmFile, final int setupID, final RealInterval interval )
 	{
-		final Model model = createModel( tgmmFile, spimData, setupID );
+		SpimDataMinimal spimData;
+		try
+		{
+			spimData = new XmlIoSpimDataMinimal().load( imageFile.getAbsolutePath() );
+		}
+		catch ( final SpimDataException e )
+		{
+			logger.error( "Problem reading the transforms in image data file:\n" + e.getMessage() + "\n" );
+			return;
+		}
+		final Model model = createModel( tgmmFile, spimData, setupID, interval );
 		final SourceSettings settings = createSettings();
 		new MaMuT( imageFile, model, settings );
 	}
 
-	public void launchMamut( final File imageFile, final File tgmmFolder, final int angleIndex ) throws SpimDataException
-	{
-		final SpimDataMinimal spimData = new XmlIoSpimDataMinimal().load( imageFile.getAbsolutePath() );
-		launchMamut( imageFile, tgmmFolder, angleIndex, spimData );
-	}
-
-	protected Model createModel( final File tgmmFolder, final SpimDataMinimal spimData, final int setupID )
+	protected Model createModel( final File tgmmFolder, final SpimDataMinimal spimData, final int setupID, final RealInterval interval )
 	{
 		final List< AffineTransform3D > transforms = pickTransform( spimData, setupID );
 
-		final TGMMImporter importer = new TGMMImporter( tgmmFolder, transforms, Logger.IJ_LOGGER );
+		final TGMMImporter2 importer = new TGMMImporter2( tgmmFolder, transforms, TGMMImporter2.DEFAULT_PATTERN, logger, interval, 0, 100 );
 		if ( !importer.checkInput() || !importer.process() )
 		{
 			logger.error( importer.getErrorMessage() );
@@ -175,18 +182,18 @@ public class LoadTGMMAnnotationPlugIn implements PlugIn
 	public static void main( final String[] args )
 	{
 		ImageJ.main( args );
-		new LoadTGMMAnnotationPlugIn().run( "" );
-//
-//		final File imageFile = new File( "/Users/tinevez/Desktop/Data/Mamut/parhyale/BDV130418A325_NoTempReg.xml" );
-//		final File tgmmFolder = new File( "/Users/tinevez/Development/Fernando/extract" );
-//		final int angleIndex = 0;
-//
-//		final LoadTGMMAnnotationPlugIn plugin = new LoadTGMMAnnotationPlugIn();
-//		try {
-//			plugin.launchMamut( imageFile, tgmmFolder, angleIndex );
-//		} catch (final SpimDataException e) {
-//			e.printStackTrace();
-//		}
+//		new LoadTGMMAnnotationPlugIn().run( "" );
+
+		final File imageFile = new File( "/Volumes/Data/BDV_MVD_5v_final.xml" );
+		final File tgmmFolder = new File( "TGMM_TL0-528_xmls_curated" );
+		final int angleIndex = 0;
+		final long[] min = new long[] { 200, 550, 150 };
+		final long[] max = new long[] { 550, 950, 550 };
+		final RealInterval interval = new FinalInterval( min, max );
+
+		final LoadTGMMAnnotationPlugIn plugin = new LoadTGMMAnnotationPlugIn();
+		plugin.logger = Logger.DEFAULT_LOGGER;
+		plugin.launchMamut( imageFile, tgmmFolder, angleIndex, interval );
 	}
 
 }

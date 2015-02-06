@@ -110,7 +110,8 @@ public class LoadMamutAnnotationPlugin implements PlugIn
 		ImageJ.main( args );
 
 		final LoadMamutAnnotationPlugin plugin = new LoadMamutAnnotationPlugin();
-		plugin.run( "/Users/tinevez/Desktop/iconas/Data/Mamut/parhyale/BDV130418A325_NoTempReg-mamut_JY2.xml" );
+		plugin.run( "" );
+//		plugin.run( "/Users/tinevez/Desktop/iconas/Data/Mamut/parhyale/BDV130418A325_NoTempReg-mamut_JY2.xml" );
 	}
 
 }
