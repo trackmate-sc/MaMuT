@@ -8,7 +8,7 @@
 	<parent>
 		<groupId>sc.fiji</groupId>
 		<artifactId>pom-fiji</artifactId>
-		<version>6.3.0</version>
+		<version>6.8.0</version>
 		<relativePath />
 	</parent>
 
@@ -76,7 +76,7 @@
 		<dependency>
 			<groupId>sc.fiji</groupId>
 			<artifactId>bigdataviewer-core</artifactId>
-			<version>1.0.0</version>
+			<version>1.0.5</version>
 		</dependency>
 		<dependency>
 			<groupId>sc.fiji</groupId>

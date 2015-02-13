@@ -583,7 +583,7 @@ public class MaMuT implements ModelChangeListener
 			converterSetups.set(i, new ConverterSetup() {
 
 				@Override
-				public void setDisplayRange(final int min, final int max) {
+				public void setDisplayRange(final double min, final double max) {
 					s.setDisplayRange(min, max);
 					requestRepaintAllViewers();
 				}
@@ -600,18 +600,23 @@ public class MaMuT implements ModelChangeListener
 				}
 
 				@Override
-				public int getDisplayRangeMin() {
+				public double getDisplayRangeMin() {
 					return s.getDisplayRangeMin();
 				}
 
 				@Override
-				public int getDisplayRangeMax() {
+				public double getDisplayRangeMax() {
 					return s.getDisplayRangeMax();
 				}
 
 				@Override
 				public ARGBType getColor() {
 					return s.getColor();
+				}
+
+				@Override
+				public boolean supportsColor() {
+					return true;
 				}
 			});
 		}
