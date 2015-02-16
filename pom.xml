@@ -13,7 +13,7 @@
 	</parent>
 
 	<artifactId>MaMuT_</artifactId>
-	<version>0.15.1-SNAPSHOT</version>
+	<version>0.16.0</version>
 	<name>plugins/MaMuT_.jar</name>
 	<description></description>
 
