@@ -575,7 +575,7 @@ public class MaMuT implements ModelChangeListener
 		final List< TimePoint > timepoints = seq.getTimePoints().getTimePointsOrdered();
 		nTimepoints = timepoints.size();
 		sources = new ArrayList<SourceAndConverter<?>>();
-		cache = ((ViewerImgLoader<?, ?>) seq.getImgLoader()).getCache();
+		cache = ((ViewerImgLoader) seq.getImgLoader()).getCache();
 		final ArrayList<ConverterSetup> converterSetups = new ArrayList<ConverterSetup>();
 		BigDataViewer.initSetups(spimData, converterSetups, sources);
 		for (int i = 0; i < converterSetups.size(); ++i) {

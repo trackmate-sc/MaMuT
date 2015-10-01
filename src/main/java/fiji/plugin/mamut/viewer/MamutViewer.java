@@ -1,20 +1,5 @@
 package fiji.plugin.mamut.viewer;
 
-import bdv.img.cache.Cache;
-import bdv.viewer.InputActionBindings;
-import bdv.viewer.SourceAndConverter;
-import bdv.viewer.ViewerPanel;
-import bdv.viewer.ViewerPanel.Options;
-import bdv.viewer.animate.MessageOverlayAnimator;
-import fiji.plugin.mamut.MaMuT;
-import fiji.plugin.trackmate.Logger;
-import fiji.plugin.trackmate.Model;
-import fiji.plugin.trackmate.SelectionModel;
-import fiji.plugin.trackmate.Spot;
-import fiji.plugin.trackmate.visualization.FeatureColorGenerator;
-import fiji.plugin.trackmate.visualization.TrackColorGenerator;
-import fiji.plugin.trackmate.visualization.TrackMateModelView;
-
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -31,6 +16,20 @@ import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 
 import net.imglib2.ui.util.GuiUtil;
+import bdv.img.cache.Cache;
+import bdv.viewer.InputActionBindings;
+import bdv.viewer.SourceAndConverter;
+import bdv.viewer.ViewerOptions;
+import bdv.viewer.ViewerPanel;
+import bdv.viewer.animate.MessageOverlayAnimator;
+import fiji.plugin.mamut.MaMuT;
+import fiji.plugin.trackmate.Logger;
+import fiji.plugin.trackmate.Model;
+import fiji.plugin.trackmate.SelectionModel;
+import fiji.plugin.trackmate.Spot;
+import fiji.plugin.trackmate.visualization.FeatureColorGenerator;
+import fiji.plugin.trackmate.visualization.TrackColorGenerator;
+import fiji.plugin.trackmate.visualization.TrackMateModelView;
 
 /**
  * A {@link JFrame} containing a {@link ViewerPanel} and associated
@@ -71,7 +70,7 @@ public class MamutViewer extends JFrame implements TrackMateModelView
 
 	public MamutViewer( final int width, final int height, final List< SourceAndConverter< ? > > sources, final int numTimePoints, final Cache cache, final Model model, final SelectionModel selectionModel )
 	{
-		this( width, height, sources, numTimePoints, cache, model, selectionModel, ViewerPanel.options() );
+		this( width, height, sources, numTimePoints, cache, model, selectionModel, ViewerOptions.options() );
 	}
 
 	/**
@@ -92,7 +91,7 @@ public class MamutViewer extends JFrame implements TrackMateModelView
 	 * @param optional
 	 *            optional parameters. See {@link ViewerPanel#options()}.
 	 */
-	public MamutViewer( final int width, final int height, final List< SourceAndConverter< ? > > sources, final int numTimePoints, final Cache cache, final Model model, final SelectionModel selectionModel, final Options optional )
+	public MamutViewer( final int width, final int height, final List< SourceAndConverter< ? > > sources, final int numTimePoints, final Cache cache, final Model model, final SelectionModel selectionModel, final ViewerOptions optional )
 	{
 		super( "MaMut Viewer", GuiUtil.getSuitableGraphicsConfiguration( GuiUtil.RGB_COLOR_MODEL ) );
 		final MessageOverlayAnimator msgOverlay = new MessageOverlayAnimator( DEFAULT_TEXT_DISPLAY_DURATION, DEFAULT_FADEINTIME, DEFAULT_FADEOUTTIME, DEFAULT_FONT );

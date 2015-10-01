@@ -1,16 +1,16 @@
 package fiji.plugin.mamut.viewer;
 
-import bdv.img.cache.Cache;
-import bdv.viewer.SourceAndConverter;
-import bdv.viewer.ViewerPanel;
-import bdv.viewer.animate.TranslationAnimator;
-import fiji.plugin.trackmate.Spot;
-
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.util.List;
 
 import net.imglib2.realtransform.AffineTransform3D;
+import bdv.img.cache.Cache;
+import bdv.viewer.SourceAndConverter;
+import bdv.viewer.ViewerOptions;
+import bdv.viewer.ViewerPanel;
+import bdv.viewer.animate.TranslationAnimator;
+import fiji.plugin.trackmate.Spot;
 
 public class MamutViewerPanel extends ViewerPanel
 {
@@ -22,10 +22,10 @@ public class MamutViewerPanel extends ViewerPanel
 
 	public MamutViewerPanel( final List< SourceAndConverter< ? >> sources, final int numTimePoints, final Cache cache )
 	{
-		this( sources, numTimePoints, cache, options() );
+		this( sources, numTimePoints, cache, ViewerOptions.options() );
 	}
 
-	public MamutViewerPanel( final List< SourceAndConverter< ? >> sources, final int numTimePoints, final Cache cache, final Options optional )
+	public MamutViewerPanel( final List< SourceAndConverter< ? >> sources, final int numTimePoints, final Cache cache, final ViewerOptions optional )
 	{
 		super( sources, numTimePoints, cache, optional );
 	}
