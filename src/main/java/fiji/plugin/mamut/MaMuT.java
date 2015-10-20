@@ -460,6 +460,8 @@ public class MaMuT implements ModelChangeListener
 				}
 			}
 		} );
+
+		gui.pack();
 	}
 
 	/**
