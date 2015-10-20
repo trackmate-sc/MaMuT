@@ -982,12 +982,13 @@ public class MaMuT implements ModelChangeListener
 	private void save()
 	{
 		final Logger logger = Logger.IJ_LOGGER;
-		mamutFile = IOUtils.askForFileForSaving( mamutFile, IJ.getInstance(), logger );
-		if ( null == mamutFile )
+		final File proposed = IOUtils.askForFileForSaving( mamutFile, IJ.getInstance(), logger );
+		if ( null == proposed )
 		{
 			logger.log( "Saving canceled.\n" );
 			return;
 		}
+		mamutFile = proposed;
 
 		MamutXmlWriter writer = null;
 		try
