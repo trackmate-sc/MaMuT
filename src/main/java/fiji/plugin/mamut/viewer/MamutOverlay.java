@@ -3,12 +3,6 @@ package fiji.plugin.mamut.viewer;
 import static fiji.plugin.trackmate.visualization.TrackMateModelView.KEY_DISPLAY_SPOT_NAMES;
 import static fiji.plugin.trackmate.visualization.TrackMateModelView.KEY_SPOTS_VISIBLE;
 import static fiji.plugin.trackmate.visualization.TrackMateModelView.KEY_SPOT_RADIUS_RATIO;
-import bdv.viewer.state.ViewerState;
-import fiji.plugin.trackmate.Model;
-import fiji.plugin.trackmate.SelectionModel;
-import fiji.plugin.trackmate.Spot;
-import fiji.plugin.trackmate.visualization.AbstractTrackMateModelView;
-import fiji.plugin.trackmate.visualization.TrackMateModelView;
 
 import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
@@ -25,14 +19,21 @@ import net.imglib2.realtransform.AffineTransform3D;
 
 import org.jgrapht.graph.DefaultWeightedEdge;
 
+import bdv.viewer.state.ViewerState;
+import fiji.plugin.trackmate.Model;
+import fiji.plugin.trackmate.SelectionModel;
+import fiji.plugin.trackmate.Spot;
+import fiji.plugin.trackmate.visualization.AbstractTrackMateModelView;
+import fiji.plugin.trackmate.visualization.TrackMateModelView;
+
 public class MamutOverlay
 {
 
 	private static final Font DEFAULT_FONT = new Font( "Monospaced", Font.PLAIN, 10 );
 
-	private static final Stroke NORMAL_STROKE = new BasicStroke( 1.0f );
+	private static final Stroke SELECTION_STROKE = new BasicStroke( 4.0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND );
 
-	private static final Stroke HIGHLIGHT_STROKE = new BasicStroke( 2.0f );
+	private static final Stroke NORMAL_STROKE = new BasicStroke();
 
 	/** The viewer state. */
 	private ViewerState state;
@@ -110,7 +111,7 @@ public class MamutOverlay
 				{
 					forceDraw = true; // Selection is drawn unconditionally.
 					color = AbstractTrackMateModelView.DEFAULT_HIGHLIGHT_COLOR;
-					stroke = HIGHLIGHT_STROKE;
+					stroke = SELECTION_STROKE;
 				}
 				else
 				{
@@ -177,23 +178,13 @@ public class MamutOverlay
 
 			Spot source, target;
 
-			// Deal with highlighted edges first: brute and thick display
-			g.setStroke( new BasicStroke( 4.0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND ) );
-			g.setColor( TrackMateModelView.DEFAULT_HIGHLIGHT_COLOR );
-			for ( final DefaultWeightedEdge edge : selectionModel.getEdgeSelection() )
-			{
-				source = model.getTrackModel().getEdgeSource( edge );
-				target = model.getTrackModel().getEdgeTarget( edge );
-				drawEdge( g, source, target, transform, 1f, false, drawingDepth );
-			}
-
-			// The rest
+			// Non-selected tracks.
 			final int currentFrame = state.getCurrentTimepoint();
 			final int trackDisplayMode = ( Integer ) viewer.displaySettings.get( TrackMateModelView.KEY_TRACK_DISPLAY_MODE );
 			final int trackDisplayDepth = ( Integer ) viewer.displaySettings.get( TrackMateModelView.KEY_TRACK_DISPLAY_DEPTH );
 			final Set< Integer > filteredTrackIDs = model.getTrackModel().unsortedTrackIDs( true );
 
-			g.setStroke( new BasicStroke( 2.0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND ) );
+			g.setStroke( NORMAL_STROKE );
 			if ( trackDisplayMode == TrackMateModelView.TRACK_DISPLAY_MODE_LOCAL || trackDisplayMode == TrackMateModelView.TRACK_DISPLAY_MODE_LOCAL_QUICK )
 				g.setComposite( AlphaComposite.getInstance( AlphaComposite.SRC_OVER ) );
 
@@ -233,8 +224,8 @@ public class MamutOverlay
 
 					for ( final DefaultWeightedEdge edge : track )
 					{
-						if ( selectionModel.getEdgeSelection().contains( edge ) )
-							continue;
+						//						if ( selectionModel.getEdgeSelection().contains( edge ) )
+						//							continue;
 
 						source = model.getTrackModel().getEdgeSource( edge );
 						target = model.getTrackModel().getEdgeTarget( edge );
@@ -259,8 +250,8 @@ public class MamutOverlay
 
 					for ( final DefaultWeightedEdge edge : track )
 					{
-						if ( selectionModel.getEdgeSelection().contains( edge ) )
-							continue;
+						//						if ( selectionModel.getEdgeSelection().contains( edge ) )
+						//							continue;
 
 						source = model.getTrackModel().getEdgeSource( edge );
 						sourceFrame = source.getFeature( Spot.FRAME ).intValue();
@@ -290,8 +281,8 @@ public class MamutOverlay
 
 					for ( final DefaultWeightedEdge edge : track )
 					{
-						if ( selectionModel.getEdgeSelection().contains( edge ) )
-							continue;
+						//						if ( selectionModel.getEdgeSelection().contains( edge ) )
+						//							continue;
 
 						source = model.getTrackModel().getEdgeSource( edge );
 						sourceFrame = source.getFeature( Spot.FRAME ).intValue();
@@ -308,6 +299,16 @@ public class MamutOverlay
 
 			}
 
+			}
+
+			// Deal with highlighted edges first: brute and thick display
+			g.setStroke( SELECTION_STROKE );
+			g.setColor( TrackMateModelView.DEFAULT_HIGHLIGHT_COLOR );
+			for ( final DefaultWeightedEdge edge : selectionModel.getEdgeSelection() )
+			{
+				source = model.getTrackModel().getEdgeSource( edge );
+				target = model.getTrackModel().getEdgeTarget( edge );
+				drawEdge( g, source, target, transform, 1f, false, drawingDepth );
 			}
 
 			// Restore graphic device original settings
