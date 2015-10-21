@@ -26,7 +26,6 @@ import mpicbg.spim.data.generic.sequence.BasicViewSetup;
 import mpicbg.spim.data.registration.ViewRegistrations;
 import mpicbg.spim.data.sequence.Angle;
 import mpicbg.spim.data.sequence.TimePoint;
-import net.imglib2.FinalInterval;
 import net.imglib2.RealInterval;
 import net.imglib2.realtransform.AffineTransform3D;
 import bdv.spimdata.SequenceDescriptionMinimal;
@@ -129,7 +128,7 @@ public class LoadTGMMAnnotationPlugIn implements PlugIn
 	{
 		final List< AffineTransform3D > transforms = pickTransform( spimData, setupID );
 
-		final TGMMImporter2 importer = new TGMMImporter2( tgmmFolder, transforms, TGMMImporter2.DEFAULT_PATTERN, logger, interval, 0, 100 );
+		final TGMMImporter2 importer = new TGMMImporter2( tgmmFolder, transforms, TGMMImporter2.DEFAULT_PATTERN, logger, interval, 0, Integer.MAX_VALUE );
 		if ( !importer.checkInput() || !importer.process() )
 		{
 			logger.error( importer.getErrorMessage() );
@@ -182,18 +181,18 @@ public class LoadTGMMAnnotationPlugIn implements PlugIn
 	public static void main( final String[] args )
 	{
 		ImageJ.main( args );
-//		new LoadTGMMAnnotationPlugIn().run( "" );
+		new LoadTGMMAnnotationPlugIn().run( "" );
 
-		final File imageFile = new File( "/Volumes/Data/BDV_MVD_5v_final.xml" );
-		final File tgmmFolder = new File( "TGMM_TL0-528_xmls_curated" );
-		final int angleIndex = 0;
-		final long[] min = new long[] { 200, 550, 150 };
-		final long[] max = new long[] { 550, 950, 550 };
-		final RealInterval interval = new FinalInterval( min, max );
-
-		final LoadTGMMAnnotationPlugIn plugin = new LoadTGMMAnnotationPlugIn();
-		plugin.logger = Logger.DEFAULT_LOGGER;
-		plugin.launchMamut( imageFile, tgmmFolder, angleIndex, interval );
+		//		final File imageFile = new File( "/Volumes/Data/BDV_MVD_5v_final.xml" );
+		//		final File tgmmFolder = new File( "/Volumes/Data/TGMM_TL0-528_xmls_curated" );
+		//		final int angleIndex = 0;
+		//		final long[] min = new long[] { 200, 550, 150 };
+		//		final long[] max = new long[] { 550, 950, 550 };
+		//		final RealInterval interval = new FinalInterval( min, max );
+		//
+		//		final LoadTGMMAnnotationPlugIn plugin = new LoadTGMMAnnotationPlugIn();
+		//		plugin.logger = Logger.DEFAULT_LOGGER;
+		//		plugin.launchMamut( imageFile, tgmmFolder, angleIndex, interval );
 	}
 
 }

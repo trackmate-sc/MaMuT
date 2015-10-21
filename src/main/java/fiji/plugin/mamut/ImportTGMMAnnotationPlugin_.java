@@ -201,7 +201,7 @@ public class ImportTGMMAnnotationPlugin_ implements PlugIn
 		final boolean doCrop = dialog.getNextBoolean();
 		final RealInterval interval;
 		int tFrom = 0;
-		int tTo = 100;
+		int tTo = Integer.MAX_VALUE;
 		if ( doCrop )
 		{
 			final double xfrom = dialog.getNextNumber();
