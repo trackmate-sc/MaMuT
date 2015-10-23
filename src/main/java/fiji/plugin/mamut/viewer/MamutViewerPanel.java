@@ -17,7 +17,10 @@ public class MamutViewerPanel extends ViewerPanel
 
 	private static final long serialVersionUID = 1L;
 
-	/** The overlay on which the {@link TrackMateModel} will be painted. */
+	/**
+	 * The overlay on which the {@link fiji.plugin.trackmate.Model} will be
+	 * painted.
+	 */
 	MamutOverlay overlay;
 
 	public MamutViewerPanel( final List< SourceAndConverter< ? >> sources, final int numTimePoints, final Cache cache )

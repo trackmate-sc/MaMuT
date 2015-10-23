@@ -20,7 +20,6 @@ import bdv.img.cache.Cache;
 import bdv.viewer.InputActionBindings;
 import bdv.viewer.SourceAndConverter;
 import bdv.viewer.ViewerOptions;
-import bdv.viewer.ViewerPanel;
 import bdv.viewer.animate.MessageOverlayAnimator;
 import fiji.plugin.mamut.MaMuT;
 import fiji.plugin.trackmate.Logger;
@@ -32,10 +31,10 @@ import fiji.plugin.trackmate.visualization.TrackColorGenerator;
 import fiji.plugin.trackmate.visualization.TrackMateModelView;
 
 /**
- * A {@link JFrame} containing a {@link ViewerPanel} and associated
+ * A {@link JFrame} containing a {@link MamutViewerPanel} and associated
  * {@link InputActionBindings}.
  *
- * @author Tobias Pietzsch <tobias.pietzsch@gmail.com>
+ * @author Tobias Pietzsch &lt;tobias.pietzsch@gmail.com&gt;
  */
 public class MamutViewer extends JFrame implements TrackMateModelView
 {
@@ -85,11 +84,11 @@ public class MamutViewer extends JFrame implements TrackMateModelView
 	 *            number of available timepoints.
 	 * @param cache
 	 *            handle to cache. This is used to control io timing. Also, is
-	 *            is used to subscribe / {@link #stop() unsubscribe} to the
-	 *            cache as a consumer, so that eventually the io fetcher threads
-	 *            can be shut down.
+	 *            is used to subscribe / unsubscribe to the cache as a consumer,
+	 *            so that eventually the io fetcher threads can be shut down.
 	 * @param optional
-	 *            optional parameters. See {@link ViewerPanel#options()}.
+	 *            optional parameters. See
+	 *            {@link bdv.viewer.ViewerPanel#getOptionValues()}.
 	 */
 	public MamutViewer( final int width, final int height, final List< SourceAndConverter< ? > > sources, final int numTimePoints, final Cache cache, final Model model, final SelectionModel selectionModel, final ViewerOptions optional )
 	{

@@ -20,7 +20,7 @@ import fiji.plugin.trackmate.features.spot.SpotAnalyzerFactory;
  * A dummy {@link SpotAnalyzerFactory}, made to simply register the spot
  * features that will be assigned by {@link CellDivisionTimeAnalyzer}.
  *
- * @author Jean-Yves Tinevez <jeanyves.tinevez@gmail.com> Mar 5, 2014
+ * @author Jean-Yves Tinevez &lt;jeanyves.tinevez@gmail.com&gt; Mar 5, 2014
  *
  * @param <T>
  */
