@@ -61,6 +61,7 @@
 	<properties>
 		<!-- Target Fiji dir for clean upload. -->
 		<imagej.app.directory>../Fiji.app/</imagej.app.directory>
+		<scijava.jvm.version>1.7</scijava.jvm.version>
 	</properties>
 
 	<repositories>
@@ -134,16 +135,12 @@
 
 		<!-- Java 3D dependencies -->
 		<dependency>
-			<groupId>java3d</groupId>
-			<artifactId>j3d-core</artifactId>
-			<version>1.5.2</version>
-			<scope>provided</scope>
+			<groupId>org.scijava</groupId>
+			<artifactId>j3dcore</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>java3d</groupId>
-			<artifactId>j3d-core-utils</artifactId>
-			<version>1.5.2</version>
-			<scope>provided</scope>
+			<groupId>org.scijava</groupId>
+			<artifactId>j3dutils</artifactId>
 		</dependency>
 
 		<!-- Third party dependencies -->
