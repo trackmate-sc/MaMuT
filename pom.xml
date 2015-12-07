@@ -132,16 +132,7 @@
 			<artifactId>scijava-common</artifactId>
 		</dependency>
 
-		<!-- Third party dependencies -->
-		<dependency>
-			<groupId>net.sf.jgrapht</groupId>
-			<artifactId>jgrapht</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.jdom</groupId>
-			<artifactId>jdom2</artifactId>
-		</dependency>
-
+		<!-- Java 3D dependencies -->
 		<dependency>
 			<groupId>java3d</groupId>
 			<artifactId>j3d-core</artifactId>
@@ -152,10 +143,15 @@
 			<artifactId>j3d-core-utils</artifactId>
 			<scope>provided</scope>
 		</dependency>
+
+		<!-- Third party dependencies -->
 		<dependency>
-			<groupId>java3d</groupId>
-			<artifactId>vecmath</artifactId>
-			<scope>provided</scope>
+			<groupId>net.sf.jgrapht</groupId>
+			<artifactId>jgrapht</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.jdom</groupId>
+			<artifactId>jdom2</artifactId>
 		</dependency>
 	</dependencies>
 
