@@ -53,7 +53,7 @@ public class SourceSpotImageUpdater<T extends RealType<T>> extends SpotImageUpda
 	 * group calls to this method for spots that belong to the same frame.
 	 */
 	@Override
-	public String getImageString(final Spot spot) {
+	public String getImageString(final Spot spot, final double radiusFactor) {
 		final StringBuffer str = new StringBuffer();
 
 		final Thread th = new Thread(threadGroup, "Spot Image grabber for " + spot) {
