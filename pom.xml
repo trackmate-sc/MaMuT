@@ -14,6 +14,7 @@
 
 	<artifactId>MaMuT_</artifactId>
 	<version>0.17.2-SNAPSHOT</version>
+
 	<name>plugins/MaMuT_.jar</name>
 	<description></description>
 
@@ -153,5 +154,4 @@
 			<artifactId>jdom2</artifactId>
 		</dependency>
 	</dependencies>
-
 </project>
