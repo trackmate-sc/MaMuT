@@ -8,6 +8,13 @@ import java.util.List;
 
 import javax.imageio.ImageIO;
 
+import bdv.util.Affine3DHelpers;
+import bdv.viewer.Source;
+import bdv.viewer.SourceAndConverter;
+import fiji.plugin.mamut.feature.spot.SpotSourceIdAnalyzerFactory;
+import fiji.plugin.trackmate.Settings;
+import fiji.plugin.trackmate.Spot;
+import fiji.plugin.trackmate.visualization.trackscheme.SpotImageUpdater;
 import net.imglib2.Interval;
 import net.imglib2.Point;
 import net.imglib2.RandomAccessibleInterval;
@@ -25,13 +32,6 @@ import net.imglib2.type.numeric.integer.UnsignedByteType;
 import net.imglib2.util.Intervals;
 import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
-import bdv.util.Affine3DHelpers;
-import bdv.viewer.Source;
-import bdv.viewer.SourceAndConverter;
-import fiji.plugin.mamut.feature.spot.SpotSourceIdAnalyzerFactory;
-import fiji.plugin.trackmate.Settings;
-import fiji.plugin.trackmate.Spot;
-import fiji.plugin.trackmate.visualization.trackscheme.SpotImageUpdater;
 
 public class SourceSpotImageUpdater<T extends RealType<T>> extends SpotImageUpdater {
 
@@ -53,7 +53,8 @@ public class SourceSpotImageUpdater<T extends RealType<T>> extends SpotImageUpda
 	 * group calls to this method for spots that belong to the same frame.
 	 */
 	@Override
-	public String getImageString(final Spot spot) {
+	public String getImageString( final Spot spot, final double radiusFactor )
+	{
 		final StringBuffer str = new StringBuffer();
 
 		final Thread th = new Thread(threadGroup, "Spot Image grabber for " + spot) {
@@ -81,7 +82,7 @@ public class SourceSpotImageUpdater<T extends RealType<T>> extends SpotImageUpda
 				final long x = roundedSourcePos.getLongPosition(0);
 				final long y = roundedSourcePos.getLongPosition(1);
 				final long z = Math.max(img.min(2), Math.min(img.max(2), roundedSourcePos.getLongPosition(2)));
-				final long r = (long) Math.ceil(RADIUS_FACTOR * spot.getFeature(Spot.RADIUS).doubleValue() / Affine3DHelpers.extractScale(sourceToGlobal, 0));
+				final long r = ( long ) Math.ceil( radiusFactor * RADIUS_FACTOR * spot.getFeature( Spot.RADIUS ).doubleValue() / Affine3DHelpers.extractScale( sourceToGlobal, 0 ) );
 
 				// Extract central slice
 				final IntervalView<T> slice = Views.hyperSlice(img, 2, z);
