@@ -15,13 +15,9 @@ import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 
-import org.scijava.ui.behaviour.MouseAndKeyHandler;
-
-import bdv.BehaviourTransformEventHandler;
 import bdv.img.cache.Cache;
 import bdv.viewer.InputActionBindings;
 import bdv.viewer.SourceAndConverter;
-import bdv.viewer.TriggerBehaviourBindings;
 import bdv.viewer.ViewerOptions;
 import bdv.viewer.animate.MessageOverlayAnimator;
 import fiji.plugin.mamut.MaMuT;
@@ -32,7 +28,6 @@ import fiji.plugin.trackmate.Spot;
 import fiji.plugin.trackmate.visualization.FeatureColorGenerator;
 import fiji.plugin.trackmate.visualization.TrackColorGenerator;
 import fiji.plugin.trackmate.visualization.TrackMateModelView;
-import net.imglib2.ui.TransformEventHandler;
 import net.imglib2.ui.util.GuiUtil;
 
 /**
@@ -72,8 +67,6 @@ public class MamutViewer extends JFrame implements TrackMateModelView
 
 	private final InputActionBindings keybindings;
 
-	private final TriggerBehaviourBindings triggerbindings;
-
 	public MamutViewer( final int width, final int height, final List< SourceAndConverter< ? > > sources, final int numTimePoints, final Cache cache, final Model model, final SelectionModel selectionModel )
 	{
 		this( width, height, sources, numTimePoints, cache, model, selectionModel, ViewerOptions.options() );
@@ -107,7 +100,6 @@ public class MamutViewer extends JFrame implements TrackMateModelView
 		this.model = model;
 		this.selectionModel = selectionModel;
 		this.logger = new MamutViewerLogger();
-		this.triggerbindings = new TriggerBehaviourBindings();
 
 		getRootPane().setDoubleBuffered( true );
 		setPreferredSize( new Dimension( width, height ) );
@@ -125,15 +117,6 @@ public class MamutViewer extends JFrame implements TrackMateModelView
 
 		SwingUtilities.replaceUIActionMap( getRootPane(), keybindings.getConcatenatedActionMap() );
 		SwingUtilities.replaceUIInputMap( getRootPane(), JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT, keybindings.getConcatenatedInputMap() );
-
-		final MouseAndKeyHandler mouseAndKeyHandler = new MouseAndKeyHandler();
-		mouseAndKeyHandler.setInputMap( triggerbindings.getConcatenatedInputTriggerMap() );
-		mouseAndKeyHandler.setBehaviourMap( triggerbindings.getConcatenatedBehaviourMap() );
-		viewerPanel.getDisplay().addHandler( mouseAndKeyHandler );
-
-		final TransformEventHandler< ? > tfHandler = viewerPanel.getDisplay().getTransformEventHandler();
-		if ( tfHandler instanceof BehaviourTransformEventHandler )
-			( ( BehaviourTransformEventHandler< ? > ) tfHandler ).install( triggerbindings );
 
 		setIconImage( MaMuT.MAMUT_ICON.getImage() );
 		setLocationByPlatform( true );
@@ -157,11 +140,6 @@ public class MamutViewer extends JFrame implements TrackMateModelView
 	public InputActionBindings getKeybindings()
 	{
 		return keybindings;
-	}
-
-	public TriggerBehaviourBindings getTriggerbindings()
-	{
-		return triggerbindings;
 	}
 
 	/**

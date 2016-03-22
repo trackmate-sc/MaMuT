@@ -50,7 +50,6 @@ import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
 import org.jgrapht.graph.DefaultWeightedEdge;
-import org.scijava.ui.behaviour.io.InputTriggerConfig;
 
 import bdv.BigDataViewer;
 import bdv.ViewerImgLoader;
@@ -64,7 +63,6 @@ import bdv.tools.brightness.BrightnessDialog;
 import bdv.tools.brightness.ConverterSetup;
 import bdv.tools.brightness.SetupAssignments;
 import bdv.tools.transformation.ManualTransformationEditor;
-import bdv.viewer.NavigationActions;
 import bdv.viewer.SourceAndConverter;
 import bdv.viewer.state.ViewerState;
 import fiji.plugin.mamut.detection.SourceSemiAutoTracker;
@@ -1117,8 +1115,6 @@ public class MaMuT implements ModelChangeListener
 	 */
 	private void installMouseListeners( final MamutViewer viewer )
 	{
-		NavigationActions.installActionBindings( viewer.getKeybindings(), viewer.getViewerPanel(), new InputTriggerConfig() );
-
 		viewer.addHandler( new MouseMotionListener()
 		{
 
