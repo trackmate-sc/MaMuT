@@ -17,11 +17,14 @@ import net.imglib2.type.numeric.RealType;
 
 /**
  * A dummy {@link SpotAnalyzerFactory}, made to simply register the spot
- * features that will be assigned by {@link CellDivisionTimeAnalyzer}.
+ * features that will be assigned by
+ * {@link fiji.plugin.mamut.feature.track.CellDivisionTimeAnalyzer}.
  *
  * @author Jean-Yves Tinevez &lt;jeanyves.tinevez@gmail.com&gt; Mar 5, 2014
  *
  * @param <T>
+ *            the type of the pixels in the image. Must extends {@link RealType}
+ *            and {@link NativeType}.
  */
 public class CellDivisionTimeAnalyzerSpotFactory< T extends RealType< T > & NativeType< T >> implements SpotAnalyzerFactory< T >
 {

@@ -127,7 +127,7 @@ public class MaMuT implements ModelChangeListener
 
 	public static final String PLUGIN_NAME = "MaMuT";
 
-	public static final String PLUGIN_VERSION = "0.17.2-SNAPSHOT";
+	public static final String PLUGIN_VERSION = "0.18.0";
 
 	private static final double DEFAULT_RADIUS = 10;
 
@@ -564,11 +564,16 @@ public class MaMuT implements ModelChangeListener
 	 *
 	 * @param dataFile
 	 *            the file that points to the xml master file of the image data.
+	 * 
+	 * @throws SpimDataException
+	 *             if the xml master file cannot be read or is incorrectly
+	 *             formatted.
 	 */
 	private void prepareSources( final File dataFile ) throws SpimDataException
 	{
 		final SpimDataMinimal spimData = new XmlIoSpimDataMinimal().load(dataFile.getAbsolutePath());
-		if (WrapBasicImgLoader.wrapImgLoaderIfNecessary(spimData)) {
+		if ( WrapBasicImgLoader.wrapImgLoaderIfNecessary( spimData ) )
+		{
 			System.err.println("WARNING:\nOpening <SpimData> dataset that is not suited for suited for interactive browsing.\nConsider resaving as HDF5 for better performance.");
 		}
 		final AbstractSequenceDescription<?, ?, ?> seq = spimData.getSequenceDescription();
@@ -1051,8 +1056,8 @@ public class MaMuT implements ModelChangeListener
 	/**
 	 * Configures the specified {@link MamutViewer} with key bindings.
 	 *
-	 * @param the
-	 *            {@link MamutViewer} to configure.
+	 * @param viewer
+	 *            the {@link MamutViewer} to configure.
 	 */
 	private void installKeyBindings( final MamutViewer viewer )
 	{

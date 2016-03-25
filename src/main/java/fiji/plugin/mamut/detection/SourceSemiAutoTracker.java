@@ -27,9 +27,10 @@ import net.imglib2.type.numeric.RealType;
  * The user has to select one spot, one a meaningful location of a source. The
  * spot location and its radius are then used to extract a small rectangular
  * neighborhood in the next frame around the spot. The neighborhood is then
- * passed to a {@link SpotDetector} that returns the spot it found. If a spot of
- * {@link Spot#QUALITY} high enough is found near enough to the first spot
- * center, then it is added to the model and linked with the first spot.
+ * passed to a {@link fiji.plugin.trackmate.detection.SpotDetector} that returns
+ * the spot it found. If a spot of {@link Spot#QUALITY} high enough is found
+ * near enough to the first spot center, then it is added to the model and
+ * linked with the first spot.
  * <p>
  * The process is then repeated, taking the newly found spot as a source for the
  * next neighborhood. The model is updated live for every spot found.
@@ -43,8 +44,8 @@ import net.imglib2.type.numeric.RealType;
  *
  * @param <T>
  *            the type of the source. Must extend {@link RealType} and
- *            {@link NativeType} to use with most TrackMate {@link SpotDetector}
- *            s.
+ *            {@link NativeType} to use with most TrackMate
+ *            {@link fiji.plugin.trackmate.detection.SpotDetector}s.
  *
  * @author Jean-Yves Tinevez - 2013
  */

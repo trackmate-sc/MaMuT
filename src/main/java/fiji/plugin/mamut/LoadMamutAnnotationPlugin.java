@@ -1,5 +1,7 @@
 package fiji.plugin.mamut;
 
+import java.io.File;
+
 import fiji.plugin.mamut.io.MamutXmlReader;
 import fiji.plugin.mamut.providers.MamutEdgeAnalyzerProvider;
 import fiji.plugin.mamut.providers.MamutSpotAnalyzerProvider;
@@ -10,8 +12,6 @@ import fiji.plugin.trackmate.io.IOUtils;
 import ij.IJ;
 import ij.ImageJ;
 import ij.plugin.PlugIn;
-
-import java.io.File;
 
 public class LoadMamutAnnotationPlugin implements PlugIn
 {
@@ -110,8 +110,8 @@ public class LoadMamutAnnotationPlugin implements PlugIn
 		ImageJ.main( args );
 
 		final LoadMamutAnnotationPlugin plugin = new LoadMamutAnnotationPlugin();
-		//		plugin.run( "" );
-		plugin.run( "/Users/tinevez/Desktop/iconas/Data/Mamut/parhyale/BDV130418A325_NoTempReg-mamut_JY2.xml" );
+		plugin.run( "" );
+//		plugin.run( "/Users/tinevez/Desktop/Data/Mamut/parhyale/BDV130418A325_NoTempReg-mamut_JY2.xml" );
 	}
 
 }

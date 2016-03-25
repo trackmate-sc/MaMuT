@@ -93,6 +93,10 @@ public class MamutViewer extends JFrame implements TrackMateModelView
 	 *            handle to cache. This is used to control io timing. Also, is
 	 *            is used to subscribe / unsubscribe to the cache as a consumer,
 	 *            so that eventually the io fetcher threads can be shut down.
+	 * @param model
+	 *            the model to show in this view.
+	 * @param selectionModel
+	 *            the selection model used to deal with selection.
 	 * @param optional
 	 *            optional parameters. See
 	 *            {@link bdv.viewer.ViewerPanel#getOptionValues()}.
