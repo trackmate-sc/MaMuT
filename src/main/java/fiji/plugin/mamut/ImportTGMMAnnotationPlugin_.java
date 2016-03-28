@@ -2,6 +2,22 @@ package fiji.plugin.mamut;
 
 import static fiji.plugin.mamut.MaMuT.PLUGIN_NAME;
 import static fiji.plugin.mamut.MaMuT.PLUGIN_VERSION;
+
+import java.awt.Checkbox;
+import java.awt.Font;
+import java.awt.TextField;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+
+import bdv.spimdata.SequenceDescriptionMinimal;
+import bdv.spimdata.SpimDataMinimal;
+import bdv.spimdata.XmlIoSpimDataMinimal;
 import fiji.plugin.mamut.io.MamutXmlWriter;
 import fiji.plugin.mamut.io.TGMMImporter2;
 import fiji.plugin.mamut.providers.MamutEdgeAnalyzerProvider;
@@ -21,31 +37,14 @@ import fiji.plugin.trackmate.providers.TrackAnalyzerProvider;
 import fiji.util.gui.GenericDialogPlus;
 import ij.plugin.PlugIn;
 import ij.text.TextWindow;
-
-import java.awt.Checkbox;
-import java.awt.Font;
-import java.awt.TextField;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
-
 import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.generic.sequence.BasicViewSetup;
 import mpicbg.spim.data.registration.ViewRegistrations;
 import mpicbg.spim.data.sequence.Angle;
 import mpicbg.spim.data.sequence.TimePoint;
-import net.imglib2.FinalInterval;
 import net.imglib2.FinalRealInterval;
 import net.imglib2.RealInterval;
 import net.imglib2.realtransform.AffineTransform3D;
-import bdv.spimdata.SequenceDescriptionMinimal;
-import bdv.spimdata.SpimDataMinimal;
-import bdv.spimdata.XmlIoSpimDataMinimal;
 
 public class ImportTGMMAnnotationPlugin_ implements PlugIn
 {
@@ -426,24 +425,5 @@ public class ImportTGMMAnnotationPlugin_ implements PlugIn
 		action.execute( trackmate );
 
 		return model;
-	}
-
-	public static void main( final String[] args )
-	{
-		final String xmlHDF5Path = "/Volumes/Data/BDV_MVD_5v_final.xml";
-		final int setupID = 1;
-		final String tgmmPath = "/Volumes/Data/TGMM_TL0-528_xmls_curated";
-		final String outputPath = "/Volumes/Data/BDV_MVD_5v_final_mamut.xml";
-		final long[] min = new long[] { 200, 550, 150 };
-		final long[] max = new long[] { 550, 950, 550 };
-		final RealInterval interval = new FinalInterval( min, max );
-
-		final ImportTGMMAnnotationPlugin_ importer = new ImportTGMMAnnotationPlugin_();
-		importer.defaultOutputPath = outputPath;
-		importer.defaultTGMMPath = tgmmPath;
-		importer.defaultXmlHDF5Path = xmlHDF5Path;
-//		importer.interval = interval;
-
-		importer.run( null );
 	}
 }

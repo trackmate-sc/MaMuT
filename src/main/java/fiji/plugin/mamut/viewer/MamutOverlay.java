@@ -15,8 +15,6 @@ import java.awt.Stroke;
 import java.util.HashSet;
 import java.util.Set;
 
-import net.imglib2.realtransform.AffineTransform3D;
-
 import org.jgrapht.graph.DefaultWeightedEdge;
 
 import bdv.viewer.state.ViewerState;
@@ -25,6 +23,7 @@ import fiji.plugin.trackmate.SelectionModel;
 import fiji.plugin.trackmate.Spot;
 import fiji.plugin.trackmate.visualization.AbstractTrackMateModelView;
 import fiji.plugin.trackmate.visualization.TrackMateModelView;
+import net.imglib2.realtransform.AffineTransform3D;
 
 public class MamutOverlay
 {
@@ -355,6 +354,9 @@ public class MamutOverlay
 
 	/**
 	 * Update data to show in the overlay.
+	 * 
+	 * @param state
+	 *            the state of the data.
 	 */
 	public void setViewerState( final ViewerState state )
 	{

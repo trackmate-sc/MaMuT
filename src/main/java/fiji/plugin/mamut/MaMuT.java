@@ -20,10 +20,6 @@ import static fiji.plugin.trackmate.visualization.TrackMateModelView.KEY_TRACKS_
 import static fiji.plugin.trackmate.visualization.TrackMateModelView.KEY_TRACK_COLORING;
 import static fiji.plugin.trackmate.visualization.TrackMateModelView.KEY_TRACK_DISPLAY_DEPTH;
 import static fiji.plugin.trackmate.visualization.TrackMateModelView.KEY_TRACK_DISPLAY_MODE;
-import ij.IJ;
-import ij.text.TextWindow;
-import ij3d.Image3DUniverse;
-import ij3d.ImageWindow3D;
 
 import java.awt.Dimension;
 import java.awt.MouseInfo;
@@ -53,12 +49,6 @@ import javax.swing.KeyStroke;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
-import mpicbg.spim.data.SpimDataException;
-import mpicbg.spim.data.generic.sequence.AbstractSequenceDescription;
-import mpicbg.spim.data.sequence.TimePoint;
-import net.imglib2.RealPoint;
-import net.imglib2.type.numeric.ARGBType;
-
 import org.jgrapht.graph.DefaultWeightedEdge;
 
 import bdv.BigDataViewer;
@@ -87,7 +77,6 @@ import fiji.plugin.mamut.providers.MamutEdgeAnalyzerProvider;
 import fiji.plugin.mamut.providers.MamutSpotAnalyzerProvider;
 import fiji.plugin.mamut.providers.MamutTrackAnalyzerProvider;
 import fiji.plugin.mamut.util.SourceSpotImageUpdater;
-import fiji.plugin.mamut.viewer.MamutOverlay;
 import fiji.plugin.mamut.viewer.MamutViewer;
 import fiji.plugin.mamut.viewer.MamutViewerPanel;
 import fiji.plugin.trackmate.Logger;
@@ -121,6 +110,15 @@ import fiji.plugin.trackmate.visualization.SpotColorGeneratorPerTrackFeature;
 import fiji.plugin.trackmate.visualization.TrackMateModelView;
 import fiji.plugin.trackmate.visualization.threedviewer.SpotDisplayer3D;
 import fiji.plugin.trackmate.visualization.trackscheme.TrackScheme;
+import ij.IJ;
+import ij.text.TextWindow;
+import ij3d.Image3DUniverse;
+import ij3d.ImageWindow3D;
+import mpicbg.spim.data.SpimDataException;
+import mpicbg.spim.data.generic.sequence.AbstractSequenceDescription;
+import mpicbg.spim.data.sequence.TimePoint;
+import net.imglib2.RealPoint;
+import net.imglib2.type.numeric.ARGBType;
 
 public class MaMuT implements ModelChangeListener
 {
@@ -129,7 +127,7 @@ public class MaMuT implements ModelChangeListener
 
 	public static final String PLUGIN_NAME = "MaMuT";
 
-	public static final String PLUGIN_VERSION = "0.17.2-SNAPSHOT";
+	public static final String PLUGIN_VERSION = "0.18.1-SNAPSHOT";
 
 	private static final double DEFAULT_RADIUS = 10;
 
@@ -566,11 +564,16 @@ public class MaMuT implements ModelChangeListener
 	 *
 	 * @param dataFile
 	 *            the file that points to the xml master file of the image data.
+	 * 
+	 * @throws SpimDataException
+	 *             if the xml master file cannot be read or is incorrectly
+	 *             formatted.
 	 */
 	private void prepareSources( final File dataFile ) throws SpimDataException
 	{
 		final SpimDataMinimal spimData = new XmlIoSpimDataMinimal().load(dataFile.getAbsolutePath());
-		if (WrapBasicImgLoader.wrapImgLoaderIfNecessary(spimData)) {
+		if ( WrapBasicImgLoader.wrapImgLoaderIfNecessary( spimData ) )
+		{
 			System.err.println("WARNING:\nOpening <SpimData> dataset that is not suited for suited for interactive browsing.\nConsider resaving as HDF5 for better performance.");
 		}
 		final AbstractSequenceDescription<?, ?, ?> seq = spimData.getSequenceDescription();
@@ -1053,8 +1056,8 @@ public class MaMuT implements ModelChangeListener
 	/**
 	 * Configures the specified {@link MamutViewer} with key bindings.
 	 *
-	 * @param the
-	 *            {@link MamutViewer} to configure.
+	 * @param viewer
+	 *            the {@link MamutViewer} to configure.
 	 */
 	private void installKeyBindings( final MamutViewer viewer )
 	{

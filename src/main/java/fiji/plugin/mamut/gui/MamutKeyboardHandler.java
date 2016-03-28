@@ -1,12 +1,5 @@
 package fiji.plugin.mamut.gui;
 
-import bdv.BigDataViewerActions;
-import bdv.util.KeyProperties;
-import bdv.viewer.NavigationActions;
-import fiji.plugin.mamut.MaMuT;
-import fiji.plugin.mamut.viewer.MamutViewer;
-import ij.IJ;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -16,6 +9,13 @@ import javax.swing.ActionMap;
 import javax.swing.InputMap;
 import javax.swing.JComponent;
 import javax.swing.KeyStroke;
+
+import bdv.BigDataViewerActions;
+import bdv.util.KeyProperties;
+import bdv.viewer.NavigationActions;
+import fiji.plugin.mamut.MaMuT;
+import fiji.plugin.mamut.viewer.MamutViewer;
+import ij.IJ;
 
 public class MamutKeyboardHandler {
 
@@ -113,7 +113,9 @@ public class MamutKeyboardHandler {
 	}
 
 	/**
-	 * Return the mapping between JTree's input map and MaMuT's actions.
+	 * Return2 the mapping between JTree's input map and MaMuT's actions.
+	 * 
+	 * @return the mapping between JTree's input map and MaMuT's actions.
 	 */
 	protected ActionMap createActionMap() {
 		final ActionMap map = new ActionMap();

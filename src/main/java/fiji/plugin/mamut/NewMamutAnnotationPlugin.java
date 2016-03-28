@@ -1,13 +1,13 @@
 package fiji.plugin.mamut;
 
+import java.io.File;
+
 import fiji.plugin.trackmate.Logger;
 import fiji.plugin.trackmate.Model;
 import fiji.plugin.trackmate.io.IOUtils;
 import ij.IJ;
 import ij.ImageJ;
 import ij.plugin.PlugIn;
-
-import java.io.File;
 
 public class NewMamutAnnotationPlugin implements PlugIn {
 
@@ -79,7 +79,8 @@ public class NewMamutAnnotationPlugin implements PlugIn {
 
 		final NewMamutAnnotationPlugin plugin = new NewMamutAnnotationPlugin();
 		plugin.run(
-				"/Users/tinevez/Desktop/Data/Mamut/parhyale/BDV130418A325_NoTempReg.xml"
+//				"/Users/tinevez/Desktop/Data/Mamut/parhyale/BDV130418A325_NoTempReg.xml"
+				""
 				);
 //		plugin.run( "/Users/tinevez/Desktop/Celegans.xml" );
 	}

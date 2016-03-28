@@ -8,13 +8,12 @@
 	<parent>
 		<groupId>sc.fiji</groupId>
 		<artifactId>pom-fiji</artifactId>
-		<version>18.1.0</version>
+		<version>21.3.1</version>
 		<relativePath />
 	</parent>
 
 	<artifactId>MaMuT_</artifactId>
-	<version>0.17.2-SNAPSHOT</version>
-
+	<version>0.18.1-SNAPSHOT</version>
 	<name>plugins/MaMuT_.jar</name>
 	<description></description>
 
@@ -23,7 +22,7 @@
 			<id>tinevez</id>
 			<name>Jean-Yves Tinevez</name>
 			<email>jean-yves.tinevez@pasteur.fr</email>
-			<url>http://www.pasteur.fr/ip/easysite/pasteur/fr/recherche/plates-formes-technologiques/imagopole/plates-formes-imagopole/la-plate-forme-d-imagerie-dynamique/equipe-pfid/equipe-pfid-jyt</url>
+			<url>https://research.pasteur.fr/en/member/jean-yves-tinevez/</url>
 			<organization>Institut Pasteur</organization>
 			<organizationUrl>http://www.pasteur.fr/</organizationUrl>
 			<roles>
@@ -66,7 +65,6 @@
 	<properties>
 		<!-- Target Fiji dir for clean upload. -->
 		<imagej.app.directory>../Fiji.app/</imagej.app.directory>
-		<scijava.jvm.version>1.7</scijava.jvm.version>
 	</properties>
 
 	<repositories>
@@ -76,9 +74,10 @@
 			<url>http://maven.imagej.net/content/groups/public</url>
 		</repository>
 	</repositories>
-
+	
 	<dependencyManagement>
 		<dependencies>
+			<!-- Let the pom-bigdataviewer manage the bigdataviewer artifacts version. -->
 			<dependency>
 				<groupId>sc.fiji</groupId>
 				<artifactId>pom-bigdataviewer</artifactId>
@@ -88,6 +87,7 @@
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
+
 	<dependencies>
 		<!-- BigDataViewer dependencies -->
 		<dependency>

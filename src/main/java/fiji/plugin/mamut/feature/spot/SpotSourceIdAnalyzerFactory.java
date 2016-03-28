@@ -7,18 +7,22 @@ import java.util.Map;
 
 import javax.swing.ImageIcon;
 
-import net.imagej.ImgPlus;
-import net.imglib2.type.NativeType;
-import net.imglib2.type.numeric.RealType;
 import fiji.plugin.trackmate.Dimension;
 import fiji.plugin.trackmate.Model;
 import fiji.plugin.trackmate.features.spot.SpotAnalyzer;
 import fiji.plugin.trackmate.features.spot.SpotAnalyzerFactory;
+import net.imagej.ImgPlus;
+import net.imglib2.type.NativeType;
+import net.imglib2.type.numeric.RealType;
 
 /**
  * Definition of additional spot features used in MaMuT.
  *
  * @author Tobias Pietzsch &lt;tobias.pietzsch@gmail.com&gt;
+ * 
+ * @param <T>
+ *            the type of the pixels. Must extend {@link RealType} and
+ *            {@link NativeType}.
  */
 public class SpotSourceIdAnalyzerFactory< T extends RealType< T > & NativeType< T >> implements SpotAnalyzerFactory< T >
 {
@@ -26,7 +30,7 @@ public class SpotSourceIdAnalyzerFactory< T extends RealType< T > & NativeType< 
 	/** The name of the spot source id feature. */
 	public static final String SOURCE_ID = "SOURCE_ID";
 
-	/** Additional spot features used in MaMuT */
+	/** Additional spot features used in MaMuT. */
 	public final static List< String > FEATURES = new ArrayList< String >();
 
 	public final static Map< String, String > FEATURE_NAMES = new HashMap< String, String >();

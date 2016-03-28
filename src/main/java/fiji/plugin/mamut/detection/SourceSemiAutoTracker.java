@@ -2,6 +2,15 @@ package fiji.plugin.mamut.detection;
 
 import java.util.List;
 
+import bdv.util.Affine3DHelpers;
+import bdv.viewer.Source;
+import bdv.viewer.SourceAndConverter;
+import fiji.plugin.mamut.feature.spot.SpotSourceIdAnalyzerFactory;
+import fiji.plugin.trackmate.Logger;
+import fiji.plugin.trackmate.Model;
+import fiji.plugin.trackmate.SelectionModel;
+import fiji.plugin.trackmate.Spot;
+import fiji.plugin.trackmate.detection.semiauto.AbstractSemiAutoTracker;
 import net.imglib2.FinalInterval;
 import net.imglib2.Interval;
 import net.imglib2.Point;
@@ -11,16 +20,6 @@ import net.imglib2.position.transform.Round;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
-import bdv.util.Affine3DHelpers;
-import bdv.viewer.Source;
-import bdv.viewer.SourceAndConverter;
-import fiji.plugin.mamut.feature.spot.SpotSourceIdAnalyzerFactory;
-import fiji.plugin.trackmate.Logger;
-import fiji.plugin.trackmate.Model;
-import fiji.plugin.trackmate.SelectionModel;
-import fiji.plugin.trackmate.Spot;
-import fiji.plugin.trackmate.detection.SpotDetector;
-import fiji.plugin.trackmate.detection.semiauto.AbstractSemiAutoTracker;
 
 /**
  * A class made to perform semi-automated tracking of spots in MaMuT.
@@ -28,9 +27,10 @@ import fiji.plugin.trackmate.detection.semiauto.AbstractSemiAutoTracker;
  * The user has to select one spot, one a meaningful location of a source. The
  * spot location and its radius are then used to extract a small rectangular
  * neighborhood in the next frame around the spot. The neighborhood is then
- * passed to a {@link SpotDetector} that returns the spot it found. If a spot of
- * {@link Spot#QUALITY} high enough is found near enough to the first spot
- * center, then it is added to the model and linked with the first spot.
+ * passed to a {@link fiji.plugin.trackmate.detection.SpotDetector} that returns
+ * the spot it found. If a spot of {@link Spot#QUALITY} high enough is found
+ * near enough to the first spot center, then it is added to the model and
+ * linked with the first spot.
  * <p>
  * The process is then repeated, taking the newly found spot as a source for the
  * next neighborhood. The model is updated live for every spot found.
@@ -44,8 +44,8 @@ import fiji.plugin.trackmate.detection.semiauto.AbstractSemiAutoTracker;
  *
  * @param <T>
  *            the type of the source. Must extend {@link RealType} and
- *            {@link NativeType} to use with most TrackMate {@link SpotDetector}
- *            s.
+ *            {@link NativeType} to use with most TrackMate
+ *            {@link fiji.plugin.trackmate.detection.SpotDetector}s.
  *
  * @author Jean-Yves Tinevez - 2013
  */
