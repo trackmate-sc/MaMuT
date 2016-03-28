@@ -77,6 +77,7 @@ import fiji.plugin.mamut.providers.MamutEdgeAnalyzerProvider;
 import fiji.plugin.mamut.providers.MamutSpotAnalyzerProvider;
 import fiji.plugin.mamut.providers.MamutTrackAnalyzerProvider;
 import fiji.plugin.mamut.util.SourceSpotImageUpdater;
+import fiji.plugin.mamut.viewer.MamutOverlay;
 import fiji.plugin.mamut.viewer.MamutViewer;
 import fiji.plugin.mamut.viewer.MamutViewerPanel;
 import fiji.plugin.trackmate.Logger;
@@ -135,7 +136,7 @@ public class MaMuT implements ModelChangeListener
 	 * By how portion of the current radius we change this radius for every
 	 * change request.
 	 */
-	private static final double RADIUS_CHANGE_FACTOR = 0.1;
+	public static final double RADIUS_CHANGE_FACTOR = 0.1;
 
 	/** The default width for new image viewers. */
 	public static final int DEFAULT_WIDTH = 800;
@@ -564,7 +565,7 @@ public class MaMuT implements ModelChangeListener
 	 *
 	 * @param dataFile
 	 *            the file that points to the xml master file of the image data.
-	 * 
+	 *
 	 * @throws SpimDataException
 	 *             if the xml master file cannot be read or is incorrectly
 	 *             formatted.

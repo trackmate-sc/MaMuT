@@ -13,6 +13,24 @@ import fiji.plugin.trackmate.Logger;
 public class MamutActions
 {
 
+	/**
+	 * Ratio (times the {@link MaMuT#RADIUS_CHANGE_FACTOR}) by which we change
+	 * the radius upon change radius action.
+	 */
+	private static final double NORMAL_RADIUS_CHANGE = 1.;
+
+	/**
+	 * Ratio (times the {@link MaMuT#RADIUS_CHANGE_FACTOR}) by which we change
+	 * the radius upon change radius a but action.
+	 */
+	private static final double ABIT_RADIUS_CHANGE = 0.1;
+
+	/**
+	 * Ratio (times the {@link MaMuT#RADIUS_CHANGE_FACTOR}) by which we change
+	 * the radius upon change radius a lot action.
+	 */
+	private static final double ALOT_RADIUS_CHANGE = 10.;
+
 	private MamutActions()
 	{}
 
@@ -345,7 +363,7 @@ public class MamutActions
 		@Override
 		public void actionPerformed( final ActionEvent arg0 )
 		{
-			mamut.increaseSpotRadius( viewer, 1d );
+			mamut.increaseSpotRadius( viewer, NORMAL_RADIUS_CHANGE );
 		}
 	}
 
@@ -368,7 +386,7 @@ public class MamutActions
 		@Override
 		public void actionPerformed( final ActionEvent arg0 )
 		{
-			mamut.increaseSpotRadius( viewer, 10d );
+			mamut.increaseSpotRadius( viewer, ALOT_RADIUS_CHANGE );
 		}
 	}
 
@@ -391,7 +409,7 @@ public class MamutActions
 		@Override
 		public void actionPerformed( final ActionEvent arg0 )
 		{
-			mamut.increaseSpotRadius( viewer, 0.1d );
+			mamut.increaseSpotRadius( viewer, ABIT_RADIUS_CHANGE );
 		}
 	}
 
@@ -414,7 +432,7 @@ public class MamutActions
 		@Override
 		public void actionPerformed( final ActionEvent arg0 )
 		{
-			mamut.increaseSpotRadius( viewer, -1d );
+			mamut.increaseSpotRadius( viewer, -NORMAL_RADIUS_CHANGE / ( 1 + MaMuT.RADIUS_CHANGE_FACTOR * NORMAL_RADIUS_CHANGE ) );
 		}
 	}
 
@@ -437,7 +455,7 @@ public class MamutActions
 		@Override
 		public void actionPerformed( final ActionEvent arg0 )
 		{
-			mamut.increaseSpotRadius( viewer, -5d );
+			mamut.increaseSpotRadius( viewer, -ALOT_RADIUS_CHANGE / ( 1 + MaMuT.RADIUS_CHANGE_FACTOR * ALOT_RADIUS_CHANGE ) );
 		}
 	}
 
@@ -460,7 +478,7 @@ public class MamutActions
 		@Override
 		public void actionPerformed( final ActionEvent arg0 )
 		{
-			mamut.increaseSpotRadius( viewer, -0.1d );
+			mamut.increaseSpotRadius( viewer, -ABIT_RADIUS_CHANGE / ( 1 + MaMuT.RADIUS_CHANGE_FACTOR * ABIT_RADIUS_CHANGE ) );
 		}
 	}
 
