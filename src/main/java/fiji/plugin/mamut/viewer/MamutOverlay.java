@@ -12,6 +12,7 @@ import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.Stroke;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -73,6 +74,7 @@ public class MamutOverlay
 
 		final boolean doLimitDrawingDepth = ( Boolean ) viewer.displaySettings.get( TrackMateModelView.KEY_LIMIT_DRAWING_DEPTH );
 		final double drawingDepth = ( Double ) viewer.displaySettings.get( TrackMateModelView.KEY_DRAWING_DEPTH );
+		final int trackDisplayMode = ( Integer ) viewer.displaySettings.get( TrackMateModelView.KEY_TRACK_DISPLAY_MODE );
 
 		/*
 		 * Draw spots.
@@ -98,7 +100,22 @@ public class MamutOverlay
 			final double vz = transform.get( 2, 0 );
 			final double transformScale = Math.sqrt( vx * vx + vy * vy + vz * vz );
 
-			final Iterable< Spot > spots = model.getSpots().iterable( state.getCurrentTimepoint(), true );
+			final Iterable< Spot > spots;
+			final int frame = state.getCurrentTimepoint();
+			if ( trackDisplayMode != TrackMateModelView.TRACK_DISPLAY_MODE_SELECTION_ONLY )
+			{
+				spots = model.getSpots().iterable( frame, true );
+			}
+			else
+			{
+				final ArrayList< Spot > tmp = new ArrayList<>();
+				for ( final Spot spot : selectionModel.getSpotSelection() )
+				{
+					if ( spot.getFeature( Spot.FRAME ).intValue() == frame )
+						tmp.add( spot );
+				}
+				spots = tmp;
+			}
 
 			for ( final Spot spot : spots )
 			{
@@ -106,7 +123,7 @@ public class MamutOverlay
 				boolean forceDraw = !doLimitDrawingDepth;
 				Color color;
 				Stroke stroke;
-				if ( selectionModel.getSpotSelection().contains( spot ) )
+				if ( selectionModel.getSpotSelection().contains( spot ) && trackDisplayMode != TrackMateModelView.TRACK_DISPLAY_MODE_SELECTION_ONLY )
 				{
 					forceDraw = true; // Selection is drawn unconditionally.
 					color = AbstractTrackMateModelView.DEFAULT_HIGHLIGHT_COLOR;
@@ -179,7 +196,6 @@ public class MamutOverlay
 
 			// Non-selected tracks.
 			final int currentFrame = state.getCurrentTimepoint();
-			final int trackDisplayMode = ( Integer ) viewer.displaySettings.get( TrackMateModelView.KEY_TRACK_DISPLAY_MODE );
 			final int trackDisplayDepth = ( Integer ) viewer.displaySettings.get( TrackMateModelView.KEY_TRACK_DISPLAY_DEPTH );
 			final Set< Integer > filteredTrackIDs = model.getTrackModel().unsortedTrackIDs( true );
 
@@ -194,6 +210,7 @@ public class MamutOverlay
 			{
 			case TrackMateModelView.TRACK_DISPLAY_MODE_LOCAL:
 			case TrackMateModelView.TRACK_DISPLAY_MODE_LOCAL_QUICK:
+			case TrackMateModelView.TRACK_DISPLAY_MODE_SELECTION_ONLY:
 				minT = currentFrame - trackDisplayDepth;
 				maxT = currentFrame + trackDisplayDepth;
 				break;
@@ -232,6 +249,26 @@ public class MamutOverlay
 						drawEdge( g, source, target, transform, 1f, doLimitDrawingDepth, drawingDepth );
 					}
 				}
+				break;
+			}
+
+			case TrackMateModelView.TRACK_DISPLAY_MODE_SELECTION_ONLY:
+			{
+				for ( final DefaultWeightedEdge edge : selectionModel.getEdgeSelection() )
+				{
+					source = model.getTrackModel().getEdgeSource( edge );
+					target = model.getTrackModel().getEdgeTarget( edge );
+
+					sourceFrame = source.getFeature( Spot.FRAME ).intValue();
+					if ( sourceFrame < minT || sourceFrame >= maxT )
+						continue;
+
+					transparency = ( float ) ( 1 - Math.abs( sourceFrame - currentFrame ) / trackDisplayDepth );
+					target = model.getTrackModel().getEdgeTarget( edge );
+					g.setColor( viewer.trackColorProvider.color( edge ) );
+					drawEdge( g, source, target, transform, transparency, doLimitDrawingDepth, drawingDepth );
+				}
+
 				break;
 			}
 
@@ -300,14 +337,17 @@ public class MamutOverlay
 
 			}
 
-			// Deal with highlighted edges first: brute and thick display
-			g.setStroke( SELECTION_STROKE );
-			g.setColor( TrackMateModelView.DEFAULT_HIGHLIGHT_COLOR );
-			for ( final DefaultWeightedEdge edge : selectionModel.getEdgeSelection() )
+			if ( trackDisplayMode != TrackMateModelView.TRACK_DISPLAY_MODE_SELECTION_ONLY )
 			{
-				source = model.getTrackModel().getEdgeSource( edge );
-				target = model.getTrackModel().getEdgeTarget( edge );
-				drawEdge( g, source, target, transform, 1f, false, drawingDepth );
+				// Deal with highlighted edges first: brute and thick display
+				g.setStroke( SELECTION_STROKE );
+				g.setColor( TrackMateModelView.DEFAULT_HIGHLIGHT_COLOR );
+				for ( final DefaultWeightedEdge edge : selectionModel.getEdgeSelection() )
+				{
+					source = model.getTrackModel().getEdgeSource( edge );
+					target = model.getTrackModel().getEdgeTarget( edge );
+					drawEdge( g, source, target, transform, 1f, false, drawingDepth );
+				}
 			}
 
 			// Restore graphic device original settings
