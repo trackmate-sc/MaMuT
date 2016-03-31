@@ -240,9 +240,6 @@ public class MamutOverlay
 
 					for ( final DefaultWeightedEdge edge : track )
 					{
-						//						if ( selectionModel.getEdgeSelection().contains( edge ) )
-						//							continue;
-
 						source = model.getTrackModel().getEdgeSource( edge );
 						target = model.getTrackModel().getEdgeTarget( edge );
 						g.setColor( viewer.trackColorProvider.color( edge ) );
@@ -286,9 +283,6 @@ public class MamutOverlay
 
 					for ( final DefaultWeightedEdge edge : track )
 					{
-						//						if ( selectionModel.getEdgeSelection().contains( edge ) )
-						//							continue;
-
 						source = model.getTrackModel().getEdgeSource( edge );
 						sourceFrame = source.getFeature( Spot.FRAME ).intValue();
 						if ( sourceFrame < minT || sourceFrame >= maxT )
@@ -317,9 +311,6 @@ public class MamutOverlay
 
 					for ( final DefaultWeightedEdge edge : track )
 					{
-						//						if ( selectionModel.getEdgeSelection().contains( edge ) )
-						//							continue;
-
 						source = model.getTrackModel().getEdgeSource( edge );
 						sourceFrame = source.getFeature( Spot.FRAME ).intValue();
 						if ( sourceFrame < minT || sourceFrame >= maxT )
