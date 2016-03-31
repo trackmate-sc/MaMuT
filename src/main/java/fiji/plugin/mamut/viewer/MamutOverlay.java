@@ -13,6 +13,7 @@ import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.Stroke;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -251,21 +252,39 @@ public class MamutOverlay
 
 			case TrackMateModelView.TRACK_DISPLAY_MODE_SELECTION_ONLY:
 			{
+
+				// Sort edges by their track id.
+				final HashMap< Integer, ArrayList< DefaultWeightedEdge > > sortedEdges = new HashMap< >();
 				for ( final DefaultWeightedEdge edge : selectionModel.getEdgeSelection() )
 				{
-					source = model.getTrackModel().getEdgeSource( edge );
-					target = model.getTrackModel().getEdgeTarget( edge );
-
-					sourceFrame = source.getFeature( Spot.FRAME ).intValue();
-					if ( sourceFrame < minT || sourceFrame >= maxT )
-						continue;
-
-					transparency = ( float ) ( 1 - Math.abs( sourceFrame - currentFrame ) / trackDisplayDepth );
-					target = model.getTrackModel().getEdgeTarget( edge );
-					g.setColor( viewer.trackColorProvider.color( edge ) );
-					drawEdge( g, source, target, transform, transparency, doLimitDrawingDepth, drawingDepth );
+					final Integer trackID = model.getTrackModel().trackIDOf( edge );
+					ArrayList< DefaultWeightedEdge > edges = sortedEdges.get( trackID );
+					if ( null == edges )
+					{
+						edges = new ArrayList< >();
+						sortedEdges.put( trackID, edges );
+					}
+					edges.add( edge );
 				}
 
+				for ( final Integer trackID : sortedEdges.keySet() )
+				{
+					viewer.trackColorProvider.setCurrentTrackID( trackID );
+					for ( final DefaultWeightedEdge edge : sortedEdges.get( trackID ) )
+					{
+						source = model.getTrackModel().getEdgeSource( edge );
+						target = model.getTrackModel().getEdgeTarget( edge );
+
+						sourceFrame = source.getFeature( Spot.FRAME ).intValue();
+						if ( sourceFrame < minT || sourceFrame >= maxT )
+							continue;
+
+						transparency = ( float ) ( 1 - Math.abs( sourceFrame - currentFrame ) / trackDisplayDepth );
+						target = model.getTrackModel().getEdgeTarget( edge );
+						g.setColor( viewer.trackColorProvider.color( edge ) );
+						drawEdge( g, source, target, transform, transparency, doLimitDrawingDepth, drawingDepth );
+					}
+				}
 				break;
 			}
 
@@ -385,7 +404,7 @@ public class MamutOverlay
 
 	/**
 	 * Update data to show in the overlay.
-	 * 
+	 *
 	 * @param state
 	 *            the state of the data.
 	 */
