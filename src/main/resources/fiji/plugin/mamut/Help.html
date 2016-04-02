@@ -68,7 +68,7 @@ In <i>fused</i> mode, all <i>active</i> sources are shown overlaid.
   <td>Switch between tri-linear and nearest-neighbor interpolation.</td>
 </tr><tr>
   <td class="a"><b>S</b></td>
-  <td>Show settings. (Adjust brightness.)</td>
+  <td>Show settings (adjust brightness, colors, grouping).</td>
 </tr>
 </table>
 <br/>
@@ -118,11 +118,17 @@ Using the keyboard:
   <td class="a"><b>Shift&nbsp;Z</b></td>
   <td>Rotate to the xy-plane of the current source. (Look along the z-axis of the current source.)</td>
 </tr><tr>
-  <td class="a"><b>[</b> or <b>n</b></td>
-  <td>Move to previous timepoint.</td>
+  <td class="a"><b>n</b></td>
+  <td>Move to previous time-point.</td>
 </tr><tr>
-  <td class="a"><b>]</b> or <b>m</b></td>
-  <td>Move to next timepoint.</td>
+  <td class="a"><b>m</b></td>
+  <td>Move to next time-point.</td>
+</tr><tr>
+  <td class="a"><b>[</b></td>
+  <td>Jump to the previous time step (step-wise time browsing).</td>
+</tr><tr>
+  <td class="a"><b>]</b></td>
+  <td>Jump to the next time step (step-wise time browsing).</td>
 </tr>
 </table>
 <p>
@@ -137,7 +143,7 @@ Using the keyboard:
 <table border="1">
 <tr>
   <td class="a"><b>A</b></td>
-  <td><u>Create</u> a spot at the current mouse location. The radius is taken from the last modification done.</td>
+  <td><u>Create</u> a spot at the current mouse location. The radius is taken from the last radius modification.</td>
 </tr><tr>
   <td class="a"><b>D</b></td>
   <td><u>Remove</u> the closest spot to the current mouse location. The mouse must be within the target spot radius.</td>
@@ -159,9 +165,18 @@ Using the keyboard:
   location will follow the mouse pointer in X, Y and Z.</td>
 </tr> <tr>
 	<td class="a"><b>L</b></td>
+	<td><u>Create/Remove a link between two spots</u>. <br>
+	There must be exactly two spots in the selection, and they must not belong to the same time-point.
+	If a link already exists between the two spots, pressing <b>L</b> removes it. If there is not exactly
+	two spots in the selection, this does nothing.
+	</td>
+</tr> <tr>
+	<td class="a"><b>Shift-L</b></td>
 	<td>Toggle <u>auto-linking</u> mode. <br>
 	If <i>on</i>, the next spot created will be automatically linked to the spot currently selected, 
-	provided that the new spot is in a subsequent frame and that there is only one spot in the selection.</td>
+	provided that the new spot is in a subsequent frame and that there is only one spot in the selection.
+	The selection will then change to be the latest spot added, so that cell can be quickly followed over time
+	by adding spots.</td>
 </tr> <tr>
 	<td class="a"><b>Shift-A</b></td>
 	<td>Launch <u>semi automated tracking</u>. <br>
