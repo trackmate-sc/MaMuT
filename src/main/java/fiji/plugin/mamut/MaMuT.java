@@ -205,7 +205,7 @@ public class MaMuT implements ModelChangeListener
 
 	private SourceSpotImageUpdater< ? > thumbnailUpdater;
 
-	private Logger logger;
+	private Logger logger = Logger.DEFAULT_LOGGER;
 
 	/**
 	 * If <code>true</code>, then each time a spot is manually created, we will
