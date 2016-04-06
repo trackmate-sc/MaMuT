@@ -77,7 +77,6 @@ import fiji.plugin.mamut.providers.MamutEdgeAnalyzerProvider;
 import fiji.plugin.mamut.providers.MamutSpotAnalyzerProvider;
 import fiji.plugin.mamut.providers.MamutTrackAnalyzerProvider;
 import fiji.plugin.mamut.util.SourceSpotImageUpdater;
-import fiji.plugin.mamut.viewer.MamutOverlay;
 import fiji.plugin.mamut.viewer.MamutViewer;
 import fiji.plugin.mamut.viewer.MamutViewerPanel;
 import fiji.plugin.trackmate.Logger;
@@ -744,11 +743,8 @@ public class MaMuT implements ModelChangeListener
 		final Set< Spot > spotSelection = selectionModel.getSpotSelection();
 
 		if ( isLinkingMode && spotSelection.size() == 1 )
-		{ // if we are in the
-			// right mode & if
-			// there is only one
-			// spot in
-			// selection
+		{ // if we are in the right mode & if there is only one spot in
+			// selection.
 			final Spot targetSpot = spotSelection.iterator().next();
 			if ( targetSpot.getFeature( Spot.FRAME ).intValue() != spot.getFeature( Spot.FRAME ).intValue() )
 			{ // & if they are on different
@@ -1176,8 +1172,9 @@ public class MaMuT implements ModelChangeListener
 					}
 					else
 					{
-						// Clear selection
-						selectionModel.clearSelection();
+						// Clear selection if we don't hold shift.
+						if ( !event.isShiftDown() )
+							selectionModel.clearSelection();
 					}
 
 				}

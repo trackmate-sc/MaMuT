@@ -56,6 +56,12 @@ public class MamutKeyboardHandler {
 		DEFAULT_KEYBINGS.setProperty("M", "next timepoint");
 		DEFAULT_KEYBINGS.setProperty( "OPEN_BRACKET", "step time backward" );
 		DEFAULT_KEYBINGS.setProperty("N", "previous timepoint");
+
+		DEFAULT_KEYBINGS.setProperty( "shift CLOSE_BRACKET", "step time forward" );
+		DEFAULT_KEYBINGS.setProperty( "shift M", "next timepoint" );
+		DEFAULT_KEYBINGS.setProperty( "shift OPEN_BRACKET", "step time backward" );
+		DEFAULT_KEYBINGS.setProperty( "shift N", "previous timepoint" );
+
 	}
 	private final MamutViewer viewer;
 	private final MaMuT mamut;

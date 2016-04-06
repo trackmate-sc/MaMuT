@@ -1,9 +1,6 @@
 package fiji.plugin.mamut.gui;
 
 import static fiji.plugin.trackmate.gui.TrackMateWizard.SMALL_FONT;
-import fiji.plugin.mamut.MaMuT;
-import fiji.plugin.trackmate.Model;
-import fiji.plugin.trackmate.gui.panels.ConfigureViewsPanel;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -11,6 +8,10 @@ import java.awt.event.ActionListener;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+
+import fiji.plugin.mamut.MaMuT;
+import fiji.plugin.trackmate.Model;
+import fiji.plugin.trackmate.gui.panels.ConfigureViewsPanel;
 
 public class MamutControlPanel extends ConfigureViewsPanel
 {
@@ -50,7 +51,7 @@ public class MamutControlPanel extends ConfigureViewsPanel
 		jButtonDoAnalysis.setToolTipText( "Launch a 3D view of the annotation data only." );
 
 		// New Mamut viewer button
-		jButtonMamutViewer = new JButton( "Mamut Viewer", MAMUT_ICON );
+		jButtonMamutViewer = new JButton( "MaMuT Viewer", MAMUT_ICON );
 		jButtonMamutViewer.setFont( SMALL_FONT );
 		jButtonMamutViewer.addActionListener( new ActionListener()
 		{
