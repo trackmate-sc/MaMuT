@@ -19,7 +19,6 @@ import org.scijava.ui.behaviour.MouseAndKeyHandler;
 
 import bdv.BehaviourTransformEventHandler;
 import bdv.img.cache.Cache;
-import bdv.tools.RecordMovieDialog;
 import bdv.tools.VisibilityAndGroupingDialog;
 import bdv.viewer.InputActionBindings;
 import bdv.viewer.SourceAndConverter;
@@ -80,7 +79,7 @@ public class MamutViewer extends JFrame implements TrackMateModelView
 
 	private final VisibilityAndGroupingDialog visibilityAndGroupingDialog;
 
-	private final RecordMovieDialog recordMovieDialog;
+	private final MamutRecordMovieDialog recordMovieDialog;
 
 	public MamutViewer( final int width, final int height, final List< SourceAndConverter< ? > > sources, final int numTimePoints, final Cache cache, final Model model, final SelectionModel selectionModel )
 	{
@@ -149,7 +148,9 @@ public class MamutViewer extends JFrame implements TrackMateModelView
 
 		this.visibilityAndGroupingDialog = new VisibilityAndGroupingDialog( this, viewerPanel.getVisibilityAndGrouping() );
 
-		this.recordMovieDialog = new RecordMovieDialog( this, viewerPanel, new ProgressWriterLogger( logger ) );
+		this.recordMovieDialog = new MamutRecordMovieDialog( this, viewerPanel, new ProgressWriterLogger( logger ) );
+		recordMovieDialog.setLocationRelativeTo( this );
+		viewerPanel.getDisplay().addOverlayRenderer( recordMovieDialog );
 
 		setIconImage( MaMuT.MAMUT_ICON.getImage() );
 		setLocationByPlatform( true );
@@ -267,7 +268,7 @@ public class MamutViewer extends JFrame implements TrackMateModelView
 		return visibilityAndGroupingDialog;
 	}
 
-	public RecordMovieDialog getRecordMovieDialog()
+	public MamutRecordMovieDialog getRecordMovieDialog()
 	{
 		return recordMovieDialog;
 	}
