@@ -19,6 +19,7 @@ import org.scijava.ui.behaviour.MouseAndKeyHandler;
 
 import bdv.BehaviourTransformEventHandler;
 import bdv.img.cache.Cache;
+import bdv.tools.RecordMovieDialog;
 import bdv.tools.VisibilityAndGroupingDialog;
 import bdv.viewer.InputActionBindings;
 import bdv.viewer.SourceAndConverter;
@@ -26,6 +27,7 @@ import bdv.viewer.TriggerBehaviourBindings;
 import bdv.viewer.ViewerOptions;
 import bdv.viewer.animate.MessageOverlayAnimator;
 import fiji.plugin.mamut.MaMuT;
+import fiji.plugin.mamut.util.ProgressWriterLogger;
 import fiji.plugin.trackmate.Logger;
 import fiji.plugin.trackmate.Model;
 import fiji.plugin.trackmate.SelectionModel;
@@ -76,6 +78,8 @@ public class MamutViewer extends JFrame implements TrackMateModelView
 	private final TriggerBehaviourBindings triggerbindings;
 
 	private final VisibilityAndGroupingDialog visibilityAndGroupingDialog;
+
+	private final RecordMovieDialog recordMovieDialog;
 
 	public MamutViewer( final int width, final int height, final List< SourceAndConverter< ? > > sources, final int numTimePoints, final Cache cache, final Model model, final SelectionModel selectionModel )
 	{
@@ -143,6 +147,8 @@ public class MamutViewer extends JFrame implements TrackMateModelView
 			( ( BehaviourTransformEventHandler< ? > ) tfHandler ).install( triggerbindings );
 
 		this.visibilityAndGroupingDialog = new VisibilityAndGroupingDialog( this, viewerPanel.getVisibilityAndGrouping() );
+
+		this.recordMovieDialog = new RecordMovieDialog( this, viewerPanel, new ProgressWriterLogger( logger ) );
 
 		setIconImage( MaMuT.MAMUT_ICON.getImage() );
 		setLocationByPlatform( true );
@@ -258,6 +264,11 @@ public class MamutViewer extends JFrame implements TrackMateModelView
 	public VisibilityAndGroupingDialog getVisibilityAndGroupingDialog()
 	{
 		return visibilityAndGroupingDialog;
+	}
+
+	public RecordMovieDialog getRecordMovieDialog()
+	{
+		return recordMovieDialog;
 	}
 
 	/*
