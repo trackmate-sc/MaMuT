@@ -11,6 +11,7 @@ import javax.swing.JComponent;
 import javax.swing.KeyStroke;
 
 import bdv.BigDataViewerActions;
+import bdv.tools.ToggleDialogAction;
 import bdv.util.KeyProperties;
 import bdv.viewer.NavigationActions;
 import fiji.plugin.mamut.MaMuT;
@@ -38,6 +39,7 @@ public class MamutKeyboardHandler
 		DEFAULT_KEYBINGS.setProperty( "control Q", "decrease spot radius a bit" );
 		DEFAULT_KEYBINGS.setProperty( "F1", BigDataViewerActions.SHOW_HELP );
 		DEFAULT_KEYBINGS.setProperty( "S", BigDataViewerActions.BRIGHTNESS_SETTINGS );
+		DEFAULT_KEYBINGS.setProperty( "F6", BigDataViewerActions.VISIBILITY_AND_GROUPING );
 
 		DEFAULT_KEYBINGS.setProperty( "I", "toggle interpolation" );
 		DEFAULT_KEYBINGS.setProperty( "F", "toggle fused mode" );
@@ -156,6 +158,8 @@ public class MamutKeyboardHandler
 		map.put( BigDataViewerActions.SHOW_HELP, MamutActions.getShowHelpAction( viewer ) );
 
 		map.put( BigDataViewerActions.BRIGHTNESS_SETTINGS, MamutActions.getToggleBrightnessDialogAction( mamut ) );
+		map.put( BigDataViewerActions.VISIBILITY_AND_GROUPING,
+				new ToggleDialogAction( BigDataViewerActions.VISIBILITY_AND_GROUPING, viewer.getVisibilityAndGroupingDialog() ) );
 
 		map.put( "step time forward", MamutActions.getStepWiseTimeBrowsingAction( mamut, viewer, true ) );
 		map.put( "step time backward", MamutActions.getStepWiseTimeBrowsingAction( mamut, viewer, false ) );

@@ -19,6 +19,7 @@ import org.scijava.ui.behaviour.MouseAndKeyHandler;
 
 import bdv.BehaviourTransformEventHandler;
 import bdv.img.cache.Cache;
+import bdv.tools.VisibilityAndGroupingDialog;
 import bdv.viewer.InputActionBindings;
 import bdv.viewer.SourceAndConverter;
 import bdv.viewer.TriggerBehaviourBindings;
@@ -73,6 +74,8 @@ public class MamutViewer extends JFrame implements TrackMateModelView
 	private final InputActionBindings keybindings;
 
 	private final TriggerBehaviourBindings triggerbindings;
+
+	private final VisibilityAndGroupingDialog visibilityAndGroupingDialog;
 
 	public MamutViewer( final int width, final int height, final List< SourceAndConverter< ? > > sources, final int numTimePoints, final Cache cache, final Model model, final SelectionModel selectionModel )
 	{
@@ -138,6 +141,8 @@ public class MamutViewer extends JFrame implements TrackMateModelView
 		final TransformEventHandler< ? > tfHandler = viewerPanel.getDisplay().getTransformEventHandler();
 		if ( tfHandler instanceof BehaviourTransformEventHandler )
 			( ( BehaviourTransformEventHandler< ? > ) tfHandler ).install( triggerbindings );
+
+		this.visibilityAndGroupingDialog = new VisibilityAndGroupingDialog( this, viewerPanel.getVisibilityAndGrouping() );
 
 		setIconImage( MaMuT.MAMUT_ICON.getImage() );
 		setLocationByPlatform( true );
@@ -248,6 +253,11 @@ public class MamutViewer extends JFrame implements TrackMateModelView
 	public String getKey()
 	{
 		return MamutViewerFactory.KEY;
+	}
+
+	public VisibilityAndGroupingDialog getVisibilityAndGroupingDialog()
+	{
+		return visibilityAndGroupingDialog;
 	}
 
 	/*

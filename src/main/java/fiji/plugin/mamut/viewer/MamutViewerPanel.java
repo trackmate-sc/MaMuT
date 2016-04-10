@@ -4,13 +4,13 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.util.List;
 
-import net.imglib2.realtransform.AffineTransform3D;
 import bdv.img.cache.Cache;
 import bdv.viewer.SourceAndConverter;
 import bdv.viewer.ViewerOptions;
 import bdv.viewer.ViewerPanel;
 import bdv.viewer.animate.TranslationAnimator;
 import fiji.plugin.trackmate.Spot;
+import net.imglib2.realtransform.AffineTransform3D;
 
 public class MamutViewerPanel extends ViewerPanel
 {
