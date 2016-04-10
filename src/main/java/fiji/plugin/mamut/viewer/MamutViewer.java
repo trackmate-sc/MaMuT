@@ -20,7 +20,6 @@ import org.scijava.ui.behaviour.MouseAndKeyHandler;
 import bdv.BehaviourTransformEventHandler;
 import bdv.img.cache.Cache;
 import bdv.tools.bookmarks.Bookmarks;
-import bdv.tools.bookmarks.BookmarksEditor;
 import bdv.viewer.InputActionBindings;
 import bdv.viewer.SourceAndConverter;
 import bdv.viewer.TriggerBehaviourBindings;
@@ -76,7 +75,7 @@ public class MamutViewer extends JFrame implements TrackMateModelView
 
 	private final TriggerBehaviourBindings triggerbindings;
 
-	private final BookmarksEditor bookmarkEditor;
+	private final MamutBookmarksEditor bookmarkEditor;
 
 	/**
 	 *
@@ -114,7 +113,7 @@ public class MamutViewer extends JFrame implements TrackMateModelView
 		this.selectionModel = selectionModel;
 		this.logger = new MamutViewerLogger();
 		this.triggerbindings = new TriggerBehaviourBindings();
-		this.bookmarkEditor = new BookmarksEditor( viewerPanel, keybindings, bookmarks );
+		this.bookmarkEditor = new MamutBookmarksEditor( viewerPanel, keybindings, bookmarks );
 
 		getRootPane().setDoubleBuffered( true );
 		setPreferredSize( new Dimension( width, height ) );

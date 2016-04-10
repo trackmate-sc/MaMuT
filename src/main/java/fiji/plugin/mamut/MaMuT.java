@@ -60,7 +60,6 @@ import bdv.spimdata.XmlIoSpimDataMinimal;
 import bdv.tools.HelpDialog;
 import bdv.tools.InitializeViewerState;
 import bdv.tools.bookmarks.Bookmarks;
-import bdv.tools.bookmarks.BookmarksEditor;
 import bdv.tools.brightness.BrightnessDialog;
 import bdv.tools.brightness.ConverterSetup;
 import bdv.tools.brightness.SetupAssignments;
@@ -993,14 +992,6 @@ public class MaMuT implements ModelChangeListener
 		guimodel.addView( viewer );
 
 		viewer.refresh();
-
-		/*
-		 * Bookmark
-		 */
-
-		final Bookmarks bookmarks = new Bookmarks();
-		final BookmarksEditor bookmarkEditor = new BookmarksEditor( viewer.getViewerPanel(), viewer.getKeybindings(), bookmarks );
-
 		return viewer;
 
 	}

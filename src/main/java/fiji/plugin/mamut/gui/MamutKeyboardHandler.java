@@ -118,8 +118,8 @@ public class MamutKeyboardHandler {
 		final InputMap inputMap = readPropertyFile();
 		final ActionMap actionMap = createActionMap();
 
-		viewer.getKeybindings().addActionMap( "all", actionMap );
-		viewer.getKeybindings().addInputMap( "all", inputMap );
+		viewer.getKeybindings().addActionMap( "mamut", actionMap );
+		viewer.getKeybindings().addInputMap( "mamut", inputMap );
 	}
 
 	/**
