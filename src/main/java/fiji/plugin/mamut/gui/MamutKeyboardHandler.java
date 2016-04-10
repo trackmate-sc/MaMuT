@@ -33,8 +33,8 @@ public class MamutKeyboardHandler {
 		DEFAULT_KEYBINGS.setProperty("shift Q", "decrease spot radius a lot");
 		DEFAULT_KEYBINGS.setProperty("control E", "increase spot radius a bit");
 		DEFAULT_KEYBINGS.setProperty("control Q", "decrease spot radius a bit");
-		DEFAULT_KEYBINGS.setProperty( "F1", "show help" );
-		DEFAULT_KEYBINGS.setProperty("S", "toggle brightness dialog");
+		DEFAULT_KEYBINGS.setProperty( "F1", BigDataViewerActions.SHOW_HELP );
+		DEFAULT_KEYBINGS.setProperty( "S", BigDataViewerActions.BRIGHTNESS_SETTINGS );
 
 		DEFAULT_KEYBINGS.setProperty("I", "toggle interpolation");
 		DEFAULT_KEYBINGS.setProperty("F", "toggle fused mode");
@@ -120,7 +120,7 @@ public class MamutKeyboardHandler {
 
 	/**
 	 * Return2 the mapping between JTree's input map and MaMuT's actions.
-	 * 
+	 *
 	 * @return the mapping between JTree's input map and MaMuT's actions.
 	 */
 	protected ActionMap createActionMap() {
@@ -140,9 +140,9 @@ public class MamutKeyboardHandler {
 		map.put("toggle linking mode", MamutActions.getToggleLinkingModeAction(mamut, viewer.getLogger()));
 		map.put( "toggle link", MamutActions.getToggleLinkAction( mamut, viewer.getLogger() ) );
 
-		map.put( "show help", MamutActions.getShowHelpAction( viewer ) );
+		map.put( BigDataViewerActions.SHOW_HELP, MamutActions.getShowHelpAction( viewer ) );
 
-		map.put("toggle brightness dialog", MamutActions.getToggleBrightnessDialogAction(mamut));
+		map.put( BigDataViewerActions.BRIGHTNESS_SETTINGS, MamutActions.getToggleBrightnessDialogAction( mamut ) );
 
 		map.put( "step time forward", MamutActions.getStepWiseTimeBrowsingAction( mamut, viewer, true ) );
 		map.put( "step time backward", MamutActions.getStepWiseTimeBrowsingAction( mamut, viewer, false ) );
