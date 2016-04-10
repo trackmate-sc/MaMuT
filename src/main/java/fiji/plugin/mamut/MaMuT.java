@@ -43,8 +43,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.swing.ActionMap;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.KeyStroke;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
@@ -52,6 +56,7 @@ import javax.swing.UnsupportedLookAndFeelException;
 import org.jgrapht.graph.DefaultWeightedEdge;
 
 import bdv.BigDataViewer;
+import bdv.BigDataViewerActions;
 import bdv.ViewerImgLoader;
 import bdv.img.cache.Cache;
 import bdv.spimdata.SpimDataMinimal;
@@ -77,6 +82,7 @@ import fiji.plugin.mamut.providers.MamutEdgeAnalyzerProvider;
 import fiji.plugin.mamut.providers.MamutSpotAnalyzerProvider;
 import fiji.plugin.mamut.providers.MamutTrackAnalyzerProvider;
 import fiji.plugin.mamut.util.SourceSpotImageUpdater;
+import fiji.plugin.mamut.viewer.MamutOverlay;
 import fiji.plugin.mamut.viewer.MamutViewer;
 import fiji.plugin.mamut.viewer.MamutViewerPanel;
 import fiji.plugin.trackmate.Logger;
@@ -969,8 +975,9 @@ public class MaMuT implements ModelChangeListener
 		viewer.addWindowListener( new DeregisterWindowListener( viewer ) );
 
 		InitializeViewerState.initTransform( viewer.getViewerPanel() );
-
 		InitializeViewerState.initBrightness( 0.001, 0.999, viewer.getViewerPanel(), setupAssignments );
+
+		viewer.setJMenuBar( createMenuBar( viewer ) );
 
 		viewer.render();
 		guimodel.addView( viewer );
@@ -979,6 +986,56 @@ public class MaMuT implements ModelChangeListener
 
 		return viewer;
 
+	}
+
+	private JMenuBar createMenuBar( final MamutViewer viewer )
+	{
+		final ActionMap actionMap = viewer.getKeybindings().getConcatenatedActionMap();
+
+		final JMenuBar menubar = new JMenuBar();
+
+		/*
+		 * Settings.
+		 */
+
+		JMenu menu = new JMenu( "Settings" );
+		menubar.add( menu );
+
+		final JMenuItem miBrightness = new JMenuItem( actionMap.get( BigDataViewerActions.BRIGHTNESS_SETTINGS ) );
+		miBrightness.setText( "Brightness & Color" );
+		menu.add( miBrightness );
+
+		final JMenuItem miVisibility = new JMenuItem( actionMap.get( BigDataViewerActions.VISIBILITY_AND_GROUPING ) );
+		miVisibility.setText( "Visibility & Grouping" );
+		menu.add( miVisibility );
+
+		/*
+		 * Tools.
+		 */
+
+		menu = new JMenu( "Tools" );
+		menubar.add( menu );
+
+		final JMenuItem miMovie = new JMenuItem( actionMap.get( BigDataViewerActions.RECORD_MOVIE ) );
+		miMovie.setText( "Record Movie" );
+		menu.add( miMovie );
+
+		final JMenuItem miMaxProjectMovie = new JMenuItem( actionMap.get( BigDataViewerActions.RECORD_MAX_PROJECTION_MOVIE ) );
+		miMaxProjectMovie.setText( "Record Max-Projection Movie" );
+		menu.add( miMaxProjectMovie );
+
+		/*
+		 * Help.
+		 */
+
+		menu = new JMenu( "Help" );
+		menubar.add( menu );
+
+		final JMenuItem miHelp = new JMenuItem( actionMap.get( BigDataViewerActions.SHOW_HELP ) );
+		miHelp.setText( "Show Help" );
+		menu.add( miHelp );
+
+		return menubar;
 	}
 
 	private void save()
