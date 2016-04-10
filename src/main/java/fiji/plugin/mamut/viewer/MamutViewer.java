@@ -35,6 +35,7 @@ import fiji.plugin.trackmate.Spot;
 import fiji.plugin.trackmate.visualization.FeatureColorGenerator;
 import fiji.plugin.trackmate.visualization.TrackColorGenerator;
 import fiji.plugin.trackmate.visualization.TrackMateModelView;
+import ij.IJ;
 import net.imglib2.ui.TransformEventHandler;
 import net.imglib2.ui.util.GuiUtil;
 
@@ -286,7 +287,9 @@ public class MamutViewer extends JFrame implements TrackMateModelView
 
 		@Override
 		public void setProgress( final double val )
-		{}
+		{
+			IJ.showProgress( val );
+		}
 
 		@Override
 		public void log( final String message, final Color color )
