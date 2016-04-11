@@ -7,6 +7,7 @@ import java.awt.Font;
 import java.awt.event.KeyListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,6 +21,7 @@ import org.scijava.ui.behaviour.MouseAndKeyHandler;
 import bdv.BehaviourTransformEventHandler;
 import bdv.img.cache.Cache;
 import bdv.tools.bookmarks.Bookmarks;
+import bdv.tools.bookmarks.BookmarksEditor;
 import bdv.viewer.InputActionBindings;
 import bdv.viewer.SourceAndConverter;
 import bdv.viewer.TriggerBehaviourBindings;
@@ -75,7 +77,7 @@ public class MamutViewer extends JFrame implements TrackMateModelView
 
 	private final TriggerBehaviourBindings triggerbindings;
 
-	private final MamutBookmarksEditor bookmarkEditor;
+	private final BookmarksEditor bookmarkEditor;
 
 	/**
 	 *
@@ -113,7 +115,8 @@ public class MamutViewer extends JFrame implements TrackMateModelView
 		this.selectionModel = selectionModel;
 		this.logger = new MamutViewerLogger();
 		this.triggerbindings = new TriggerBehaviourBindings();
-		this.bookmarkEditor = new MamutBookmarksEditor( viewerPanel, keybindings, bookmarks );
+		this.bookmarkEditor = new BookmarksEditor( viewerPanel, keybindings, bookmarks );
+		bookmarkEditor.setInputMapsToBlock( Arrays.asList( "all" ) );
 
 		getRootPane().setDoubleBuffered( true );
 		setPreferredSize( new Dimension( width, height ) );
