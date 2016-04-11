@@ -42,6 +42,7 @@ public class MamutKeyboardHandler
 		DEFAULT_KEYBINGS.setProperty( "F6", BigDataViewerActions.VISIBILITY_AND_GROUPING );
 
 		DEFAULT_KEYBINGS.setProperty( "F10", BigDataViewerActions.RECORD_MOVIE );
+		DEFAULT_KEYBINGS.setProperty( "F8", BigDataViewerActions.RECORD_MAX_PROJECTION_MOVIE );
 
 		DEFAULT_KEYBINGS.setProperty( "I", "toggle interpolation" );
 		DEFAULT_KEYBINGS.setProperty( "F", "toggle fused mode" );
@@ -169,6 +170,8 @@ public class MamutKeyboardHandler
 
 		map.put( BigDataViewerActions.RECORD_MOVIE,
 				new ToggleDialogAction( BigDataViewerActions.RECORD_MOVIE, viewer.getRecordMovieDialog() ) );
+		map.put( BigDataViewerActions.RECORD_MAX_PROJECTION_MOVIE,
+				new ToggleDialogAction( BigDataViewerActions.RECORD_MAX_PROJECTION_MOVIE, viewer.getRecordMaxProjectionMovieDialog() ) );
 
 		map.put( "step time forward", MamutActions.getStepWiseTimeBrowsingAction( mamut, viewer, true ) );
 		map.put( "step time backward", MamutActions.getStepWiseTimeBrowsingAction( mamut, viewer, false ) );

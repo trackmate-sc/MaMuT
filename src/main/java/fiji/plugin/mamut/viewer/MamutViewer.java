@@ -84,7 +84,10 @@ public class MamutViewer extends JFrame implements TrackMateModelView
 
 	private final MamutRecordMovieDialog recordMovieDialog;
 
+	private final MamutRecordMaxProjectionDialog recordMaxProjectionMovieDialog;
+
 	private final BookmarksEditor bookmarkEditor;
+
 
 	/**
 	 *
@@ -156,6 +159,10 @@ public class MamutViewer extends JFrame implements TrackMateModelView
 		this.recordMovieDialog = new MamutRecordMovieDialog( this, viewerPanel, new ProgressWriterLogger( logger ) );
 		recordMovieDialog.setLocationRelativeTo( this );
 		viewerPanel.getDisplay().addOverlayRenderer( recordMovieDialog );
+
+		this.recordMaxProjectionMovieDialog = new MamutRecordMaxProjectionDialog( this, this, new ProgressWriterLogger( logger )  );
+		recordMaxProjectionMovieDialog.setLocationRelativeTo( this );
+		viewerPanel.getDisplay().addOverlayRenderer( recordMaxProjectionMovieDialog );
 
 		setIconImage( MaMuT.MAMUT_ICON.getImage() );
 		setLocationByPlatform( true );
@@ -262,6 +269,11 @@ public class MamutViewer extends JFrame implements TrackMateModelView
 		return model;
 	}
 
+	public SelectionModel getSelectionModel()
+	{
+		return selectionModel;
+	}
+
 	@Override
 	public String getKey()
 	{
@@ -276,6 +288,11 @@ public class MamutViewer extends JFrame implements TrackMateModelView
 	public MamutRecordMovieDialog getRecordMovieDialog()
 	{
 		return recordMovieDialog;
+	}
+
+	public MamutRecordMaxProjectionDialog getRecordMaxProjectionMovieDialog()
+	{
+		return recordMaxProjectionMovieDialog;
 	}
 
 	public void initSetBookmark()
