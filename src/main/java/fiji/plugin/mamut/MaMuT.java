@@ -59,11 +59,13 @@ import bdv.spimdata.WrapBasicImgLoader;
 import bdv.spimdata.XmlIoSpimDataMinimal;
 import bdv.tools.HelpDialog;
 import bdv.tools.InitializeViewerState;
+import bdv.tools.bookmarks.Bookmarks;
 import bdv.tools.brightness.BrightnessDialog;
 import bdv.tools.brightness.ConverterSetup;
 import bdv.tools.brightness.SetupAssignments;
 import bdv.tools.transformation.ManualTransformationEditor;
 import bdv.viewer.SourceAndConverter;
+import bdv.viewer.ViewerOptions;
 import bdv.viewer.state.ViewerState;
 import fiji.plugin.mamut.detection.SourceSemiAutoTracker;
 import fiji.plugin.mamut.feature.spot.SpotSourceIdAnalyzerFactory;
@@ -77,6 +79,7 @@ import fiji.plugin.mamut.providers.MamutEdgeAnalyzerProvider;
 import fiji.plugin.mamut.providers.MamutSpotAnalyzerProvider;
 import fiji.plugin.mamut.providers.MamutTrackAnalyzerProvider;
 import fiji.plugin.mamut.util.SourceSpotImageUpdater;
+import fiji.plugin.mamut.viewer.MamutOverlay;
 import fiji.plugin.mamut.viewer.MamutViewer;
 import fiji.plugin.mamut.viewer.MamutViewerPanel;
 import fiji.plugin.trackmate.Logger;
@@ -217,6 +220,8 @@ public class MaMuT implements ModelChangeListener
 
 	private ManualTransformationEditor manualTransformationEditor;
 
+	private Bookmarks bookmarks;
+
 	private static File mamutFile;
 
 	public MaMuT( final File imageFile, final Model model, final SourceSettings settings )
@@ -342,6 +347,12 @@ public class MaMuT implements ModelChangeListener
 		 */
 
 		helpDialog = new HelpDialog( gui, MaMuT.class.getResource( "Help.html" ) );
+
+		/*
+		 * Bookmarks.
+		 */
+
+		bookmarks = new Bookmarks();
 
 		/*
 		 * Control Panel
@@ -956,7 +967,12 @@ public class MaMuT implements ModelChangeListener
 
 	private MamutViewer newViewer()
 	{
-		final MamutViewer viewer = new MamutViewer( DEFAULT_WIDTH, DEFAULT_HEIGHT, sources, nTimepoints, cache, model, selectionModel );
+		final MamutViewer viewer = new MamutViewer(
+				DEFAULT_WIDTH, DEFAULT_HEIGHT,
+				sources, nTimepoints, cache,
+				model, selectionModel,
+				ViewerOptions.options(),
+				bookmarks );
 
 		for ( final String key : guimodel.getDisplaySettings().keySet() )
 		{
@@ -976,7 +992,6 @@ public class MaMuT implements ModelChangeListener
 		guimodel.addView( viewer );
 
 		viewer.refresh();
-
 		return viewer;
 
 	}

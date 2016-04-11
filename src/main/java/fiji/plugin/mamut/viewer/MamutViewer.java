@@ -19,6 +19,7 @@ import org.scijava.ui.behaviour.MouseAndKeyHandler;
 
 import bdv.BehaviourTransformEventHandler;
 import bdv.img.cache.Cache;
+import bdv.tools.bookmarks.Bookmarks;
 import bdv.viewer.InputActionBindings;
 import bdv.viewer.SourceAndConverter;
 import bdv.viewer.TriggerBehaviourBindings;
@@ -74,10 +75,7 @@ public class MamutViewer extends JFrame implements TrackMateModelView
 
 	private final TriggerBehaviourBindings triggerbindings;
 
-	public MamutViewer( final int width, final int height, final List< SourceAndConverter< ? > > sources, final int numTimePoints, final Cache cache, final Model model, final SelectionModel selectionModel )
-	{
-		this( width, height, sources, numTimePoints, cache, model, selectionModel, ViewerOptions.options() );
-	}
+	private final MamutBookmarksEditor bookmarkEditor;
 
 	/**
 	 *
@@ -101,7 +99,10 @@ public class MamutViewer extends JFrame implements TrackMateModelView
 	 *            optional parameters. See
 	 *            {@link bdv.viewer.ViewerPanel#getOptionValues()}.
 	 */
-	public MamutViewer( final int width, final int height, final List< SourceAndConverter< ? > > sources, final int numTimePoints, final Cache cache, final Model model, final SelectionModel selectionModel, final ViewerOptions optional )
+	public MamutViewer( final int width, final int height, final List< SourceAndConverter< ? > > sources, final int numTimePoints, final Cache cache,
+			final Model model, final SelectionModel selectionModel,
+			final ViewerOptions optional,
+			final Bookmarks bookmarks )
 	{
 		super( "MaMut Viewer", GuiUtil.getSuitableGraphicsConfiguration( GuiUtil.RGB_COLOR_MODEL ) );
 		final MessageOverlayAnimator msgOverlay = new MessageOverlayAnimator( DEFAULT_TEXT_DISPLAY_DURATION, DEFAULT_FADEINTIME, DEFAULT_FADEOUTTIME, DEFAULT_FONT );
@@ -112,6 +113,7 @@ public class MamutViewer extends JFrame implements TrackMateModelView
 		this.selectionModel = selectionModel;
 		this.logger = new MamutViewerLogger();
 		this.triggerbindings = new TriggerBehaviourBindings();
+		this.bookmarkEditor = new MamutBookmarksEditor( viewerPanel, keybindings, bookmarks );
 
 		getRootPane().setDoubleBuffered( true );
 		setPreferredSize( new Dimension( width, height ) );
@@ -248,6 +250,21 @@ public class MamutViewer extends JFrame implements TrackMateModelView
 	public String getKey()
 	{
 		return MamutViewerFactory.KEY;
+	}
+
+	public void initSetBookmark()
+	{
+		bookmarkEditor.initSetBookmark();
+	}
+
+	public void initGoToBookmark()
+	{
+		bookmarkEditor.initGoToBookmark();
+	}
+
+	public void initGoToBookmarkRotation()
+	{
+		bookmarkEditor.initGoToBookmarkRotation();
 	}
 
 	/*

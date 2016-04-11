@@ -62,6 +62,10 @@ public class MamutKeyboardHandler {
 		DEFAULT_KEYBINGS.setProperty( "shift OPEN_BRACKET", "step time backward" );
 		DEFAULT_KEYBINGS.setProperty( "shift N", "previous timepoint" );
 
+		DEFAULT_KEYBINGS.setProperty( "B", BigDataViewerActions.GO_TO_BOOKMARK );
+		DEFAULT_KEYBINGS.setProperty( "O", BigDataViewerActions.GO_TO_BOOKMARK_ROTATION );
+		DEFAULT_KEYBINGS.setProperty( "shift B", BigDataViewerActions.SET_BOOKMARK );
+
 	}
 	private final MamutViewer viewer;
 	private final MaMuT mamut;
@@ -114,13 +118,13 @@ public class MamutKeyboardHandler {
 		final InputMap inputMap = readPropertyFile();
 		final ActionMap actionMap = createActionMap();
 
-		viewer.getKeybindings().addActionMap( "all", actionMap );
-		viewer.getKeybindings().addInputMap( "all", inputMap );
+		viewer.getKeybindings().addActionMap( "mamut", actionMap );
+		viewer.getKeybindings().addInputMap( "mamut", inputMap );
 	}
 
 	/**
 	 * Return2 the mapping between JTree's input map and MaMuT's actions.
-	 * 
+	 *
 	 * @return the mapping between JTree's input map and MaMuT's actions.
 	 */
 	protected ActionMap createActionMap() {
@@ -148,6 +152,11 @@ public class MamutKeyboardHandler {
 		map.put( "step time backward", MamutActions.getStepWiseTimeBrowsingAction( mamut, viewer, false ) );
 
 		map.put( BigDataViewerActions.MANUAL_TRANSFORM, MamutActions.getToggleManualTransformAction( mamut, viewer ) );
+
+		map.put( BigDataViewerActions.GO_TO_BOOKMARK, new MamutActions.GoToBookmarkAction( viewer ) );
+		map.put( BigDataViewerActions.GO_TO_BOOKMARK_ROTATION, new MamutActions.GoToBookmarkRotationAction( viewer ) );
+		map.put( BigDataViewerActions.SET_BOOKMARK, new MamutActions.SetBookmarkAction( viewer ) );
+
 		return map;
 	}
 
