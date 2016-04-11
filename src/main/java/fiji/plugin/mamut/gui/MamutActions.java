@@ -159,9 +159,9 @@ public class MamutActions
 			{
 				tp = 0;
 			}
-			if ( tp > viewer.getViewerPanel().getState().getNumTimePoints() - 1 )
+			if ( tp > viewer.getViewerPanel().getState().getNumTimepoints() - 1 )
 			{
-				tp = viewer.getViewerPanel().getState().getNumTimePoints() - 1;
+				tp = viewer.getViewerPanel().getState().getNumTimepoints() - 1;
 			}
 			viewer.getViewerPanel().setTimepoint( tp );
 		}

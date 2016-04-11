@@ -64,6 +64,7 @@ import bdv.tools.brightness.BrightnessDialog;
 import bdv.tools.brightness.ConverterSetup;
 import bdv.tools.brightness.SetupAssignments;
 import bdv.tools.transformation.ManualTransformationEditor;
+import bdv.viewer.RequestRepaint;
 import bdv.viewer.SourceAndConverter;
 import bdv.viewer.ViewerOptions;
 import bdv.viewer.state.ViewerState;
@@ -634,6 +635,10 @@ public class MaMuT implements ModelChangeListener
 				public boolean supportsColor() {
 					return true;
 				}
+
+				@Override
+				public void setViewer( final RequestRepaint rp )
+				{}
 			});
 		}
 		setupAssignments = new SetupAssignments( converterSetups, 0, 65535 );
