@@ -64,11 +64,14 @@ import bdv.spimdata.WrapBasicImgLoader;
 import bdv.spimdata.XmlIoSpimDataMinimal;
 import bdv.tools.HelpDialog;
 import bdv.tools.InitializeViewerState;
+import bdv.tools.bookmarks.Bookmarks;
 import bdv.tools.brightness.BrightnessDialog;
 import bdv.tools.brightness.ConverterSetup;
 import bdv.tools.brightness.SetupAssignments;
 import bdv.tools.transformation.ManualTransformationEditor;
+import bdv.viewer.RequestRepaint;
 import bdv.viewer.SourceAndConverter;
+import bdv.viewer.ViewerOptions;
 import bdv.viewer.state.ViewerState;
 import fiji.plugin.mamut.detection.SourceSemiAutoTracker;
 import fiji.plugin.mamut.feature.spot.SpotSourceIdAnalyzerFactory;
@@ -171,7 +174,8 @@ public class MaMuT implements ModelChangeListener
 	private Spot movedSpot = null;
 
 	/** The image data sources to be displayed in the views. */
-	private List< SourceAndConverter< ? >> sources;
+	private List< SourceAndConverter< ? > > sources;
+
 	private Cache cache;
 
 	/** The number of timepoints in the image sources. */
@@ -222,6 +226,8 @@ public class MaMuT implements ModelChangeListener
 	private MamutGUI gui;
 
 	private ManualTransformationEditor manualTransformationEditor;
+
+	private Bookmarks bookmarks;
 
 	private static File mamutFile;
 
@@ -348,6 +354,12 @@ public class MaMuT implements ModelChangeListener
 		 */
 
 		helpDialog = new HelpDialog( gui, MaMuT.class.getResource( "Help.html" ) );
+
+		/*
+		 * Bookmarks.
+		 */
+
+		bookmarks = new Bookmarks();
 
 		/*
 		 * Control Panel
@@ -577,59 +589,72 @@ public class MaMuT implements ModelChangeListener
 	 */
 	private void prepareSources( final File dataFile ) throws SpimDataException
 	{
-		final SpimDataMinimal spimData = new XmlIoSpimDataMinimal().load(dataFile.getAbsolutePath());
+		final SpimDataMinimal spimData = new XmlIoSpimDataMinimal().load( dataFile.getAbsolutePath() );
 		if ( WrapBasicImgLoader.wrapImgLoaderIfNecessary( spimData ) )
 		{
-			System.err.println("WARNING:\nOpening <SpimData> dataset that is not suited for suited for interactive browsing.\nConsider resaving as HDF5 for better performance.");
+			System.err.println( "WARNING:\nOpening <SpimData> dataset that is not suited for suited for interactive browsing.\nConsider resaving as HDF5 for better performance." );
 		}
-		final AbstractSequenceDescription<?, ?, ?> seq = spimData.getSequenceDescription();
+		final AbstractSequenceDescription< ?, ?, ? > seq = spimData.getSequenceDescription();
 		final List< TimePoint > timepoints = seq.getTimePoints().getTimePointsOrdered();
 		nTimepoints = timepoints.size();
-		sources = new ArrayList<SourceAndConverter<?>>();
-		cache = ((ViewerImgLoader) seq.getImgLoader()).getCache();
-		final ArrayList<ConverterSetup> converterSetups = new ArrayList<ConverterSetup>();
-		BigDataViewer.initSetups(spimData, converterSetups, sources);
-		for (int i = 0; i < converterSetups.size(); ++i) {
-			final ConverterSetup s = converterSetups.get(i);
-			converterSetups.set(i, new ConverterSetup() {
+		sources = new ArrayList< SourceAndConverter< ? > >();
+		cache = ( ( ViewerImgLoader ) seq.getImgLoader() ).getCache();
+		final ArrayList< ConverterSetup > converterSetups = new ArrayList< ConverterSetup >();
+		BigDataViewer.initSetups( spimData, converterSetups, sources );
+		for ( int i = 0; i < converterSetups.size(); ++i )
+		{
+			final ConverterSetup s = converterSetups.get( i );
+			converterSetups.set( i, new ConverterSetup()
+			{
 
 				@Override
-				public void setDisplayRange(final double min, final double max) {
-					s.setDisplayRange(min, max);
+				public void setDisplayRange( final double min, final double max )
+				{
+					s.setDisplayRange( min, max );
 					requestRepaintAllViewers();
 				}
 
 				@Override
-				public void setColor(final ARGBType color) {
-					s.setColor(color);
+				public void setColor( final ARGBType color )
+				{
+					s.setColor( color );
 					requestRepaintAllViewers();
 				}
 
 				@Override
-				public int getSetupId() {
+				public int getSetupId()
+				{
 					return s.getSetupId();
 				}
 
 				@Override
-				public double getDisplayRangeMin() {
+				public double getDisplayRangeMin()
+				{
 					return s.getDisplayRangeMin();
 				}
 
 				@Override
-				public double getDisplayRangeMax() {
+				public double getDisplayRangeMax()
+				{
 					return s.getDisplayRangeMax();
 				}
 
 				@Override
-				public ARGBType getColor() {
+				public ARGBType getColor()
+				{
 					return s.getColor();
 				}
 
 				@Override
-				public boolean supportsColor() {
+				public boolean supportsColor()
+				{
 					return true;
 				}
-			});
+
+				@Override
+				public void setViewer( final RequestRepaint rp )
+				{}
+			} );
 		}
 		setupAssignments = new SetupAssignments( converterSetups, 0, 65535 );
 	}
@@ -675,7 +700,7 @@ public class MaMuT implements ModelChangeListener
 		autotracker.setNumThreads( 4 );
 		autotracker.setParameters( guimodel.qualityThreshold, guimodel.distanceTolerance, guimodel.maxNFrames );
 
-		new Thread( "MaMuT semi-automated tracking thread" )
+		new Thread( "MaMuT semi-automated tracking thread")
 		{
 			@Override
 			public void run()
@@ -962,7 +987,12 @@ public class MaMuT implements ModelChangeListener
 
 	private MamutViewer newViewer()
 	{
-		final MamutViewer viewer = new MamutViewer( DEFAULT_WIDTH, DEFAULT_HEIGHT, sources, nTimepoints, cache, model, selectionModel );
+		final MamutViewer viewer = new MamutViewer(
+				DEFAULT_WIDTH, DEFAULT_HEIGHT,
+				sources, nTimepoints, cache,
+				model, selectionModel,
+				ViewerOptions.options(),
+				bookmarks );
 
 		for ( final String key : guimodel.getDisplaySettings().keySet() )
 		{
@@ -983,7 +1013,6 @@ public class MaMuT implements ModelChangeListener
 		guimodel.addView( viewer );
 
 		viewer.refresh();
-
 		return viewer;
 
 	}
@@ -1255,7 +1284,7 @@ public class MaMuT implements ModelChangeListener
 	private void launchTrackScheme( final JButton button )
 	{
 		button.setEnabled( false );
-		new Thread( "Launching TrackScheme thread" )
+		new Thread( "Launching TrackScheme thread")
 		{
 
 			@Override
@@ -1279,7 +1308,7 @@ public class MaMuT implements ModelChangeListener
 	private void launch3DViewer( final JButton button )
 	{
 		button.setEnabled( false );
-		new Thread( "MaMuT new 3D viewer thread" )
+		new Thread( "MaMuT new 3D viewer thread")
 		{
 			@Override
 			public void run()
@@ -1322,8 +1351,6 @@ public class MaMuT implements ModelChangeListener
 		}
 	}
 
-
-
 	/**
 	 * Returns the closest {@link Spot} with respect to the current mouse
 	 * location, and for which the current location is within its radius, or
@@ -1362,7 +1389,6 @@ public class MaMuT implements ModelChangeListener
 		}
 
 	}
-
 
 	/*
 	 * GETTERS
@@ -1471,7 +1497,8 @@ public class MaMuT implements ModelChangeListener
 	 * STATIC METHODS
 	 */
 
-	private static final void setLaF() {
+	private static final void setLaF()
+	{
 		// I can't stand the metal look. If this is a problem, contact me
 		// (jeanyves.tinevez@gmail.com)
 		if ( IJ.isMacOSX() || IJ.isWindows() )

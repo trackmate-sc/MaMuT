@@ -46,7 +46,7 @@ import net.imglib2.ui.RenderTarget;
 
 /**
  * Adapted from BDV {@link RecordMovieDialog} to also record the MaMuT overlay.
- * 
+ *
  * @author Jean-Yves Tinevez
  *
  */
@@ -75,7 +75,7 @@ public class MamutRecordMovieDialog extends JDialog implements OverlayRenderer
 	{
 		super( owner, "record movie", false );
 		this.viewer = viewer;
-		maxTimepoint = viewer.getState().getNumTimePoints() - 1;
+		maxTimepoint = viewer.getState().getNumTimepoints() - 1;
 		this.progressWriter = progressWriter;
 
 		final JPanel boxes = new JPanel();

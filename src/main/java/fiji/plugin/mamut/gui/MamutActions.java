@@ -5,13 +5,16 @@ import java.awt.event.ActionEvent;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 
+import bdv.BigDataViewerActions;
 import bdv.tools.HelpDialog;
+import bdv.util.AbstractNamedAction;
 import fiji.plugin.mamut.MaMuT;
 import fiji.plugin.mamut.viewer.MamutViewer;
 import fiji.plugin.trackmate.Logger;
 
 public class MamutActions
 {
+
 
 	/**
 	 * Ratio (times the {@link MaMuT#RADIUS_CHANGE_FACTOR}) by which we change
@@ -156,9 +159,9 @@ public class MamutActions
 			{
 				tp = 0;
 			}
-			if ( tp > viewer.getViewerPanel().getState().getNumTimePoints() - 1 )
+			if ( tp > viewer.getViewerPanel().getState().getNumTimepoints() - 1 )
 			{
-				tp = viewer.getViewerPanel().getState().getNumTimePoints() - 1;
+				tp = viewer.getViewerPanel().getState().getNumTimepoints() - 1;
 			}
 			viewer.getViewerPanel().setTimepoint( tp );
 		}
@@ -482,4 +485,81 @@ public class MamutActions
 		}
 	}
 
+	/*
+	 * CLASSES COPIED FROM BDV.
+	 */
+
+	private static abstract class MaMuTAction extends AbstractNamedAction
+	{
+		protected final MaMuT mamut;
+
+		public MaMuTAction( final String name, final MaMuT mamut )
+		{
+			super( name );
+			this.mamut = mamut;
+		}
+
+		private static final long serialVersionUID = 1L;
+	}
+
+	private static abstract class MaMuTViewerAction extends AbstractNamedAction
+	{
+		protected final MamutViewer viewer;
+
+		public MaMuTViewerAction( final String name, final MamutViewer viewer )
+		{
+			super( name );
+			this.viewer = viewer;
+		}
+
+		private static final long serialVersionUID = 1L;
+	}
+
+	public static class SetBookmarkAction extends MaMuTViewerAction
+	{
+		public SetBookmarkAction( final MamutViewer viewer )
+		{
+			super( BigDataViewerActions.SET_BOOKMARK, viewer );
+		}
+
+		@Override
+		public void actionPerformed( final ActionEvent e )
+		{
+			viewer.initSetBookmark();
+		}
+
+		private static final long serialVersionUID = 1L;
+	}
+
+	public static class GoToBookmarkAction extends MaMuTViewerAction
+	{
+		public GoToBookmarkAction( final MamutViewer viewer )
+		{
+			super( BigDataViewerActions.GO_TO_BOOKMARK, viewer );
+		}
+
+		@Override
+		public void actionPerformed( final ActionEvent e )
+		{
+			viewer.initGoToBookmark();
+		}
+
+		private static final long serialVersionUID = 1L;
+	}
+
+	public static class GoToBookmarkRotationAction extends MaMuTViewerAction
+	{
+		public GoToBookmarkRotationAction( final MamutViewer viewer )
+		{
+			super( BigDataViewerActions.GO_TO_BOOKMARK_ROTATION, viewer );
+		}
+
+		@Override
+		public void actionPerformed( final ActionEvent e )
+		{
+			viewer.initGoToBookmarkRotation();
+		}
+
+		private static final long serialVersionUID = 1L;
+	}
 }

@@ -1,17 +1,19 @@
 package fiji.plugin.mamut.viewer;
 
+import java.util.List;
+
+import javax.swing.ImageIcon;
+
 import bdv.img.cache.Cache;
+import bdv.tools.bookmarks.Bookmarks;
 import bdv.viewer.SourceAndConverter;
+import bdv.viewer.ViewerOptions;
 import fiji.plugin.mamut.SourceSettings;
 import fiji.plugin.trackmate.Model;
 import fiji.plugin.trackmate.SelectionModel;
 import fiji.plugin.trackmate.Settings;
 import fiji.plugin.trackmate.visualization.TrackMateModelView;
 import fiji.plugin.trackmate.visualization.ViewFactory;
-
-import java.util.List;
-
-import javax.swing.ImageIcon;
 
 public class MamutViewerFactory implements ViewFactory
 {
@@ -56,7 +58,12 @@ public class MamutViewerFactory implements ViewFactory
 		final List< SourceAndConverter< ? >> sources = ss.getSources();
 		final int numTimePoints = ss.nframes;
 		final Cache cache = ss.getCache();
-		return new MamutViewer( DEFAULT_WIDTH, DEFAULT_HEIGHT, sources, numTimePoints, cache, model, selectionModel );
+		final Bookmarks bookmarks = new Bookmarks();
+		return new MamutViewer( DEFAULT_WIDTH, DEFAULT_HEIGHT,
+				sources, numTimePoints, cache,
+				model, selectionModel,
+				ViewerOptions.options(),
+				bookmarks );
 	}
 
 }
