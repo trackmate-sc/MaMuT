@@ -34,7 +34,6 @@ import javax.swing.event.ChangeListener;
 
 import bdv.export.ProgressWriter;
 import bdv.img.cache.Cache;
-import bdv.tools.RecordMovieDialog;
 import bdv.util.Prefs;
 import bdv.viewer.overlay.ScaleBarOverlayRenderer;
 import bdv.viewer.render.MultiResolutionRenderer;

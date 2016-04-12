@@ -489,19 +489,6 @@ public class MamutActions
 	 * CLASSES COPIED FROM BDV.
 	 */
 
-	private static abstract class MaMuTAction extends AbstractNamedAction
-	{
-		protected final MaMuT mamut;
-
-		public MaMuTAction( final String name, final MaMuT mamut )
-		{
-			super( name );
-			this.mamut = mamut;
-		}
-
-		private static final long serialVersionUID = 1L;
-	}
-
 	private static abstract class MaMuTViewerAction extends AbstractNamedAction
 	{
 		protected final MamutViewer viewer;
