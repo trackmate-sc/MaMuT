@@ -20,6 +20,7 @@ import org.scijava.ui.behaviour.MouseAndKeyHandler;
 
 import bdv.BehaviourTransformEventHandler;
 import bdv.img.cache.Cache;
+import bdv.tools.VisibilityAndGroupingDialog;
 import bdv.tools.bookmarks.Bookmarks;
 import bdv.tools.bookmarks.BookmarksEditor;
 import bdv.viewer.InputActionBindings;
@@ -28,6 +29,7 @@ import bdv.viewer.TriggerBehaviourBindings;
 import bdv.viewer.ViewerOptions;
 import bdv.viewer.animate.MessageOverlayAnimator;
 import fiji.plugin.mamut.MaMuT;
+import fiji.plugin.mamut.util.ProgressWriterLogger;
 import fiji.plugin.trackmate.Logger;
 import fiji.plugin.trackmate.Model;
 import fiji.plugin.trackmate.SelectionModel;
@@ -35,6 +37,7 @@ import fiji.plugin.trackmate.Spot;
 import fiji.plugin.trackmate.visualization.FeatureColorGenerator;
 import fiji.plugin.trackmate.visualization.TrackColorGenerator;
 import fiji.plugin.trackmate.visualization.TrackMateModelView;
+import ij.IJ;
 import net.imglib2.ui.TransformEventHandler;
 import net.imglib2.ui.util.GuiUtil;
 
@@ -77,7 +80,14 @@ public class MamutViewer extends JFrame implements TrackMateModelView
 
 	private final TriggerBehaviourBindings triggerbindings;
 
+	private final VisibilityAndGroupingDialog visibilityAndGroupingDialog;
+
+	private final MamutRecordMovieDialog recordMovieDialog;
+
+	private final MamutRecordMaxProjectionDialog recordMaxProjectionMovieDialog;
+
 	private final BookmarksEditor bookmarkEditor;
+
 
 	/**
 	 *
@@ -143,6 +153,16 @@ public class MamutViewer extends JFrame implements TrackMateModelView
 		final TransformEventHandler< ? > tfHandler = viewerPanel.getDisplay().getTransformEventHandler();
 		if ( tfHandler instanceof BehaviourTransformEventHandler )
 			( ( BehaviourTransformEventHandler< ? > ) tfHandler ).install( triggerbindings );
+
+		this.visibilityAndGroupingDialog = new VisibilityAndGroupingDialog( this, viewerPanel.getVisibilityAndGrouping() );
+
+		this.recordMovieDialog = new MamutRecordMovieDialog( this, viewerPanel, new ProgressWriterLogger( logger ) );
+		recordMovieDialog.setLocationRelativeTo( this );
+		viewerPanel.getDisplay().addOverlayRenderer( recordMovieDialog );
+
+		this.recordMaxProjectionMovieDialog = new MamutRecordMaxProjectionDialog( this, this, new ProgressWriterLogger( logger )  );
+		recordMaxProjectionMovieDialog.setLocationRelativeTo( this );
+		viewerPanel.getDisplay().addOverlayRenderer( recordMaxProjectionMovieDialog );
 
 		setIconImage( MaMuT.MAMUT_ICON.getImage() );
 		setLocationByPlatform( true );
@@ -249,10 +269,30 @@ public class MamutViewer extends JFrame implements TrackMateModelView
 		return model;
 	}
 
+	public SelectionModel getSelectionModel()
+	{
+		return selectionModel;
+	}
+
 	@Override
 	public String getKey()
 	{
 		return MamutViewerFactory.KEY;
+	}
+
+	public VisibilityAndGroupingDialog getVisibilityAndGroupingDialog()
+	{
+		return visibilityAndGroupingDialog;
+	}
+
+	public MamutRecordMovieDialog getRecordMovieDialog()
+	{
+		return recordMovieDialog;
+	}
+
+	public MamutRecordMaxProjectionDialog getRecordMaxProjectionMovieDialog()
+	{
+		return recordMaxProjectionMovieDialog;
 	}
 
 	public void initSetBookmark()
@@ -285,7 +325,9 @@ public class MamutViewer extends JFrame implements TrackMateModelView
 
 		@Override
 		public void setProgress( final double val )
-		{}
+		{
+			IJ.showProgress( val );
+		}
 
 		@Override
 		public void log( final String message, final Color color )
