@@ -1,8 +1,6 @@
 package fiji.plugin.mamut.gui;
 
 import static fiji.plugin.trackmate.gui.TrackMateWizard.FONT;
-import fiji.plugin.trackmate.gui.LogPanel;
-import fiji.plugin.trackmate.gui.panels.ListChooserPanel;
 
 import java.awt.Component;
 import java.awt.Dimension;
@@ -16,6 +14,9 @@ import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.SpringLayout;
+
+import fiji.plugin.trackmate.gui.LogPanel;
+import fiji.plugin.trackmate.gui.panels.ListChooserPanel;
 
 public class MamutActionPanel extends ListChooserPanel
 {
@@ -88,14 +89,16 @@ public class MamutActionPanel extends ListChooserPanel
 	 * INNER CLASS
 	 */
 
-	private class IconListRenderer extends DefaultListCellRenderer {
+	private class IconListRenderer extends DefaultListCellRenderer
+	{
 		private static final long serialVersionUID = 1L;
 
 		@Override
-		public Component getListCellRendererComponent(final JList list, final Object value, final int index, final boolean isSelected, final boolean cellHasFocus) {
-			final JLabel label = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+		public Component getListCellRendererComponent( final JList list, final Object value, final int index, final boolean isSelected, final boolean cellHasFocus )
+		{
+			final JLabel label = ( JLabel ) super.getListCellRendererComponent( list, value, index, isSelected, cellHasFocus );
 			final ImageIcon icon = iconsMap.get( value );
-			label.setIcon(icon);
+			label.setIcon( icon );
 			return label;
 		}
 	}
