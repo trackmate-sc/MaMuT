@@ -94,7 +94,7 @@ public class MamutActionPanel extends ListChooserPanel
 		private static final long serialVersionUID = 1L;
 
 		@Override
-		public Component getListCellRendererComponent( final JList list, final Object value, final int index, final boolean isSelected, final boolean cellHasFocus )
+		public Component getListCellRendererComponent( final JList< ? extends Object > list, final Object value, final int index, final boolean isSelected, final boolean cellHasFocus )
 		{
 			final JLabel label = ( JLabel ) super.getListCellRendererComponent( list, value, index, isSelected, cellHasFocus );
 			final ImageIcon icon = iconsMap.get( value );
