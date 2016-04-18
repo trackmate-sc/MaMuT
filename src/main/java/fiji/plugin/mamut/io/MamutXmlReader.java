@@ -7,6 +7,15 @@ import static fiji.plugin.trackmate.io.TmXmlKeys.GUI_VIEW_ATTRIBUTE_POSITION_WID
 import static fiji.plugin.trackmate.io.TmXmlKeys.GUI_VIEW_ATTRIBUTE_POSITION_X;
 import static fiji.plugin.trackmate.io.TmXmlKeys.GUI_VIEW_ATTRIBUTE_POSITION_Y;
 import static fiji.plugin.trackmate.io.TmXmlKeys.GUI_VIEW_ELEMENT_KEY;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+import org.jdom2.DataConversionException;
+import org.jdom2.Element;
+
 import bdv.tools.brightness.SetupAssignments;
 import fiji.plugin.mamut.viewer.MamutViewer;
 import fiji.plugin.mamut.viewer.MamutViewerFactory;
@@ -19,18 +28,12 @@ import fiji.plugin.trackmate.visualization.TrackMateModelView;
 import fiji.plugin.trackmate.visualization.ViewFactory;
 import fiji.plugin.trackmate.visualization.trackscheme.TrackScheme;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+public class MamutXmlReader extends TmXmlReader
+{
 
-import org.jdom2.DataConversionException;
-import org.jdom2.Element;
-
-public class MamutXmlReader extends TmXmlReader {
-
-	public MamutXmlReader(final File file) {
-		super(file);
+	public MamutXmlReader( final File file )
+	{
+		super( file );
 	}
 
 	/**
@@ -44,91 +47,107 @@ public class MamutXmlReader extends TmXmlReader {
 	 * @see TrackMateModelView#render()
 	 */
 	@Override
-	public Collection<TrackMateModelView> getViews(final ViewProvider provider, final Model model, final Settings settings, final SelectionModel selectionModel) {
-		final Element guiel = root.getChild(GUI_STATE_ELEMENT_KEY);
-		if (null != guiel) {
+	public Collection< TrackMateModelView > getViews( final ViewProvider provider, final Model model, final Settings settings, final SelectionModel selectionModel )
+	{
+		final Element guiel = root.getChild( GUI_STATE_ELEMENT_KEY );
+		if ( null != guiel )
+		{
 
-			final List<Element> children = guiel
-					.getChildren(GUI_VIEW_ELEMENT_KEY);
-			final Collection<TrackMateModelView> views = new ArrayList<TrackMateModelView>(
-					children.size());
+			final List< Element > children = guiel
+					.getChildren( GUI_VIEW_ELEMENT_KEY );
+			final Collection< TrackMateModelView > views = new ArrayList< TrackMateModelView >(
+					children.size() );
 
-			for (final Element child : children) {
+			for ( final Element child : children )
+			{
 				final String viewKey = child
-						.getAttributeValue(GUI_VIEW_ATTRIBUTE);
-				if (null == viewKey) {
-					logger.error("Could not find view key attribute for element "
-							+ child + ".\n");
+						.getAttributeValue( GUI_VIEW_ATTRIBUTE );
+				if ( null == viewKey )
+				{
+					logger.error( "Could not find view key attribute for element "
+							+ child + ".\n" );
 					ok = false;
-				} else {
+				}
+				else
+				{
 
 					final ViewFactory viewFactory = provider.getFactory( viewKey );
 
 					if ( null == viewFactory )
 					{
-						logger.error("Unknown view for key " + viewKey + ".\n");
+						logger.error( "Unknown view for key " + viewKey + ".\n" );
 						ok = false;
 
-					} else {
+					}
+					else
+					{
 
 						final TrackMateModelView view = viewFactory.create( model, settings, selectionModel );
-						views.add(view);
+						views.add( view );
 
-						new Thread("MaMuT view rendering thread") {
+						new Thread( "MaMuT view rendering thread")
+						{
 							@Override
-							public void run() {
+							public void run()
+							{
 
 								if ( viewKey.equals( MamutViewerFactory.KEY ) )
 								{
-									final MamutViewer mv = (MamutViewer) view;
+									final MamutViewer mv = ( MamutViewer ) view;
 									// mv.render();
 
-									try {
+									try
+									{
 										final int mvx = child.getAttribute(
-												GUI_VIEW_ATTRIBUTE_POSITION_X)
+												GUI_VIEW_ATTRIBUTE_POSITION_X )
 												.getIntValue();
 										final int mvy = child.getAttribute(
-												GUI_VIEW_ATTRIBUTE_POSITION_Y)
+												GUI_VIEW_ATTRIBUTE_POSITION_Y )
 												.getIntValue();
 										final int mvwidth = child
 												.getAttribute(
-														GUI_VIEW_ATTRIBUTE_POSITION_WIDTH)
+														GUI_VIEW_ATTRIBUTE_POSITION_WIDTH )
 												.getIntValue();
 										final int mvheight = child
 												.getAttribute(
-														GUI_VIEW_ATTRIBUTE_POSITION_HEIGHT)
+														GUI_VIEW_ATTRIBUTE_POSITION_HEIGHT )
 												.getIntValue();
 										mv.setLocation( mvx, mvy );
 										mv.setSize( mvwidth, mvheight );
-									} catch (final DataConversionException e) {
+									}
+									catch ( final DataConversionException e )
+									{
 										e.printStackTrace();
 									}
 
 								}
 								else if ( viewKey.equals( "TRACKSCHEME" ) )
 								{
-									final TrackScheme ts = (TrackScheme) view;
+									final TrackScheme ts = ( TrackScheme ) view;
 									// ts.render();
 
-									try {
+									try
+									{
 										final int mvx = child.getAttribute(
-												GUI_VIEW_ATTRIBUTE_POSITION_X)
+												GUI_VIEW_ATTRIBUTE_POSITION_X )
 												.getIntValue();
 										final int mvy = child.getAttribute(
-												GUI_VIEW_ATTRIBUTE_POSITION_Y)
+												GUI_VIEW_ATTRIBUTE_POSITION_Y )
 												.getIntValue();
 										final int mvwidth = child
 												.getAttribute(
-														GUI_VIEW_ATTRIBUTE_POSITION_WIDTH)
+														GUI_VIEW_ATTRIBUTE_POSITION_WIDTH )
 												.getIntValue();
 										final int mvheight = child
 												.getAttribute(
-														GUI_VIEW_ATTRIBUTE_POSITION_HEIGHT)
+														GUI_VIEW_ATTRIBUTE_POSITION_HEIGHT )
 												.getIntValue();
-										ts.getGUI().setLocation(mvx, mvy);
-										ts.getGUI().setSize(mvwidth, mvheight);
-									} catch (final DataConversionException e) {
-										e.printStackTrace();
+										ts.getGUI().setLocation( mvx, mvy );
+										ts.getGUI().setSize( mvwidth, mvheight );
+									}
+									catch ( final DataConversionException e )
+									{
+										e.printStackTrace( );
 									}
 								}
 							};
@@ -138,24 +157,33 @@ public class MamutXmlReader extends TmXmlReader {
 			}
 			return views;
 
-		} else {
-			logger.error("Could not find GUI state element.\n");
+		}
+		else
+		{
+			logger.error( "Could not find GUI state element.\n" );
 			ok = false;
 			return null;
 		}
 	}
 
-	public void getSetupAssignments(final SetupAssignments setupAssignments) {
-		final Element guiel = root.getChild(GUI_STATE_ELEMENT_KEY);
-		if (null != guiel) {
+	public void getSetupAssignments( final SetupAssignments setupAssignments )
+	{
+		final Element guiel = root.getChild( GUI_STATE_ELEMENT_KEY );
+		if ( null != guiel )
+		{
 			// brightness & color settings
-			if (guiel.getChild("SetupAssignments") != null) {
+			if ( guiel.getChild( "SetupAssignments" ) != null )
+			{
 				setupAssignments.restoreFromXml( guiel );
-			} else {
-				logger.error("Could not find SetupAssignments element.\n");
 			}
-		} else {
-			logger.error("Could not find GUI state element.\n");
+			else
+			{
+				logger.error( "Could not find SetupAssignments element.\n" );
+			}
+		}
+		else
+		{
+			logger.error( "Could not find GUI state element.\n" );
 			ok = false;
 		}
 	}
