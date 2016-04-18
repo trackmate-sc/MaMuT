@@ -167,7 +167,7 @@ public class MamutXmlReader extends TmXmlReader
 		}
 	}
 
-	public void getSetupAssignments( final SetupAssignments setupAssignments )
+	public void readSetupAssignments( final SetupAssignments setupAssignments )
 	{
 		final Element guiel = root.getChild( GUI_STATE_ELEMENT_KEY );
 		if ( null != guiel )

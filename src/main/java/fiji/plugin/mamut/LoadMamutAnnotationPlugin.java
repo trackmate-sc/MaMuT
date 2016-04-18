@@ -98,19 +98,19 @@ public class LoadMamutAnnotationPlugin implements PlugIn
 		}
 
 		/*
-		 * Launch MaMuT
+		 * Launch MaMuT.
 		 */
 
 		final MaMuT mamut = new MaMuT( imageFile, model, settings );
 
 		/*
-		 * Update setup assignments
+		 * Update setup assignments.
 		 */
 
-		reader.getSetupAssignments( mamut.getSetupAssignments() );
+		reader.readSetupAssignments( mamut.getSetupAssignments() );
 
 		/*
-		 * Update bookmarks
+		 * Update bookmarks.
 		 */
 
 		reader.readBookmarks( mamut.getBookmarks() );
