@@ -16,6 +16,7 @@ import java.util.List;
 import org.jdom2.DataConversionException;
 import org.jdom2.Element;
 
+import bdv.tools.bookmarks.Bookmarks;
 import bdv.tools.brightness.SetupAssignments;
 import fiji.plugin.mamut.viewer.MamutViewer;
 import fiji.plugin.mamut.viewer.MamutViewerFactory;
@@ -187,4 +188,19 @@ public class MamutXmlReader extends TmXmlReader
 			ok = false;
 		}
 	}
+
+	public void readBookmarks( final Bookmarks bookmarks )
+	{
+		final Element guiel = root.getChild( GUI_STATE_ELEMENT_KEY );
+		if ( null != guiel )
+		{
+			bookmarks.restoreFromXml( guiel );
+		}
+		else
+		{
+			logger.error( "Could not find GUI state element.\n" );
+			ok = false;
+		}
+	}
+
 }
