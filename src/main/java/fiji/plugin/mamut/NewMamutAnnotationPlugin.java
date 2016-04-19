@@ -14,18 +14,21 @@ import ij.IJ;
 import ij.ImageJ;
 import ij.plugin.PlugIn;
 
-public class NewMamutAnnotationPlugin implements PlugIn {
+public class NewMamutAnnotationPlugin implements PlugIn
+{
 
 	private static File file;
 
 	@Override
-	public void run(final String fileStr) {
+	public void run( final String fileStr )
+	{
 
 		final Logger logger = Logger.IJ_LOGGER;
 
-		if (null != fileStr && fileStr.length() > 0) {
+		if ( null != fileStr && fileStr.length() > 0 )
+		{
 			// Skip dialog
-			file = new File(fileStr);
+			file = new File( fileStr );
 			if ( file.isDirectory() )
 			{
 				file = IOUtils.askForFileForLoading( file, "Open a MaMuT xml file", IJ.getInstance(), logger );
@@ -42,15 +45,16 @@ public class NewMamutAnnotationPlugin implements PlugIn {
 				return;
 			}
 
-		} else {
+		}
+		else
+		{
 
-			if (null == file) {
+			if ( null == file )
+			{
 				file = proposeBdvXmlFileToOpen();
 			}
-			file = IOUtils.askForFileForLoading(file, "Open a hdf5/xml file", IJ.getInstance(), logger);
-			if (null == file) {
-				return;
-			}
+			file = IOUtils.askForFileForLoading( file, "Open a hdf5/xml file", IJ.getInstance(), logger );
+			if ( null == file ) { return; }
 		}
 
 		final Model model = createModel();
@@ -61,7 +65,7 @@ public class NewMamutAnnotationPlugin implements PlugIn {
 		 * Initialize default brightness.
 		 */
 
-		final List< SourceGroup > sourceGroups = new ArrayList< >();
+		final List< SourceGroup > sourceGroups = new ArrayList<>();
 		final ViewerState state = new ViewerState( settings.getSources(), sourceGroups, settings.nframes );
 		final int nSources = settings.getSources().size();
 		for ( int i = 0; i < nSources; i++ )
@@ -75,13 +79,13 @@ public class NewMamutAnnotationPlugin implements PlugIn {
 
 	public static File proposeBdvXmlFileToOpen()
 	{
-		File folder = new File(System.getProperty("user.dir"));
+		File folder = new File( System.getProperty( "user.dir" ) );
 		if ( folder != null && folder.getParentFile() != null )
 			folder = folder.getParentFile();
 		if ( folder != null )
-			return new File(folder.getPath() + File.separator + "data.xml");
+			return new File( folder.getPath() + File.separator + "data.xml" );
 		else
-			return new File("data.xml");
+			return new File( "data.xml" );
 	}
 
 	protected SourceSettings createSettings()
@@ -94,14 +98,14 @@ public class NewMamutAnnotationPlugin implements PlugIn {
 		return new Model();
 	}
 
-	public static void main(final String[] args) {
-		ImageJ.main(args);
+	public static void main( final String[] args )
+	{
+		ImageJ.main( args );
 
 		final NewMamutAnnotationPlugin plugin = new NewMamutAnnotationPlugin();
 		plugin.run(
 //				"/Users/tinevez/Desktop/Data/Mamut/parhyale/BDV130418A325_NoTempReg.xml"
-				""
-				);
+				"" );
 //		plugin.run( "/Users/tinevez/Desktop/Celegans.xml" );
 	}
 
