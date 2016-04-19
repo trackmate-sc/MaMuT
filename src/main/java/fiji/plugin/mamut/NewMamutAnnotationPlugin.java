@@ -1,7 +1,12 @@
 package fiji.plugin.mamut;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
+import bdv.tools.InitializeViewerState;
+import bdv.viewer.state.SourceGroup;
+import bdv.viewer.state.ViewerState;
 import fiji.plugin.trackmate.Logger;
 import fiji.plugin.trackmate.Model;
 import fiji.plugin.trackmate.io.IOUtils;
@@ -50,7 +55,22 @@ public class NewMamutAnnotationPlugin implements PlugIn {
 
 		final Model model = createModel();
 		final SourceSettings settings = createSettings();
-		new MaMuT( file, model, settings );
+		final MaMuT mamut = new MaMuT( file, model, settings );
+
+		/*
+		 * Initialize default brightness.
+		 */
+
+		final List< SourceGroup > sourceGroups = new ArrayList< >();
+		final ViewerState state = new ViewerState( settings.getSources(), sourceGroups, settings.nframes );
+		final int nSources = settings.getSources().size();
+		for ( int i = 0; i < nSources; i++ )
+		{
+			System.out.println( i ); // DEBUG
+			state.setCurrentSource( i );
+			InitializeViewerState.initBrightness( 0.001, 0.999, state, mamut.getSetupAssignments() );
+		}
+
 	}
 
 	public static File proposeBdvXmlFileToOpen()

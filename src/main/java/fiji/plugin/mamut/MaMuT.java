@@ -1004,7 +1004,6 @@ public class MaMuT implements ModelChangeListener
 		viewer.addWindowListener( new DeregisterWindowListener( viewer ) );
 
 		InitializeViewerState.initTransform( viewer.getViewerPanel() );
-		InitializeViewerState.initBrightness( 0.001, 0.999, viewer.getViewerPanel(), setupAssignments );
 
 		viewer.setJMenuBar( createMenuBar( viewer ) );
 
@@ -1084,7 +1083,7 @@ public class MaMuT implements ModelChangeListener
 			writer = new MamutXmlWriter( mamutFile, logger );
 			writer.appendModel( model );
 			writer.appendSettings( settings );
-			writer.appendMamutState( guimodel, setupAssignments );
+			writer.appendMamutState( guimodel, setupAssignments, bookmarks );
 			writer.writeToFile();
 			logger.log( "Done.\n" );
 		}
@@ -1444,6 +1443,16 @@ public class MaMuT implements ModelChangeListener
 	public SetupAssignments getSetupAssignments()
 	{
 		return setupAssignments;
+	}
+
+	/**
+	 * Exposes the {@link Bookmarks} of this MaMuT session.
+	 *
+	 * @return the {@link Bookmarks} instance.
+	 */
+	public Bookmarks getBookmarks()
+	{
+		return bookmarks;
 	}
 
 	/*
