@@ -70,6 +70,7 @@ public class NewMamutAnnotationPlugin implements PlugIn
 		}
 
 		final Model model = createModel();
+		model.setLogger( logger );
 		final SourceSettings settings = createSettings();
 		final MaMuT mamut = new MaMuT( file, model, settings );
 
