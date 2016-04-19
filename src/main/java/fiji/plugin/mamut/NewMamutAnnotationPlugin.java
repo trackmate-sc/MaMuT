@@ -1,18 +1,30 @@
 package fiji.plugin.mamut;
 
 import java.io.File;
-import java.util.ArrayList;
+import java.io.IOException;
 import java.util.List;
 
-import bdv.tools.InitializeViewerState;
-import bdv.viewer.state.SourceGroup;
-import bdv.viewer.state.ViewerState;
+import org.jdom2.Document;
+import org.jdom2.Element;
+import org.jdom2.JDOMException;
+import org.jdom2.input.SAXBuilder;
+
+import bdv.tools.brightness.MinMaxGroup;
+import bdv.tools.brightness.SetupAssignments;
+import bdv.viewer.Source;
+import bdv.viewer.SourceAndConverter;
 import fiji.plugin.trackmate.Logger;
 import fiji.plugin.trackmate.Model;
 import fiji.plugin.trackmate.io.IOUtils;
 import ij.IJ;
 import ij.ImageJ;
 import ij.plugin.PlugIn;
+import net.imglib2.RandomAccessibleInterval;
+import net.imglib2.histogram.DiscreteFrequencyDistribution;
+import net.imglib2.histogram.Histogram1d;
+import net.imglib2.histogram.Real1dBinMapper;
+import net.imglib2.type.numeric.integer.UnsignedShortType;
+import net.imglib2.view.Views;
 
 public class NewMamutAnnotationPlugin implements PlugIn
 {
@@ -62,17 +74,42 @@ public class NewMamutAnnotationPlugin implements PlugIn
 		final MaMuT mamut = new MaMuT( file, model, settings );
 
 		/*
-		 * Initialize default brightness.
+		 * Initialize default settings.
 		 */
 
-		final List< SourceGroup > sourceGroups = new ArrayList<>();
-		final ViewerState state = new ViewerState( settings.getSources(), sourceGroups, settings.nframes );
-		final int nSources = settings.getSources().size();
-		for ( int i = 0; i < nSources; i++ )
+		final String fs = file.toString();
+		final int ixml = fs.lastIndexOf( ".xml" );
+		final String settingsFileStr = fs.substring( 0, ixml ) + ".settings" + fs.substring( ixml );
+		final File settingsFile = new File( settingsFileStr );
+
+		if ( settingsFile.exists() && settingsFile.isFile() && settingsFile.canRead() )
 		{
-			System.out.println( i ); // DEBUG
-			state.setCurrentSource( i );
-			InitializeViewerState.initBrightness( 0.001, 0.999, state, mamut.getSetupAssignments() );
+			logger.log( "Found a settings file: " + settingsFileStr + '\n' );
+			final SAXBuilder sax = new SAXBuilder();
+			try
+			{
+				final Document doc = sax.build( settingsFile );
+				final Element root = doc.getRootElement();
+				mamut.getSetupAssignments().restoreFromXml( root );
+				mamut.getBookmarks().restoreFromXml( root );
+			}
+			catch ( final JDOMException e )
+			{
+				logger.error( "Could not read from settings file:\n" + e.getMessage() + '\n' );
+			}
+			catch ( final IOException e )
+			{
+				logger.error( "Could not read from settings file:\n" + e.getMessage() + '\n' );
+			}
+
+		}
+		else
+		{
+			/*
+			 * No settings file. We put in defaults.
+			 */
+
+			initBrightness( 0.001, 0.999, settings.getSources(), mamut.getSetupAssignments() );
 		}
 
 	}
@@ -98,6 +135,71 @@ public class NewMamutAnnotationPlugin implements PlugIn
 		return new Model();
 	}
 
+	/*
+	 * STATIC UTILS.
+	 */
+
+	/**
+	 * Copied from
+	 * {@link InitializeViewerState#initBrightness(double, double, ViewerState, SetupAssignments)}
+	 * 
+	 * @param cumulativeMinCutoff
+	 * @param cumulativeMaxCutoff
+	 * @param state
+	 * @param setupAssignments
+	 */
+	private static void initBrightness( final double cumulativeMinCutoff, final double cumulativeMaxCutoff, final List< SourceAndConverter< ? > > sources, final SetupAssignments setupAssignments )
+	{
+		final int nSources = sources.size();
+
+		// Loop over sources.
+		for ( int s = 0; s < nSources; s++ )
+		{
+			final Source< ? > source = sources.get( s ).getSpimSource();
+
+			// Fidn a timepoint for this source.
+			int timepoint = 0;
+			while ( !source.isPresent( timepoint ) && timepoint < 1000 )
+				timepoint++;
+
+			if ( !source.isPresent( timepoint ) )
+				return;
+
+			if ( !UnsignedShortType.class.isInstance( source.getType() ) )
+				return;
+
+			@SuppressWarnings( "unchecked" )
+			final RandomAccessibleInterval< UnsignedShortType > img = ( RandomAccessibleInterval< UnsignedShortType > ) source.getSource( timepoint, source.getNumMipmapLevels() - 1 );
+			final long z = ( img.min( 2 ) + img.max( 2 ) + 1 ) / 2;
+
+			final int numBins = 6535;
+			final Histogram1d< UnsignedShortType > histogram = new Histogram1d< UnsignedShortType >( Views.iterable( Views.hyperSlice( img, 2, z ) ), new Real1dBinMapper< UnsignedShortType >( 0, 65535, numBins, false ) );
+			final DiscreteFrequencyDistribution dfd = histogram.dfd();
+			final long[] bin = new long[] { 0 };
+			double cumulative = 0;
+			int i = 0;
+			for ( ; i < numBins && cumulative < cumulativeMinCutoff; ++i )
+			{
+				bin[ 0 ] = i;
+				cumulative += dfd.relativeFrequency( bin );
+			}
+			final int min = i * 65535 / numBins;
+			for ( ; i < numBins && cumulative < cumulativeMaxCutoff; ++i )
+			{
+				bin[ 0 ] = i;
+				cumulative += dfd.relativeFrequency( bin );
+			}
+			final int max = i * 65535 / numBins;
+			final MinMaxGroup minmax = setupAssignments.getMinMaxGroups().get( s );
+			minmax.getMinBoundedValue().setCurrentValue( min );
+			minmax.getMaxBoundedValue().setCurrentValue( max );
+		}
+	}
+
+	/*
+	 * MAIN METHOD
+	 */
+
 	public static void main( final String[] args )
 	{
 		ImageJ.main( args );
@@ -105,7 +207,7 @@ public class NewMamutAnnotationPlugin implements PlugIn
 		final NewMamutAnnotationPlugin plugin = new NewMamutAnnotationPlugin();
 		plugin.run(
 //				"/Users/tinevez/Desktop/Data/Mamut/parhyale/BDV130418A325_NoTempReg.xml"
-				"" );
+				"/Users/tinevez/Desktop/MaMuT_demo_dataset/MaMuT_Parhyale_demo.xml" );
 //		plugin.run( "/Users/tinevez/Desktop/Celegans.xml" );
 	}
 
