@@ -37,9 +37,9 @@ body
 </style>
 <body>
 
-<h1>MaMuT controls</h1>
+<h1>MaMuT default keybindings</h1>
 
-<img src="MamutKeyboardLayout.png" alt="MaMuT keyboard layout">
+<img src="MamutKeyboardLayout.png" alt="MaMuT default keyboard layout" >
 
 <h2>Sources and display modes</h2>
 <p>
@@ -52,6 +52,9 @@ In <i>single-source</i> mode, only the <i>current</i> source is shown
 (there is exactly one current source at any given time.)
 In <i>fused</i> mode, all <i>active</i> sources are shown overlaid.
 </p>
+<p>
+<i>Grouping</i> allows to group together several sources in single, virtual sources. 
+This is particularly useful when dealing with multiple channels as individual sources. 
 
 <table border="1">
 <tr>
@@ -64,11 +67,17 @@ In <i>fused</i> mode, all <i>active</i> sources are shown overlaid.
   <td class="a"><b>Shift&nbsp;1</b> / <b>Shift&nbsp;2</b> / &hellip; / <b>Shift&nbsp;0</b></td>
   <td>Make source 1/2/&hellip;/0 active or inactive. (Toggle visibility in fused mode.)</td>
 </tr><tr>
+  <td class="a"><b>G</b></td>
+  <td>Toggle grouping mode.</td>
+</tr><tr>
   <td class="a"><b>I</b></td>
   <td>Switch between tri-linear and nearest-neighbor interpolation.</td>
 </tr><tr>
   <td class="a"><b>S</b></td>
-  <td>Show settings (adjust brightness, colors, grouping).</td>
+  <td>Show brightness settings.</td>
+</tr><tr>
+  <td class="a"><b>F6</b></td>
+  <td>Show visibility and grouping settings.</td>
 </tr>
 </table>
 <br/>
@@ -129,6 +138,15 @@ Using the keyboard:
 </tr><tr>
   <td class="a"><b>]</b></td>
   <td>Jump to the next time step (step-wise time browsing).</td>
+</tr><tr>
+  <td class="a"><b>Shift B</b></td>
+  <td>Set a <u>bookmark</u> to the current location and orientation.</td>
+</tr><tr>
+  <td class="a"><b>B</b></td>
+  <td>Retrieve a bookmark location and orientation.</td>
+</tr><tr>
+  <td class="a"><b>O</b></td>
+  <td>Retrieve a bookmark orientation only.</td>
 </tr>
 </table>
 <p>
