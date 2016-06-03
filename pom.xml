@@ -8,12 +8,12 @@
 	<parent>
 		<groupId>sc.fiji</groupId>
 		<artifactId>pom-fiji</artifactId>
-		<version>21.4.0</version>
+		<version>24.0.0</version>
 		<relativePath />
 	</parent>
 
 	<artifactId>MaMuT_</artifactId>
-	<version>0.24.0</version>
+	<version>0.25.0</version>
 	<name>plugins/MaMuT_.jar</name>
 	<description></description>
 
