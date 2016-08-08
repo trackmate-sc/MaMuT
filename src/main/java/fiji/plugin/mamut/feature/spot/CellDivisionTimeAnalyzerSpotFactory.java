@@ -7,6 +7,8 @@ import java.util.Map;
 
 import javax.swing.ImageIcon;
 
+import org.scijava.plugin.Plugin;
+
 import fiji.plugin.trackmate.Dimension;
 import fiji.plugin.trackmate.Model;
 import fiji.plugin.trackmate.features.spot.SpotAnalyzer;
@@ -26,6 +28,7 @@ import net.imglib2.type.numeric.RealType;
  *            the type of the pixels in the image. Must extends {@link RealType}
  *            and {@link NativeType}.
  */
+@Plugin( type = SpotAnalyzerFactory.class )
 public class CellDivisionTimeAnalyzerSpotFactory< T extends RealType< T > & NativeType< T >> implements SpotAnalyzerFactory< T >
 {
 
