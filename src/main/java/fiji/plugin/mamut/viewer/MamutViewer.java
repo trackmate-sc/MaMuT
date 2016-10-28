@@ -17,15 +17,15 @@ import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 
 import org.scijava.ui.behaviour.MouseAndKeyHandler;
+import org.scijava.ui.behaviour.util.InputActionBindings;
+import org.scijava.ui.behaviour.util.TriggerBehaviourBindings;
 
 import bdv.BehaviourTransformEventHandler;
-import bdv.img.cache.Cache;
+import bdv.cache.CacheControl;
 import bdv.tools.VisibilityAndGroupingDialog;
 import bdv.tools.bookmarks.Bookmarks;
 import bdv.tools.bookmarks.BookmarksEditor;
-import bdv.viewer.InputActionBindings;
 import bdv.viewer.SourceAndConverter;
-import bdv.viewer.TriggerBehaviourBindings;
 import bdv.viewer.ViewerOptions;
 import bdv.viewer.animate.MessageOverlayAnimator;
 import fiji.plugin.mamut.MaMuT;
@@ -111,7 +111,7 @@ public class MamutViewer extends JFrame implements TrackMateModelView
 	 *            optional parameters. See
 	 *            {@link bdv.viewer.ViewerPanel#getOptionValues()}.
 	 */
-	public MamutViewer( final int width, final int height, final List< SourceAndConverter< ? > > sources, final int numTimePoints, final Cache cache,
+	public MamutViewer( final int width, final int height, final List< SourceAndConverter< ? > > sources, final int numTimePoints, final CacheControl cache,
 			final Model model, final SelectionModel selectionModel,
 			final ViewerOptions optional,
 			final Bookmarks bookmarks )

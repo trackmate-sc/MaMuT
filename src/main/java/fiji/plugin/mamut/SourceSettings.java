@@ -1,27 +1,26 @@
 package fiji.plugin.mamut;
 
-import bdv.img.cache.Cache;
-import bdv.viewer.SourceAndConverter;
-import fiji.plugin.trackmate.Settings;
-import ij.ImagePlus;
-
 import java.io.File;
 import java.util.List;
 
+import bdv.cache.CacheControl;
+import bdv.viewer.SourceAndConverter;
+import fiji.plugin.trackmate.Settings;
+import ij.ImagePlus;
 import net.imglib2.RandomAccessibleInterval;
 
 public class SourceSettings extends Settings {
 
 	private List<SourceAndConverter<?>> sources;
 
-	private Cache cache;
+	private CacheControl cache;
 
 	@Override
 	public void setFrom(final ImagePlus imp) {
 		throw new UnsupportedOperationException("Cannot use ImagePlus with SourceSettings.");
 	}
 
-	public void setFrom( final List< SourceAndConverter< ? >> sources, final File file, final int numTimePoints, final Cache cache )
+	public void setFrom( final List< SourceAndConverter< ? >> sources, final File file, final int numTimePoints, final CacheControl cache )
 	{
 		this.sources = sources;
 		this.cache = cache;
@@ -54,7 +53,7 @@ public class SourceSettings extends Settings {
 		return sources;
 	}
 
-	public Cache getCache()
+	public CacheControl getCacheControl()
 	{
 		return cache;
 	}

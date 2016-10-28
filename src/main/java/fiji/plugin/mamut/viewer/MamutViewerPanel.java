@@ -4,7 +4,7 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.util.List;
 
-import bdv.img.cache.Cache;
+import bdv.cache.CacheControl;
 import bdv.viewer.SourceAndConverter;
 import bdv.viewer.ViewerOptions;
 import bdv.viewer.ViewerPanel;
@@ -23,12 +23,12 @@ public class MamutViewerPanel extends ViewerPanel
 	 */
 	MamutOverlay overlay;
 
-	public MamutViewerPanel( final List< SourceAndConverter< ? >> sources, final int numTimePoints, final Cache cache )
+	public MamutViewerPanel( final List< SourceAndConverter< ? >> sources, final int numTimePoints, final CacheControl cache )
 	{
 		this( sources, numTimePoints, cache, ViewerOptions.options() );
 	}
 
-	public MamutViewerPanel( final List< SourceAndConverter< ? >> sources, final int numTimePoints, final Cache cache, final ViewerOptions optional )
+	public MamutViewerPanel( final List< SourceAndConverter< ? >> sources, final int numTimePoints, final CacheControl cache, final ViewerOptions optional )
 	{
 		super( sources, numTimePoints, cache, optional );
 	}

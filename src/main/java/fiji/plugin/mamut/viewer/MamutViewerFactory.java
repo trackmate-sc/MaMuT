@@ -4,7 +4,7 @@ import java.util.List;
 
 import javax.swing.ImageIcon;
 
-import bdv.img.cache.Cache;
+import bdv.cache.CacheControl;
 import bdv.tools.bookmarks.Bookmarks;
 import bdv.viewer.SourceAndConverter;
 import bdv.viewer.ViewerOptions;
@@ -57,7 +57,7 @@ public class MamutViewerFactory implements ViewFactory
 		final SourceSettings ss = ( SourceSettings ) settings;
 		final List< SourceAndConverter< ? >> sources = ss.getSources();
 		final int numTimePoints = ss.nframes;
-		final Cache cache = ss.getCache();
+		final CacheControl cache = ss.getCacheControl();
 		final Bookmarks bookmarks = new Bookmarks();
 		return new MamutViewer( DEFAULT_WIDTH, DEFAULT_HEIGHT,
 				sources, numTimePoints, cache,

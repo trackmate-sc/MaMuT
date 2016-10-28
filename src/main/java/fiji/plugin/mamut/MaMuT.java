@@ -58,7 +58,7 @@ import org.jgrapht.graph.DefaultWeightedEdge;
 import bdv.BigDataViewer;
 import bdv.BigDataViewerActions;
 import bdv.ViewerImgLoader;
-import bdv.img.cache.Cache;
+import bdv.cache.CacheControl;
 import bdv.spimdata.SpimDataMinimal;
 import bdv.spimdata.WrapBasicImgLoader;
 import bdv.spimdata.XmlIoSpimDataMinimal;
@@ -176,7 +176,7 @@ public class MaMuT implements ModelChangeListener
 	/** The image data sources to be displayed in the views. */
 	private List< SourceAndConverter< ? > > sources;
 
-	private Cache cache;
+	private CacheControl cache;
 
 	/** The number of timepoints in the image sources. */
 	private int nTimepoints;
@@ -598,7 +598,7 @@ public class MaMuT implements ModelChangeListener
 		final List< TimePoint > timepoints = seq.getTimePoints().getTimePointsOrdered();
 		nTimepoints = timepoints.size();
 		sources = new ArrayList< SourceAndConverter< ? > >();
-		cache = ( ( ViewerImgLoader ) seq.getImgLoader() ).getCache();
+		cache = ( ( ViewerImgLoader ) seq.getImgLoader() ).getCacheControl();
 		final ArrayList< ConverterSetup > converterSetups = new ArrayList< ConverterSetup >();
 		BigDataViewer.initSetups( spimData, converterSetups, sources );
 		for ( int i = 0; i < converterSetups.size(); ++i )

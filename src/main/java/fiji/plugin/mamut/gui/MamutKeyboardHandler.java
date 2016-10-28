@@ -10,17 +10,19 @@ import javax.swing.InputMap;
 import javax.swing.JComponent;
 import javax.swing.KeyStroke;
 
+import org.scijava.ui.behaviour.io.InputTriggerConfig;
+
+import bdv.BigDataViewer;
 import bdv.BigDataViewerActions;
 import bdv.tools.ToggleDialogAction;
-import bdv.util.KeyProperties;
 import bdv.viewer.NavigationActions;
+import bdv.viewer.ViewerOptions;
 import fiji.plugin.mamut.MaMuT;
 import fiji.plugin.mamut.viewer.MamutViewer;
 import ij.IJ;
 
 public class MamutKeyboardHandler
 {
-
 	private static final Properties DEFAULT_KEYBINGS = new Properties();
 
 	static
@@ -130,7 +132,8 @@ public class MamutKeyboardHandler
 
 	protected void installKeyboardActions( final JComponent graphComponent )
 	{
-		NavigationActions.installActionBindings( viewer.getKeybindings(), viewer.getViewerPanel(), KeyProperties.readPropertyFile() );
+		final InputTriggerConfig inputTriggerConfig = BigDataViewer.getInputTriggerConfig( ViewerOptions.options() );
+		NavigationActions.installActionBindings( viewer.getKeybindings(), viewer.getViewerPanel(), inputTriggerConfig );
 
 		final InputMap inputMap = readPropertyFile();
 		final ActionMap actionMap = createActionMap();
