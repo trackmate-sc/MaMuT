@@ -1,10 +1,5 @@
 package fiji.plugin.mamut.action;
 
-import ij.ImagePlus;
-import ij.ImageStack;
-import ij.measure.Calibration;
-import ij.process.ImageProcessor;
-
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -12,11 +7,6 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import javax.swing.ImageIcon;
-
-import net.imglib2.img.Img;
-import net.imglib2.img.display.imagej.ImageJFunctions;
-import net.imglib2.realtransform.AffineTransform3D;
-import net.imglib2.view.Views;
 
 import org.jgrapht.graph.DefaultWeightedEdge;
 
@@ -31,6 +21,14 @@ import fiji.plugin.trackmate.Spot;
 import fiji.plugin.trackmate.TrackMate;
 import fiji.plugin.trackmate.action.AbstractTMAction;
 import fiji.plugin.trackmate.gui.TrackMateWizard;
+import ij.ImagePlus;
+import ij.ImageStack;
+import ij.measure.Calibration;
+import ij.process.ImageProcessor;
+import net.imglib2.img.Img;
+import net.imglib2.img.display.imagej.ImageJFunctions;
+import net.imglib2.realtransform.AffineTransform3D;
+import net.imglib2.view.Views;
 
 public class MamutExtractTrackStackAction extends AbstractTMAction
 {
@@ -46,7 +44,7 @@ public class MamutExtractTrackStackAction extends AbstractTMAction
 	 * By how much we resize the capture window to get a nice border around the
 	 * spot.
 	 */
-	private static final float RESIZE_FACTOR = 1.5f;
+	public static final float RESIZE_FACTOR = 1.5f;
 
 	private final SelectionModel selectionModel;
 
