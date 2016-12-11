@@ -43,6 +43,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -1035,6 +1036,22 @@ public class MaMuT implements ModelChangeListener
 			viewer.getViewerPanel().getState().getViewerTransform( t );
 			t.set( 0., 2, 3 );
 			viewer.getViewerPanel().setCurrentViewerTransform( t );
+
+			// Blocks some actions that make no sense for 2D data.
+			final AbstractAction blockerAction = new AbstractAction( "Do nothing" )
+			{
+
+				private static final long serialVersionUID = 1L;
+
+				@Override
+				public void actionPerformed( final ActionEvent e )
+				{}
+			};
+
+			final ActionMap actionMap = new ActionMap();
+			actionMap.put( "align ZY plane", blockerAction );
+			actionMap.put( "align XZ plane", blockerAction );
+			viewer.getKeybindings().addActionMap( "2d mamut", actionMap );
 		}
 
 		viewer.setJMenuBar( createMenuBar( viewer ) );
