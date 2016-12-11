@@ -992,7 +992,13 @@ public class MaMuT implements ModelChangeListener
 
 	private MamutViewer newViewer()
 	{
-		// Test if we have 2D images.
+		/*
+		 * Test if we have 2D images.
+		 * 
+		 * The test is a bit loose here. We get into 2D mode if all the sources,
+		 * at the first time-point where they have data, have a number of pixels
+		 * in the 3rd dimension equals or lower than 1.
+		 */
 		boolean is2D = true;
 		for ( final SourceAndConverter< ? > sac : sources )
 		{
