@@ -43,6 +43,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -69,7 +70,9 @@ import bdv.tools.brightness.BrightnessDialog;
 import bdv.tools.brightness.ConverterSetup;
 import bdv.tools.brightness.SetupAssignments;
 import bdv.tools.transformation.ManualTransformationEditor;
+import bdv.util.BehaviourTransformEventHandlerPlanar;
 import bdv.viewer.RequestRepaint;
+import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import bdv.viewer.ViewerOptions;
 import bdv.viewer.state.ViewerState;
@@ -126,7 +129,9 @@ import ij3d.ImageWindow3D;
 import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.generic.sequence.AbstractSequenceDescription;
 import mpicbg.spim.data.sequence.TimePoint;
+import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealPoint;
+import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.ARGBType;
 
 public class MaMuT implements ModelChangeListener
@@ -987,17 +992,43 @@ public class MaMuT implements ModelChangeListener
 
 	private MamutViewer newViewer()
 	{
+		/*
+		 * Test if we have 2D images.
+		 * 
+		 * The test is a bit loose here. We get into 2D mode if all the sources,
+		 * at the first time-point where they have data, have a number of pixels
+		 * in the 3rd dimension equals or lower than 1.
+		 */
+		boolean is2D = true;
+		for ( final SourceAndConverter< ? > sac : sources )
+		{
+			final Source< ? > source = sac.getSpimSource();
+			for ( int t = 0; t < nTimepoints; t++ )
+			{
+				if ( source.isPresent( t ) )
+				{
+					final RandomAccessibleInterval< ? > level = source.getSource( t, 0 );
+					if ( level.dimension( 2 ) > 1 )
+						is2D = false;
+
+					break;
+				}
+			}
+		}
+
+		final ViewerOptions options = ViewerOptions.options();
+		if ( is2D )
+			options.transformEventHandlerFactory( BehaviourTransformEventHandlerPlanar.factory() );
+
 		final MamutViewer viewer = new MamutViewer(
 				DEFAULT_WIDTH, DEFAULT_HEIGHT,
 				sources, nTimepoints, cache,
 				model, selectionModel,
-				ViewerOptions.options(),
+				options,
 				bookmarks );
 
 		for ( final String key : guimodel.getDisplaySettings().keySet() )
-		{
 			viewer.setDisplaySettings( key, guimodel.getDisplaySettings().get( key ) );
-		}
 
 		installKeyBindings( viewer );
 		installMouseListeners( viewer );
@@ -1005,6 +1036,29 @@ public class MaMuT implements ModelChangeListener
 		viewer.addWindowListener( new DeregisterWindowListener( viewer ) );
 
 		InitializeViewerState.initTransform( viewer.getViewerPanel() );
+		if ( is2D )
+		{
+			final AffineTransform3D t = new AffineTransform3D();
+			viewer.getViewerPanel().getState().getViewerTransform( t );
+			t.set( 0., 2, 3 );
+			viewer.getViewerPanel().setCurrentViewerTransform( t );
+
+			// Blocks some actions that make no sense for 2D data.
+			final AbstractAction blockerAction = new AbstractAction( "Do nothing" )
+			{
+
+				private static final long serialVersionUID = 1L;
+
+				@Override
+				public void actionPerformed( final ActionEvent e )
+				{}
+			};
+
+			final ActionMap actionMap = new ActionMap();
+			actionMap.put( "align ZY plane", blockerAction );
+			actionMap.put( "align XZ plane", blockerAction );
+			viewer.getKeybindings().addActionMap( "2d mamut", actionMap );
+		}
 
 		viewer.setJMenuBar( createMenuBar( viewer ) );
 

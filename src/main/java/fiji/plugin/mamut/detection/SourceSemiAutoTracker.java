@@ -20,6 +20,7 @@ import net.imglib2.position.transform.Round;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
+import net.imglib2.view.Views;
 
 /**
  * A class made to perform semi-automated tracking of spots in MaMuT.
@@ -239,7 +240,7 @@ public class SourceSemiAutoTracker< T extends RealType< T > & NativeType< T >> e
 		final AffineTransform3D transform = sourceToGlobal.copy().concatenate( scale );
 
 		final SearchRegion< T > sn = new SearchRegion< T >();
-		sn.source = rai;
+		sn.source = Views.dropSingletonDimensions( rai );
 		sn.interval = interval;
 		sn.transform = transform;
 		sn.calibration = calibration;
