@@ -18,6 +18,7 @@
 	<name>plugins/MaMuT_.jar</name>
 	<description></description>
 	<url>http://imagej.net/MaMuT</url>
+	<inceptionYear>2012</inceptionYear>
 
 	<developers>
 		<developer>
