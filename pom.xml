@@ -96,8 +96,8 @@
 		<url>https://github.com/fiji/MaMuT/issues</url>
 	</issueManagement>
 	<ciManagement>
-		<system>Jenkins</system>
-		<url>http://jenkins.imagej.net/job/MaMuT/</url>
+		<system>Travis CI</system>
+		<url>https://travis-ci.org/fiji/MaMuT</url>
 	</ciManagement>
 
 	<properties>
