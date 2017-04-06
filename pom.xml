@@ -104,10 +104,6 @@
 		<package-name>fiji.plugin.mamut</package-name>
 		<license.licenseName>gpl_v3</license.licenseName>
 		<license.copyrightOwners>MaMuT development team.</license.copyrightOwners>
-
-		<!-- Target Fiji dir for clean upload. -->
-		<imagej.app.directory>../Fiji.app/</imagej.app.directory>
-		<pom-bigdataviewer.version>4.0.1</pom-bigdataviewer.version>
 	</properties>
 
 	<repositories>
@@ -117,18 +113,6 @@
 		</repository>
 	</repositories>
 
-	<dependencyManagement>
-		<dependencies>
-			<!-- Let the pom-bigdataviewer manage the bigdataviewer artifacts version. -->
-			<dependency>
-				<groupId>sc.fiji</groupId>
-				<artifactId>pom-bigdataviewer</artifactId>
-				<version>${pom-bigdataviewer.version}</version>
-				<type>pom</type>
-				<scope>import</scope>
-			</dependency>
-		</dependencies>
-	</dependencyManagement>
 	<dependencies>
 		<!-- BigDataViewer dependencies -->
 		<dependency>
