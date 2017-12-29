@@ -14,7 +14,7 @@
 
 	<groupId>sc.fiji</groupId>
 	<artifactId>MaMuT_</artifactId>
-	<version>0.27.1-SNAPSHOT</version>
+	<version>0.28.0</version>
 
 	<name>plugins/MaMuT_.jar</name>
 	<description>Fiji plugin for the annotation of massive, multi-view data.</description>
