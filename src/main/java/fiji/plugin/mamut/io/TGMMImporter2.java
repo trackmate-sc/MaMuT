@@ -195,11 +195,15 @@ public class TGMMImporter2 implements OutputAlgorithm< Model >, Benchmark
 			try
 			{
 				final int frame = Integer.parseInt( strFrame );
-				frames[ i ] = frame;
+				frames[ frame ] = i;
 			}
 			catch ( final NumberFormatException nfe )
 			{
 				errorMessage = BASE_ERROR_MSG + "Could not retrieve frame number from file " + file + ".\n" + nfe.getMessage() + "\n";
+				return false;
+			}
+			catch ( final IndexOutOfBoundsException iooe ) {
+				errorMessage = BASE_ERROR_MSG + "File " + name + " is retrieved as Frame " + Integer.parseInt( strFrame ) + " that exceeds the maximum index.\n" + iooe.getMessage() + "\n";
 				return false;
 			}
 		}
@@ -223,10 +227,10 @@ public class TGMMImporter2 implements OutputAlgorithm< Model >, Benchmark
 					continue;
 				}
 
-				logger.log( "Processing frame " + frames[ t ] + ". " );
+				logger.log( "Processing frame " + t + ". " );
 				final AffineTransform3D transform = transforms.get( frames[ t ] );
 
-				xmlFile = xmlFiles[ t ];
+				xmlFile = xmlFiles[ frames[t] ];
 				final Document doc = saxBuilder.build( xmlFile );
 				final Element root = doc.getRootElement();
 				final List< Element > detectionEls = root.getChildren( XML_DETECTION_NAME );
@@ -424,7 +428,7 @@ public class TGMMImporter2 implements OutputAlgorithm< Model >, Benchmark
 				 * Finished inspecting a frame. Store it in the spot collection.
 				 */
 
-				sc.put( frames[ t ], spots );
+				sc.put( t, spots );
 				previousSpotID = currentSpotID;
 				logger.log( "Found " + spots.size() + " spots.\n" );
 				logger.setProgress( ( double ) t / frames.length );
