@@ -304,7 +304,7 @@ public class MamutRecordMovieDialog extends JDialog implements OverlayRenderer
 			renderer.requestRepaint();
 			renderer.paint( renderState );
 
-			if ( Prefs.showScaleBarInMovie() )
+			if ( Prefs.showScaleBarInMovie() && scalebar != null )
 			{
 				final Graphics2D g2 = target.bi.createGraphics();
 				g2.setClip( 0, 0, width, height );

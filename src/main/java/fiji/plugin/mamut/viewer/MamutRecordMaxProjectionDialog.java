@@ -379,7 +379,7 @@ public class MamutRecordMaxProjectionDialog extends JDialog implements OverlayRe
 
 			final BufferedImage bi = target.accumulated.image();
 
-			if ( Prefs.showScaleBarInMovie() )
+			if ( Prefs.showScaleBarInMovie() && scalebar != null )
 			{
 				final Graphics2D g2 = bi.createGraphics();
 				g2.setClip( 0, 0, width, height );
