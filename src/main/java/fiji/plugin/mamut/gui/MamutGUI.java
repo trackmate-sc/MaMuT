@@ -36,6 +36,7 @@ import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JTabbedPane;
+import javax.swing.SwingConstants;
 
 import fiji.plugin.mamut.MaMuT;
 import fiji.plugin.mamut.action.MamutActionFactory;
@@ -90,7 +91,7 @@ public class MamutGUI extends JFrame
 		setIconImage( MAMUT_ICON.getImage() );
 		setSize( 340, 580 );
 
-		final JTabbedPane tabbedPane = new JTabbedPane( JTabbedPane.TOP );
+		final JTabbedPane tabbedPane = new JTabbedPane( SwingConstants.TOP );
 		getContentPane().add( tabbedPane, BorderLayout.CENTER );
 		setLocationByPlatform( true );
 		setVisible( true );
@@ -103,9 +104,9 @@ public class MamutGUI extends JFrame
 
 		final MamutActionProvider actionProvider = new MamutActionProvider();
 		final List< String > actionKeys = actionProvider.getVisibleKeys();
-		final List< String > names = new ArrayList< String >( actionKeys.size() );
-		final List< String > infoTexts = new ArrayList< String >( actionKeys.size() );
-		final List< ImageIcon > icons = new ArrayList< ImageIcon >( actionKeys.size() );
+		final List< String > names = new ArrayList<>( actionKeys.size() );
+		final List< String > infoTexts = new ArrayList<>( actionKeys.size() );
+		final List< ImageIcon > icons = new ArrayList<>( actionKeys.size() );
 		for ( final String key : actionKeys )
 		{
 			infoTexts.add( actionProvider.getFactory( key ).getInfoText() );

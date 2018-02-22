@@ -99,7 +99,7 @@ public class SourceSpotImageUpdater<T extends RealType<T>> extends SpotImageUpda
 				final AffineTransform3D sourceToGlobal = new AffineTransform3D();
 				source.getSourceTransform( frame, 0, sourceToGlobal );
 				final Point roundedSourcePos = new Point(3);
-				sourceToGlobal.applyInverse(new Round<Point>(roundedSourcePos), spot);
+				sourceToGlobal.applyInverse(new Round<>(roundedSourcePos), spot);
 				final long x = roundedSourcePos.getLongPosition(0);
 				final long y = roundedSourcePos.getLongPosition(1);
 				final long z = Math.max(img.min(2), Math.min(img.max(2), roundedSourcePos.getLongPosition(2)));
@@ -124,9 +124,9 @@ public class SourceSpotImageUpdater<T extends RealType<T>> extends SpotImageUpda
 
 					final double minValue = Min.findMin(Views.iterable(crop)).get().getRealDouble();
 					final double maxValue = Max.findMax(Views.iterable(crop)).get().getRealDouble();
-					final RealUnsignedByteConverter< T > converter = new RealUnsignedByteConverter< T >( minValue, maxValue );
+					final RealUnsignedByteConverter< T > converter = new RealUnsignedByteConverter<>( minValue, maxValue );
 
-					new IterableIntervalProjector2D< T, UnsignedByteType >( 0, 1, crop, target, converter ).map();
+					new IterableIntervalProjector2D<>( 0, 1, crop, target, converter ).map();
 				}
 
 				// Convert to string

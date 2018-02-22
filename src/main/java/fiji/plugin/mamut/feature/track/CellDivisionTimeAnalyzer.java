@@ -56,19 +56,19 @@ public class CellDivisionTimeAnalyzer implements TrackAnalyzer
 
 	public static final String KEY = "CELL_DIVISION_TIME_ANALYZER";
 
-	private static final List< String > FEATURES = new ArrayList< String >( 1 );
+	private static final List< String > FEATURES = new ArrayList<>( 1 );
 
 	public static final String DIVISION_TIME_MEAN = "DIVISION_TIME_MEAN";
 
 	public static final String DIVISION_TIME_STD = "DIVISION_TIME_STD";
 
-	private static final Map< String, String > FEATURE_SHORT_NAMES = new HashMap< String, String >( 2 );
+	private static final Map< String, String > FEATURE_SHORT_NAMES = new HashMap<>( 2 );
 
-	private static final Map< String, String > FEATURE_NAMES = new HashMap< String, String >( 2 );
+	private static final Map< String, String > FEATURE_NAMES = new HashMap<>( 2 );
 
-	private static final Map< String, Dimension > FEATURE_DIMENSIONS = new HashMap< String, Dimension >( 2 );
+	private static final Map< String, Dimension > FEATURE_DIMENSIONS = new HashMap<>( 2 );
 
-	private static final Map< String, Boolean > IS_INT = new HashMap< String, Boolean >( 2 );
+	private static final Map< String, Boolean > IS_INT = new HashMap<>( 2 );
 
 	private static final String INFO_TEXT = "<html>This analyzers measures the time between two cell divisions. It excludes </html>";
 

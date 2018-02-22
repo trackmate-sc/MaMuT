@@ -73,9 +73,9 @@ public class TransformUtils
 	{
 		final AffineTransform3D model = new AffineTransform3D();
 
-		try
+		try (final BufferedReader in = TextFileAccess.openFileRead( file ))
 		{
-			final BufferedReader in = TextFileAccess.openFileRead( file );
+	
 			double z = 1;
 
 			// the default if nothing is written
@@ -137,53 +137,54 @@ public class TransformUtils
 	{
 		final AffineTransform3D model = new AffineTransform3D();
 
-		final BufferedReader in = TextFileAccess.openFileRead( file );
-
-		// get 12 entry float array
-		final double m[] = new double[ 12 ];
-
-		// the default if nothing is written
-		String savedModel = "AffineModel3D";
-
-		while ( in.ready() )
+		try (final BufferedReader in = TextFileAccess.openFileRead( file ))
 		{
-			final String entry = in.readLine().trim();
+			// get 12 entry float array
+			final double m[] = new double[ 12 ];
 
-			if ( entry.startsWith( "m00:" ) )
-				m[ 0 ] = Double.parseDouble( entry.substring( 5, entry.length() ) );
-			else if ( entry.startsWith( "m01:" ) )
-				m[ 1 ] = Double.parseDouble( entry.substring( 5, entry.length() ) );
-			else if ( entry.startsWith( "m02:" ) )
-				m[ 2 ] = Double.parseDouble( entry.substring( 5, entry.length() ) );
-			else if ( entry.startsWith( "m03:" ) )
-				m[ 3 ] = Double.parseDouble( entry.substring( 5, entry.length() ) );
-			else if ( entry.startsWith( "m10:" ) )
-				m[ 4 ] = Double.parseDouble( entry.substring( 5, entry.length() ) );
-			else if ( entry.startsWith( "m11:" ) )
-				m[ 5 ] = Double.parseDouble( entry.substring( 5, entry.length() ) );
-			else if ( entry.startsWith( "m12:" ) )
-				m[ 6 ] = Double.parseDouble( entry.substring( 5, entry.length() ) );
-			else if ( entry.startsWith( "m13:" ) )
-				m[ 7 ] = Double.parseDouble( entry.substring( 5, entry.length() ) );
-			else if ( entry.startsWith( "m20:" ) )
-				m[ 8 ] = Double.parseDouble( entry.substring( 5, entry.length() ) );
-			else if ( entry.startsWith( "m21:" ) )
-				m[ 9 ] = Double.parseDouble( entry.substring( 5, entry.length() ) );
-			else if ( entry.startsWith( "m22:" ) )
-				m[ 10 ] = Double.parseDouble( entry.substring( 5, entry.length() ) );
-			else if ( entry.startsWith( "m23:" ) )
-				m[ 11 ] = Double.parseDouble( entry.substring( 5, entry.length() ) );
-			else if ( entry.startsWith( "model:" ) )
-				savedModel = entry.substring( 7, entry.length() ).trim();
+			// the default if nothing is written
+			String savedModel = "AffineModel3D";
+
+			while ( in.ready() )
+			{
+				final String entry = in.readLine().trim();
+
+				if ( entry.startsWith( "m00:" ) )
+					m[ 0 ] = Double.parseDouble( entry.substring( 5, entry.length() ) );
+				else if ( entry.startsWith( "m01:" ) )
+					m[ 1 ] = Double.parseDouble( entry.substring( 5, entry.length() ) );
+				else if ( entry.startsWith( "m02:" ) )
+					m[ 2 ] = Double.parseDouble( entry.substring( 5, entry.length() ) );
+				else if ( entry.startsWith( "m03:" ) )
+					m[ 3 ] = Double.parseDouble( entry.substring( 5, entry.length() ) );
+				else if ( entry.startsWith( "m10:" ) )
+					m[ 4 ] = Double.parseDouble( entry.substring( 5, entry.length() ) );
+				else if ( entry.startsWith( "m11:" ) )
+					m[ 5 ] = Double.parseDouble( entry.substring( 5, entry.length() ) );
+				else if ( entry.startsWith( "m12:" ) )
+					m[ 6 ] = Double.parseDouble( entry.substring( 5, entry.length() ) );
+				else if ( entry.startsWith( "m13:" ) )
+					m[ 7 ] = Double.parseDouble( entry.substring( 5, entry.length() ) );
+				else if ( entry.startsWith( "m20:" ) )
+					m[ 8 ] = Double.parseDouble( entry.substring( 5, entry.length() ) );
+				else if ( entry.startsWith( "m21:" ) )
+					m[ 9 ] = Double.parseDouble( entry.substring( 5, entry.length() ) );
+				else if ( entry.startsWith( "m22:" ) )
+					m[ 10 ] = Double.parseDouble( entry.substring( 5, entry.length() ) );
+				else if ( entry.startsWith( "m23:" ) )
+					m[ 11 ] = Double.parseDouble( entry.substring( 5, entry.length() ) );
+				else if ( entry.startsWith( "model:" ) )
+					savedModel = entry.substring( 7, entry.length() ).trim();
+			}
+
+			in.close();
+
+			if ( !savedModel.equals( "AffineModel3D" ) )
+				System.out.println( "Warning: Loading a '" + savedModel + "' as AffineModel3D!" );
+
+			model.set( m[ 0 ], m[ 1 ], m[ 2 ], m[ 3 ], m[ 4 ], m[ 5 ], m[ 6 ], m[ 7 ], m[ 8 ], m[ 9 ], m[ 10 ], m[ 11 ] );
+
+			return model;
 		}
-
-		in.close();
-
-		if ( !savedModel.equals( "AffineModel3D" ) )
-			System.out.println( "Warning: Loading a '" + savedModel + "' as AffineModel3D!" );
-
-		model.set( m[ 0 ], m[ 1 ], m[ 2 ], m[ 3 ], m[ 4 ], m[ 5 ], m[ 6 ], m[ 7 ], m[ 8 ], m[ 9 ], m[ 10 ], m[ 11 ] );
-
-		return model;
 	}
 }

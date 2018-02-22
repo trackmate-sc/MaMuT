@@ -423,7 +423,7 @@ public class ImportTGMMAnnotationPlugin_ implements PlugIn
 
 		final SequenceDescriptionMinimal seq = spimData.getSequenceDescription();
 		final ViewRegistrations regs = spimData.getViewRegistrations();
-		final List< AffineTransform3D > transforms = new ArrayList< AffineTransform3D >( seq.getTimePoints().size() );
+		final List< AffineTransform3D > transforms = new ArrayList<>( seq.getTimePoints().size() );
 		for ( final TimePoint t : seq.getTimePoints().getTimePointsOrdered() )
 		{
 			transforms.add( regs.getViewRegistration( t.getId(), setupID ).getModel() );

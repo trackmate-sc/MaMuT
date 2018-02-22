@@ -40,7 +40,7 @@ public class MamutTrackAnalyzerProvider extends TrackAnalyzerProvider
 
 	static
 	{
-		KEYS = new ArrayList< String >( 4 );
+		KEYS = new ArrayList<>( 4 );
 		KEYS.add( TrackIndexAnalyzer.KEY );
 		KEYS.add( TrackDurationAnalyzer.KEY );
 		KEYS.add( TrackBranchingAnalyzer.KEY );

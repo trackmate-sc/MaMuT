@@ -79,7 +79,7 @@ public class LoadTGMMAnnotationPlugIn implements PlugIn
 		if ( null == staticTGMMFolder )
 		{
 			File folder = new File( System.getProperty( "user.dir" ) );
-			if ( folder != null && folder.getParentFile() != null )
+			if ( folder.getParentFile() != null )
 				folder = folder.getParentFile();
 			if ( folder == null )
 				folder = new File( "./" );
@@ -191,7 +191,7 @@ public class LoadTGMMAnnotationPlugIn implements PlugIn
 	{
 		final SequenceDescriptionMinimal seq = spimData.getSequenceDescription();
 		final ViewRegistrations regs = spimData.getViewRegistrations();
-		final List< AffineTransform3D > transforms = new ArrayList< AffineTransform3D >( seq.getTimePoints().size() );
+		final List< AffineTransform3D > transforms = new ArrayList<>( seq.getTimePoints().size() );
 		for ( final TimePoint t : seq.getTimePoints().getTimePointsOrdered() )
 		{
 			transforms.add( regs.getViewRegistration( t.getId(), setupID ).getModel() );

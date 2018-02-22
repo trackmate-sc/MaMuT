@@ -139,12 +139,12 @@ public class NewMamutAnnotationPlugin implements PlugIn
 	public static File proposeBdvXmlFileToOpen()
 	{
 		File folder = new File( System.getProperty( "user.dir" ) );
-		if ( folder != null && folder.getParentFile() != null )
+		if ( folder.getParentFile() != null )
 			folder = folder.getParentFile();
 		if ( folder != null )
 			return new File( folder.getPath() + File.separator + "data.xml" );
-		else
-			return new File( "data.xml" );
+
+		return new File( "data.xml" );
 	}
 
 	protected SourceSettings createSettings()
@@ -161,15 +161,6 @@ public class NewMamutAnnotationPlugin implements PlugIn
 	 * STATIC UTILS.
 	 */
 
-	/**
-	 * Copied from
-	 * {@link InitializeViewerState#initBrightness(double, double, ViewerState, SetupAssignments)}
-	 * 
-	 * @param cumulativeMinCutoff
-	 * @param cumulativeMaxCutoff
-	 * @param state
-	 * @param setupAssignments
-	 */
 	private static void initBrightness( final double cumulativeMinCutoff, final double cumulativeMaxCutoff, final List< SourceAndConverter< ? > > sources, final SetupAssignments setupAssignments )
 	{
 		final int nSources = sources.size();
@@ -195,7 +186,7 @@ public class NewMamutAnnotationPlugin implements PlugIn
 			final long z = ( img.min( 2 ) + img.max( 2 ) + 1 ) / 2;
 
 			final int numBins = 6535;
-			final Histogram1d< UnsignedShortType > histogram = new Histogram1d< UnsignedShortType >( Views.iterable( Views.hyperSlice( img, 2, z ) ), new Real1dBinMapper< UnsignedShortType >( 0, 65535, numBins, false ) );
+			final Histogram1d< UnsignedShortType > histogram = new Histogram1d<>( Views.iterable( Views.hyperSlice( img, 2, z ) ), new Real1dBinMapper< UnsignedShortType >( 0, 65535, numBins, false ) );
 			final DiscreteFrequencyDistribution dfd = histogram.dfd();
 			final long[] bin = new long[] { 0 };
 			double cumulative = 0;

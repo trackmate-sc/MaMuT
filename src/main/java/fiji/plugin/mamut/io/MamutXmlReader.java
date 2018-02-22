@@ -77,7 +77,7 @@ public class MamutXmlReader extends TmXmlReader
 
 			final List< Element > children = guiel
 					.getChildren( GUI_VIEW_ELEMENT_KEY );
-			final Collection< TrackMateModelView > views = new ArrayList< TrackMateModelView >(
+			final Collection< TrackMateModelView > views = new ArrayList< >(
 					children.size() );
 
 			for ( final Element child : children )
@@ -172,7 +172,7 @@ public class MamutXmlReader extends TmXmlReader
 										e.printStackTrace( );
 									}
 								}
-							};
+							}
 						}.start();
 					}
 				}
@@ -180,12 +180,10 @@ public class MamutXmlReader extends TmXmlReader
 			return views;
 
 		}
-		else
-		{
-			logger.error( "Could not find GUI state element.\n" );
-			ok = false;
-			return null;
-		}
+		
+		logger.error( "Could not find GUI state element.\n" );
+		ok = false;
+		return null;
 	}
 
 	public void readSetupAssignments( final SetupAssignments setupAssignments )

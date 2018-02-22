@@ -53,7 +53,7 @@ public class MamutActionPanel extends ListChooserPanel
 	{
 		super( items, infoTexts, typeName );
 		this.action = action;
-		this.iconsMap = new HashMap< String, ImageIcon >( icons.size() );
+		this.iconsMap = new HashMap<>( icons.size() );
 		for ( int i = 0; i < icons.size(); i++ )
 		{
 			iconsMap.put( items.get( i ), icons.get( i ) );

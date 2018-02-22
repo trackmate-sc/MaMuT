@@ -54,7 +54,7 @@ public class MamutUtils
 		final AffineTransform3D sourceToGlobal = new AffineTransform3D();
 		source.getSourceTransform( frame, 0, sourceToGlobal );
 		final Point roundedSourcePos = new Point( 3 );
-		sourceToGlobal.applyInverse( new Round< Point >( roundedSourcePos ), spot );
+		sourceToGlobal.applyInverse( new Round<>( roundedSourcePos ), spot );
 		final long x = roundedSourcePos.getLongPosition( 0 );
 		final long y = roundedSourcePos.getLongPosition( 1 );
 		final long z = roundedSourcePos.getLongPosition( 2 );
@@ -70,7 +70,7 @@ public class MamutUtils
 		final AffineTransform3D sourceToGlobal = new AffineTransform3D();
 		source.getSourceTransform( frame, 0, sourceToGlobal );
 		final Point roundedSourcePos = new Point( 3 );
-		sourceToGlobal.applyInverse( new Round< Point >( roundedSourcePos ), spot );
+		sourceToGlobal.applyInverse( new Round<>( roundedSourcePos ), spot );
 		final long x = roundedSourcePos.getLongPosition( 0 );
 		final long y = roundedSourcePos.getLongPosition( 1 );
 		final long z = roundedSourcePos.getLongPosition( 2 );
@@ -113,23 +113,20 @@ public class MamutUtils
 			final Img ret = new ArrayImgFactory().create( size, ntype );
 			return ret;
 		}
-		else
-		{
-			final ExtendedRandomAccessibleInterval extendZero = Views.extendZero( img );
-			final IntervalView crop = Views.zeroMin( Views.interval( extendZero, cropInterval ) );
-			final Img target = Util.getArrayOrCellImgFactory( crop, ntype ).create( size, ntype );
+		
+		final ExtendedRandomAccessibleInterval extendZero = Views.extendZero(img);
+		final IntervalView crop = Views.zeroMin(Views.interval(extendZero, cropInterval));
+		final Img target = Util.getArrayOrCellImgFactory(crop, ntype).create(size, ntype);
 
-			final RandomAccess randomAccess = crop.randomAccess();
-			final Cursor cursor = target.localizingCursor();
-			while ( cursor.hasNext() )
-			{
-				cursor.fwd();
-				randomAccess.setPosition( cursor );
-				( ( Type ) cursor.get() ).set( ( Type ) randomAccess.get() );
-			}
-
-			return target;
+		final RandomAccess randomAccess = crop.randomAccess();
+		final Cursor cursor = target.localizingCursor();
+		while (cursor.hasNext()) {
+			cursor.fwd();
+			randomAccess.setPosition(cursor);
+			((Type) cursor.get()).set((Type) randomAccess.get());
 		}
+
+		return target;
 	}
 
 	@SuppressWarnings( { "rawtypes", "unchecked" } )
@@ -168,14 +165,12 @@ public class MamutUtils
 			final Img ret = new ArrayImgFactory().create( size, ntype );
 			return ret;
 		}
-		else
-		{
-			final ExtendedRandomAccessibleInterval extendZero = Views.extendZero( slice );
-			final IntervalView crop = Views.zeroMin( Views.interval( extendZero, cropInterval ) );
-			final Img target = Util.getArrayOrCellImgFactory( crop, ntype ).create( size, ntype );
-			new IterableIntervalProjector2D( 0, 1, crop, target, new TypeIdentity() ).map();
-			return target;
-		}
+
+		final ExtendedRandomAccessibleInterval extendZero = Views.extendZero(slice);
+		final IntervalView crop = Views.zeroMin(Views.interval(extendZero, cropInterval));
+		final Img target = Util.getArrayOrCellImgFactory(crop, ntype).create(size, ntype);
+		new IterableIntervalProjector2D(0, 1, crop, target, new TypeIdentity()).map();
+		return target;
 	}
 
 	private static final boolean isEmpty( final Interval interval )

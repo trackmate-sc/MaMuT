@@ -41,7 +41,6 @@ import org.jgrapht.graph.DefaultWeightedEdge;
 import fiji.plugin.trackmate.Model;
 import fiji.plugin.trackmate.SelectionModel;
 import fiji.plugin.trackmate.Spot;
-import fiji.plugin.trackmate.visualization.AbstractTrackMateModelView;
 import fiji.plugin.trackmate.visualization.TrackMateModelView;
 
 /**
@@ -123,14 +122,14 @@ public class MamutZProjectedOverlay extends MamutOverlay
 				Stroke stroke;
 				if ( selectionModel.getSpotSelection().contains( spot ) && trackDisplayMode != TrackMateModelView.TRACK_DISPLAY_MODE_SELECTION_ONLY )
 				{
-					color = AbstractTrackMateModelView.DEFAULT_HIGHLIGHT_COLOR;
+					color = TrackMateModelView.DEFAULT_HIGHLIGHT_COLOR;
 					stroke = SELECTION_STROKE;
 				}
 				else
 				{
 					if ( null == viewer.spotColorProvider || null == ( color = viewer.spotColorProvider.color( spot ) ) )
 					{
-						color = AbstractTrackMateModelView.DEFAULT_SPOT_COLOR;
+						color = TrackMateModelView.DEFAULT_SPOT_COLOR;
 					}
 					stroke = NORMAL_STROKE;
 				}
@@ -216,7 +215,7 @@ public class MamutZProjectedOverlay extends MamutOverlay
 				for ( final Integer trackID : filteredTrackIDs )
 				{
 					viewer.trackColorProvider.setCurrentTrackID( trackID );
-					final Set< DefaultWeightedEdge > track = new HashSet< DefaultWeightedEdge >( model.getTrackModel().trackEdges( trackID ) );
+					final Set< DefaultWeightedEdge > track = new HashSet<>( model.getTrackModel().trackEdges( trackID ) );
 
 					for ( final DefaultWeightedEdge edge : track )
 					{
@@ -277,7 +276,7 @@ public class MamutZProjectedOverlay extends MamutOverlay
 				for ( final int trackID : filteredTrackIDs )
 				{
 					viewer.trackColorProvider.setCurrentTrackID( trackID );
-					final Set< DefaultWeightedEdge > track = new HashSet< DefaultWeightedEdge >( model.getTrackModel().trackEdges( trackID ) );
+					final Set< DefaultWeightedEdge > track = new HashSet<>( model.getTrackModel().trackEdges( trackID ) );
 
 					for ( final DefaultWeightedEdge edge : track )
 					{

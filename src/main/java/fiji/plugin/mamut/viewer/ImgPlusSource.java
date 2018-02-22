@@ -66,10 +66,10 @@ public class ImgPlusSource< T extends NumericType< T > > implements Source< T >
 		{
 		default:
 		case NEARESTNEIGHBOR:
-			factory = new NearestNeighborInterpolatorFactory< T >();
+			factory = new NearestNeighborInterpolatorFactory<>();
 			break;
 		case NLINEAR:
-			factory = new NLinearInterpolatorFactory< T >();
+			factory = new NLinearInterpolatorFactory<>();
 			break;
 		}
 		final T zero = img.firstElement().createVariable();

@@ -55,15 +55,15 @@ public class CellDivisionTimeAnalyzerSpotFactory< T extends RealType< T > & Nati
 
 	public static final String CELL_DIVISION_TIME = "CELL_DIVISION_TIME";
 
-	private static final List< String > FEATURES = new ArrayList< String >( 1 );
+	private static final List< String > FEATURES = new ArrayList<>( 1 );
 
-	private static final Map< String, String > FEATURE_SHORT_NAMES = new HashMap< String, String >( 1 );
+	private static final Map< String, String > FEATURE_SHORT_NAMES = new HashMap<>( 1 );
 
-	private static final Map< String, String > FEATURE_NAMES = new HashMap< String, String >( 1 );
+	private static final Map< String, String > FEATURE_NAMES = new HashMap<>( 1 );
 
-	private static final Map< String, Dimension > FEATURE_DIMENSIONS = new HashMap< String, Dimension >( 1 );
+	private static final Map< String, Dimension > FEATURE_DIMENSIONS = new HashMap<>( 1 );
 
-	private static final Map< String, Boolean > IS_INT = new HashMap< String, Boolean >( 1 );
+	private static final Map< String, Boolean > IS_INT = new HashMap<>( 1 );
 
 	public static final String KEY = "CELL_DIVISION_TIME_ON_SPOTS";
 

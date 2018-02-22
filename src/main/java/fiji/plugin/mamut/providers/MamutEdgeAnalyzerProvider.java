@@ -37,7 +37,7 @@ public class MamutEdgeAnalyzerProvider extends EdgeAnalyzerProvider
 
 	static
 	{
-		KEYS = new ArrayList< String >( 3 );
+		KEYS = new ArrayList<>( 3 );
 		KEYS.add( EdgeTargetAnalyzer.KEY );
 		KEYS.add( EdgeVelocityAnalyzer.KEY );
 		KEYS.add( ManualEdgeColorAnalyzer.KEY );

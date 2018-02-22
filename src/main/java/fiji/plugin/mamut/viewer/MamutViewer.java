@@ -36,6 +36,7 @@ import java.util.Map;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
+import javax.swing.WindowConstants;
 
 import org.scijava.ui.behaviour.MouseAndKeyHandler;
 import org.scijava.ui.behaviour.util.InputActionBindings;
@@ -88,7 +89,7 @@ public class MamutViewer extends JFrame implements TrackMateModelView
 	private final SelectionModel selectionModel;
 
 	/** A map of String/Object that configures the look and feel of the display. */
-	protected Map< String, Object > displaySettings = new HashMap< String, Object >();
+	protected Map< String, Object > displaySettings = new HashMap<>();
 
 	/** The mapping from spot to a color. */
 	FeatureColorGenerator< Spot > spotColorProvider;
@@ -153,7 +154,7 @@ public class MamutViewer extends JFrame implements TrackMateModelView
 		setPreferredSize( new Dimension( width, height ) );
 		add( viewerPanel, BorderLayout.CENTER );
 		pack();
-		setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
+		setDefaultCloseOperation( WindowConstants.DISPOSE_ON_CLOSE );
 		addWindowListener( new WindowAdapter()
 		{
 			@Override

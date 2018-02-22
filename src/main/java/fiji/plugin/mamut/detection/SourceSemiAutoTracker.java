@@ -194,7 +194,7 @@ public class SourceSemiAutoTracker< T extends RealType< T > & NativeType< T >> e
 		final double neighborhoodFactor = Math.max( NEIGHBORHOOD_FACTOR, distanceTolerance + 1 );
 
 		final Point roundedSourcePos = new Point( 3 );
-		sourceToGlobal.applyInverse( new Round< Point >( roundedSourcePos ), spot );
+		sourceToGlobal.applyInverse( new Round<>( roundedSourcePos ), spot );
 		final long x = roundedSourcePos.getLongPosition( 0 );
 		final long y = roundedSourcePos.getLongPosition( 1 );
 		final long z = roundedSourcePos.getLongPosition( 2 );
@@ -260,7 +260,7 @@ public class SourceSemiAutoTracker< T extends RealType< T > & NativeType< T >> e
 		}
 		final AffineTransform3D transform = sourceToGlobal.copy().concatenate( scale );
 
-		final SearchRegion< T > sn = new SearchRegion< T >();
+		final SearchRegion< T > sn = new SearchRegion<>();
 		sn.source = Views.dropSingletonDimensions( rai );
 		sn.interval = interval;
 		sn.transform = transform;

@@ -551,7 +551,7 @@ public class MaMuT implements ModelChangeListener
 	 */
 	protected Map< String, Object > createDisplaySettings( final Model model )
 	{
-		final Map< String, Object > displaySettings = new HashMap< String, Object >();
+		final Map< String, Object > displaySettings = new HashMap<>();
 		displaySettings.put( KEY_COLOR, DEFAULT_SPOT_COLOR );
 		displaySettings.put( KEY_HIGHLIGHT_COLOR, DEFAULT_HIGHLIGHT_COLOR );
 		displaySettings.put( KEY_SPOTS_VISIBLE, true );
@@ -623,9 +623,9 @@ public class MaMuT implements ModelChangeListener
 		final AbstractSequenceDescription< ?, ?, ? > seq = spimData.getSequenceDescription();
 		final List< TimePoint > timepoints = seq.getTimePoints().getTimePointsOrdered();
 		nTimepoints = timepoints.size();
-		sources = new ArrayList< SourceAndConverter< ? > >();
+		sources = new ArrayList<>();
 		cache = ( ( ViewerImgLoader ) seq.getImgLoader() ).getCacheControl();
-		final ArrayList< ConverterSetup > converterSetups = new ArrayList< ConverterSetup >();
+		final ArrayList< ConverterSetup > converterSetups = new ArrayList<>();
 		BigDataViewer.initSetups( spimData, converterSetups, sources );
 		for ( int i = 0; i < converterSetups.size(); ++i )
 		{
@@ -1375,7 +1375,7 @@ public class MaMuT implements ModelChangeListener
 				trackscheme.render();
 				guimodel.addView( trackscheme );
 				button.setEnabled( true );
-			};
+			}
 		}.start();
 	}
 
@@ -1454,14 +1454,9 @@ public class MaMuT implements ModelChangeListener
 		final double d2 = closestSpot.squareDistanceTo( location );
 		final double r = closestSpot.getFeature( Spot.RADIUS );
 		if ( d2 < r * r )
-		{
 			return closestSpot;
-		}
-		else
-		{
-			return null;
-		}
-
+		
+		return null;
 	}
 
 	/*

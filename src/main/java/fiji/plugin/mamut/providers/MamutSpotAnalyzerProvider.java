@@ -40,7 +40,7 @@ public class MamutSpotAnalyzerProvider extends SpotAnalyzerProvider
 
 	static
 	{
-		KEYS = new ArrayList< String >( 3 );
+		KEYS = new ArrayList<>( 3 );
 		KEYS.add( SpotSourceIdAnalyzerFactory.KEY );
 		KEYS.add( CellDivisionTimeAnalyzerSpotFactory.KEY );
 		KEYS.add( ManualSpotColorAnalyzerFactory.KEY );

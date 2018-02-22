@@ -152,7 +152,7 @@ public class MamutExtractTrackStackAction extends AbstractTMAction
 
 		// Build spot list
 		// & Get largest diameter
-		final List< Spot > path = new ArrayList< Spot >( edges.size() );
+		final List< Spot > path = new ArrayList<>( edges.size() );
 		path.add( start );
 		Spot previous = start;
 		Spot current;
@@ -177,7 +177,7 @@ public class MamutExtractTrackStackAction extends AbstractTMAction
 		path.add( end );
 
 		// Sort spot by ascending frame number
-		final TreeSet< Spot > sortedSpots = new TreeSet< Spot >( Spot.timeComparator );
+		final TreeSet< Spot > sortedSpots = new TreeSet<>( Spot.timeComparator );
 		sortedSpots.addAll( path );
 		nspots = sortedSpots.size();
 

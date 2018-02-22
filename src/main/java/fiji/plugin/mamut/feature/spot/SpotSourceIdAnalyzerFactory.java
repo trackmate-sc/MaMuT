@@ -52,15 +52,15 @@ public class SpotSourceIdAnalyzerFactory< T extends RealType< T > & NativeType< 
 	public static final String SOURCE_ID = "SOURCE_ID";
 
 	/** Additional spot features used in MaMuT. */
-	public final static List< String > FEATURES = new ArrayList< String >();
+	public final static List< String > FEATURES = new ArrayList<>();
 
-	public final static Map< String, String > FEATURE_NAMES = new HashMap< String, String >();
+	public final static Map< String, String > FEATURE_NAMES = new HashMap<>();
 
-	public final static Map< String, String > FEATURE_SHORT_NAMES = new HashMap< String, String >();
+	public final static Map< String, String > FEATURE_SHORT_NAMES = new HashMap<>();
 
-	public final static Map< String, Dimension > FEATURE_DIMENSIONS = new HashMap< String, Dimension >();
+	public final static Map< String, Dimension > FEATURE_DIMENSIONS = new HashMap<>();
 
-	public static final Map< String, Boolean > IS_INT = new HashMap< String, Boolean >();
+	public static final Map< String, Boolean > IS_INT = new HashMap<>();
 
 	public static final String KEY = "Spot Source ID";
 
