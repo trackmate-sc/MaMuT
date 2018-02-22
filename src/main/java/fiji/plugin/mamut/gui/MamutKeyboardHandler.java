@@ -28,7 +28,6 @@ import java.util.Properties;
 
 import javax.swing.ActionMap;
 import javax.swing.InputMap;
-import javax.swing.JComponent;
 import javax.swing.KeyStroke;
 
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
@@ -109,7 +108,7 @@ public class MamutKeyboardHandler
 		this.mamut = mamut;
 		this.viewer = viewer;
 
-		installKeyboardActions( viewer.getViewerPanel() );
+		installKeyboardActions();
 	}
 
 	protected InputMap readPropertyFile()
@@ -151,7 +150,7 @@ public class MamutKeyboardHandler
 		return map;
 	}
 
-	protected void installKeyboardActions( final JComponent graphComponent )
+	protected void installKeyboardActions()
 	{
 		final InputTriggerConfig inputTriggerConfig = BigDataViewer.getInputTriggerConfig( ViewerOptions.options() );
 		NavigationActions.installActionBindings( viewer.getKeybindings(), viewer.getViewerPanel(), inputTriggerConfig );
