@@ -307,10 +307,10 @@ public class ImportTGMMAnnotationPlugin_ implements PlugIn
 
 		final int angleIndex = dialogAngles.getNextChoiceIndex();
 		final int setupID = spimData.getSequenceDescription().getViewSetupsOrdered().get( angleIndex ).getId();
-		exec( xmlHDF5Path, setupID, tgmmPath, outputPath, doCrop, interval, tFrom, tTo );
+		exec( xmlHDF5Path, setupID, tgmmPath, outputPath, interval, tFrom, tTo );
 	}
 
-	public void exec( final String xmlHDF5Path, final int setupID, final String tgmmPath, final String outputPath, final boolean doCrop, final RealInterval interval, final int tFrom, final int tTo )
+	public void exec( final String xmlHDF5Path, final int setupID, final String tgmmPath, final String outputPath, final RealInterval interval, final int tFrom, final int tTo )
 	{
 		SpimDataMinimal spimData;
 		try
