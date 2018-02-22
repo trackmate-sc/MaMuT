@@ -128,7 +128,7 @@ public class LoadTGMMAnnotationPlugIn implements PlugIn
 		launchMamut( imageFile, tgmmFolder, setupID, interval );
 	}
 
-	public void launchMamut( final File imageFile, final File tgmmFile, final int setupID, final RealInterval interval )
+	public void launchMamut( final File imageFile, final File tgmmFile, final int setupID, final RealInterval lInterval )
 	{
 		SpimDataMinimal spimData;
 		try
@@ -140,16 +140,16 @@ public class LoadTGMMAnnotationPlugIn implements PlugIn
 			logger.error( "Problem reading the transforms in image data file:\n" + e.getMessage() + "\n" );
 			return;
 		}
-		final Model model = createModel( tgmmFile, spimData, setupID, interval );
+		final Model model = createModel( tgmmFile, spimData, setupID, lInterval );
 		final SourceSettings settings = createSettings();
 		new MaMuT( imageFile, model, settings );
 	}
 
-	protected Model createModel( final File tgmmFolder, final SpimDataMinimal spimData, final int setupID, final RealInterval interval )
+	protected Model createModel( final File tgmmFolder, final SpimDataMinimal spimData, final int setupID, final RealInterval lInterval )
 	{
 		final List< AffineTransform3D > transforms = pickTransform( spimData, setupID );
 
-		final TGMMImporter2 importer = new TGMMImporter2( tgmmFolder, transforms, TGMMImporter2.DEFAULT_PATTERN, logger, interval, 0, Integer.MAX_VALUE );
+		final TGMMImporter2 importer = new TGMMImporter2( tgmmFolder, transforms, TGMMImporter2.DEFAULT_PATTERN, logger, lInterval, 0, Integer.MAX_VALUE );
 		if ( !importer.checkInput() || !importer.process() )
 		{
 			logger.error( importer.getErrorMessage() );

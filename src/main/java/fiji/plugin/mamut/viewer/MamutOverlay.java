@@ -389,7 +389,7 @@ public class MamutOverlay
 
 	}
 
-	protected void drawEdge( final Graphics2D g2d, final Spot source, final Spot target, final AffineTransform3D transform, final float transparency, final boolean limitDrawingDetph, final double drawingDepth )
+	protected void drawEdge( final Graphics2D g2d, final Spot source, final Spot target, final AffineTransform3D lTransform, final float transparency, final boolean limitDrawingDetph, final double drawingDepth )
 	{
 
 		// Find x & y & z in physical coordinates
@@ -405,9 +405,9 @@ public class MamutOverlay
 
 		// In pixel units
 		final double[] pixelPositionSource = new double[ 3 ];
-		transform.apply( physicalPositionSource, pixelPositionSource );
+		lTransform.apply( physicalPositionSource, pixelPositionSource );
 		final double[] pixelPositionTarget = new double[ 3 ];
-		transform.apply( physicalPositionTarget, pixelPositionTarget );
+		lTransform.apply( physicalPositionTarget, pixelPositionTarget );
 
 		if (limitDrawingDetph && Math.abs( pixelPositionSource[2]) > drawingDepth &&  Math.abs( pixelPositionTarget[2]) > drawingDepth)
 			return;

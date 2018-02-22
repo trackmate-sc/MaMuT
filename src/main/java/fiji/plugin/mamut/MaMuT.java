@@ -544,12 +544,12 @@ public class MaMuT implements ModelChangeListener
 	 * Returns the starting display settings that will be passed to any new view
 	 * registered within this GUI.
 	 *
-	 * @param model
+	 * @param lModel
 	 *            the model this GUI will configure; might be required by some
 	 *            display settings.
 	 * @return a map of display settings mappings.
 	 */
-	protected Map< String, Object > createDisplaySettings( final Model model )
+	protected Map< String, Object > createDisplaySettings( final Model lModel )
 	{
 		final Map< String, Object > displaySettings = new HashMap<>();
 		displaySettings.put( KEY_COLOR, DEFAULT_SPOT_COLOR );
@@ -912,11 +912,11 @@ public class MaMuT implements ModelChangeListener
 		testWithinSpot = !testWithinSpot;
 	}
 
-	public void toggleLinkingMode( final Logger logger )
+	public void toggleLinkingMode( final Logger lLogger )
 	{
 		this.isLinkingMode = !isLinkingMode;
 		final String str = "Switched auto-linking mode " + ( isLinkingMode ? "on." : "off." );
-		logger.log( str );
+		lLogger.log( str );
 	}
 
 	/**
@@ -925,10 +925,10 @@ public class MaMuT implements ModelChangeListener
 	 * The two spots are taken from the selection, which must have exactly two
 	 * spots in it
 	 *
-	 * @param logger
+	 * @param lLogger
 	 *            the {@link Logger} to echo linking messages.
 	 */
-	public void toggleLink( final Logger logger )
+	public void toggleLink( final Logger lLogger )
 	{
 		/*
 		 * Toggle a link between two spots.
@@ -949,7 +949,7 @@ public class MaMuT implements ModelChangeListener
 				try
 				{
 					model.removeEdge( source, target );
-					logger.log( "Removed the link between " + source + " and " + target + ".\n" );
+					lLogger.log( "Removed the link between " + source + " and " + target + ".\n" );
 				}
 				finally
 				{
@@ -971,7 +971,7 @@ public class MaMuT implements ModelChangeListener
 					try
 					{
 						model.addEdge( source, target, -1 );
-						logger.log( "Created a link between " + source + " and " + target + ".\n" );
+						lLogger.log( "Created a link between " + source + " and " + target + ".\n" );
 					}
 					finally
 					{
@@ -997,13 +997,13 @@ public class MaMuT implements ModelChangeListener
 				}
 				else
 				{
-					logger.error( "Cannot create a link between two spots belonging in the same frame." );
+					lLogger.error( "Cannot create a link between two spots belonging in the same frame." );
 				}
 			}
 		}
 		else
 		{
-			logger.error( "Expected selection to contain 2 spots, found " + selectedSpots.size() + ".\n" );
+			lLogger.error( "Expected selection to contain 2 spots, found " + selectedSpots.size() + ".\n" );
 		}
 	}
 
@@ -1143,11 +1143,11 @@ public class MaMuT implements ModelChangeListener
 
 	private void save()
 	{
-		final Logger logger = Logger.IJ_LOGGER;
-		final File proposed = IOUtils.askForFileForSaving( mamutFile, IJ.getInstance(), logger );
+		final Logger lLogger = Logger.IJ_LOGGER;
+		final File proposed = IOUtils.askForFileForSaving( mamutFile, IJ.getInstance(), lLogger );
 		if ( null == proposed )
 		{
-			logger.log( "Saving canceled.\n" );
+			lLogger.log( "Saving canceled.\n" );
 			return;
 		}
 		mamutFile = proposed;
@@ -1155,29 +1155,29 @@ public class MaMuT implements ModelChangeListener
 		MamutXmlWriter writer = null;
 		try
 		{
-			logger.log( "Saving to " + mamutFile + '\n' );
-			writer = new MamutXmlWriter( mamutFile, logger );
+			lLogger.log( "Saving to " + mamutFile + '\n' );
+			writer = new MamutXmlWriter( mamutFile, lLogger );
 			writer.appendModel( model );
 			writer.appendSettings( settings );
 			writer.appendMamutState( guimodel, setupAssignments, bookmarks );
 			writer.writeToFile();
-			logger.log( "Done.\n" );
+			lLogger.log( "Done.\n" );
 		}
 		catch ( final FileNotFoundException e )
 		{
-			logger.error( "Could not find file " + mamutFile + ";\n" + e.getMessage() );
+			lLogger.error( "Could not find file " + mamutFile + ";\n" + e.getMessage() );
 			somethingWrongHappenedWhileSaving( writer );
 			e.printStackTrace();
 		}
 		catch ( final IOException e )
 		{
-			logger.error( "Could not write to " + mamutFile + ";\n" + e.getMessage() );
+			lLogger.error( "Could not write to " + mamutFile + ";\n" + e.getMessage() );
 			somethingWrongHappenedWhileSaving( writer );
 			e.printStackTrace();
 		}
 		catch ( final Exception e )
 		{
-			logger.error( "Something wrong happened while saving to " + mamutFile + ";\n" + e.getMessage() );
+			lLogger.error( "Something wrong happened while saving to " + mamutFile + ";\n" + e.getMessage() );
 			somethingWrongHappenedWhileSaving( writer );
 			e.printStackTrace();
 		}
