@@ -76,6 +76,11 @@
 			<url>http://imagej.net/User:Hinerm</url>
 			<properties><id>hinerm</id></properties>
 		</contributor>
+		<contributor>
+			<name>Ko Sugawara</name>
+			<url>http://igfl.ens-lyon.fr/igfl/annuaire/sugawara-ko</url>
+			<properties><id>ksugar</id></properties>
+		</contributor>
 	</contributors>
 
 	<mailingLists>
