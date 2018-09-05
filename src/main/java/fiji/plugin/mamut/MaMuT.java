@@ -8,12 +8,12 @@
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -162,7 +162,7 @@ public class MaMuT implements ModelChangeListener
 
 	public static final String PLUGIN_NAME = "MaMuT";
 
-	public static final String PLUGIN_VERSION = "0.28.2-SNAPSHOT";
+	public static final String PLUGIN_VERSION = "0.28.3";
 
 	private static final double DEFAULT_RADIUS = 10;
 
@@ -1015,7 +1015,7 @@ public class MaMuT implements ModelChangeListener
 	{
 		/*
 		 * Test if we have 2D images.
-		 * 
+		 *
 		 * The test is a bit loose here. We get into 2D mode if all the sources,
 		 * at the first time-point where they have data, have a number of pixels
 		 * in the 3rd dimension equals or lower than 1.
@@ -1455,7 +1455,7 @@ public class MaMuT implements ModelChangeListener
 		final double r = closestSpot.getFeature( Spot.RADIUS );
 		if ( d2 < r * r )
 			return closestSpot;
-		
+
 		return null;
 	}
 
