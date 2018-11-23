@@ -8,12 +8,12 @@
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -32,16 +32,6 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import net.imglib2.RealInterval;
-import net.imglib2.RealLocalizable;
-import net.imglib2.RealPoint;
-import net.imglib2.algorithm.Benchmark;
-import net.imglib2.algorithm.OutputAlgorithm;
-import net.imglib2.realtransform.AffineTransform3D;
-import net.imglib2.util.Intervals;
-import net.imglib2.util.LinAlgHelpers;
-import net.imglib2.util.Util;
-
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.JDOMException;
@@ -55,6 +45,15 @@ import fiji.plugin.trackmate.Logger;
 import fiji.plugin.trackmate.Model;
 import fiji.plugin.trackmate.Spot;
 import fiji.plugin.trackmate.SpotCollection;
+import net.imglib2.RealInterval;
+import net.imglib2.RealLocalizable;
+import net.imglib2.RealPoint;
+import net.imglib2.algorithm.Benchmark;
+import net.imglib2.algorithm.OutputAlgorithm;
+import net.imglib2.realtransform.AffineTransform3D;
+import net.imglib2.util.Intervals;
+import net.imglib2.util.LinAlgHelpers;
+import net.imglib2.util.Util;
 
 public class TGMMImporter2 implements OutputAlgorithm< Model >, Benchmark
 {
@@ -161,7 +160,7 @@ public class TGMMImporter2 implements OutputAlgorithm< Model >, Benchmark
 
 		model = new Model();
 		final SpotCollection sc = new SpotCollection();
-		final SimpleWeightedGraph< Spot, DefaultWeightedEdge > graph = new SimpleWeightedGraph< >( DefaultWeightedEdge.class );
+		final SimpleWeightedGraph< Spot, DefaultWeightedEdge > graph = new SimpleWeightedGraph<>( DefaultWeightedEdge.class );
 
 		final double[] targetCoordsHolder = new double[ 3 ];
 		final double[] sourceCoordsHolder = new double[ 3 ];
@@ -202,8 +201,11 @@ public class TGMMImporter2 implements OutputAlgorithm< Model >, Benchmark
 				errorMessage = BASE_ERROR_MSG + "Could not retrieve frame number from file " + file + ".\n" + nfe.getMessage() + "\n";
 				return false;
 			}
-			catch ( final IndexOutOfBoundsException iooe ) {
-				errorMessage = BASE_ERROR_MSG + "File " + name + " is retrieved as Frame " + Integer.parseInt( strFrame ) + " that exceeds the maximum index.\n" + iooe.getMessage() + "\n";
+			catch ( final IndexOutOfBoundsException iooe )
+			{
+				errorMessage = BASE_ERROR_MSG + "File " + name + " is retrieved as Frame "
+						+ Integer.parseInt( strFrame )
+						+ " that exceeds the maximum index.\n" + iooe.getMessage() + "\n";
 				return false;
 			}
 		}
@@ -230,18 +232,18 @@ public class TGMMImporter2 implements OutputAlgorithm< Model >, Benchmark
 				logger.log( "Processing frame " + t + ". " );
 				final AffineTransform3D transform = transforms.get( frames[ t ] );
 
-				xmlFile = xmlFiles[ frames[t] ];
+				xmlFile = xmlFiles[ frames[ t ] ];
 				final Document doc = saxBuilder.build( xmlFile );
 				final Element root = doc.getRootElement();
 				final List< Element > detectionEls = root.getChildren( XML_DETECTION_NAME );
 
-				final Collection< Spot > spots = new ArrayList< >( detectionEls.size() );
+				final Collection< Spot > spots = new ArrayList<>( detectionEls.size() );
 
 				/*
 				 * Parse all detections
 				 */
 
-				currentSpotID = new HashMap< >( detectionEls.size() );
+				currentSpotID = new HashMap<>( detectionEls.size() );
 
 				for ( final Element detectionEl : detectionEls )
 				{
