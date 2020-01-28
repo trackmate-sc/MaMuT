@@ -21,7 +21,6 @@
  */
 package fiji.plugin.mamut;
 
-import static fiji.plugin.trackmate.visualization.TrackMateModelView.DEFAULT_COLOR_MAP;
 import static fiji.plugin.trackmate.visualization.TrackMateModelView.DEFAULT_DRAWING_DEPTH;
 import static fiji.plugin.trackmate.visualization.TrackMateModelView.DEFAULT_HIGHLIGHT_COLOR;
 import static fiji.plugin.trackmate.visualization.TrackMateModelView.DEFAULT_LIMIT_DRAWING_DEPTH;
@@ -29,7 +28,6 @@ import static fiji.plugin.trackmate.visualization.TrackMateModelView.DEFAULT_SPO
 import static fiji.plugin.trackmate.visualization.TrackMateModelView.DEFAULT_TRACK_DISPLAY_DEPTH;
 import static fiji.plugin.trackmate.visualization.TrackMateModelView.DEFAULT_TRACK_DISPLAY_MODE;
 import static fiji.plugin.trackmate.visualization.TrackMateModelView.KEY_COLOR;
-import static fiji.plugin.trackmate.visualization.TrackMateModelView.KEY_COLORMAP;
 import static fiji.plugin.trackmate.visualization.TrackMateModelView.KEY_DISPLAY_SPOT_NAMES;
 import static fiji.plugin.trackmate.visualization.TrackMateModelView.KEY_DRAWING_DEPTH;
 import static fiji.plugin.trackmate.visualization.TrackMateModelView.KEY_HIGHLIGHT_COLOR;
@@ -562,7 +560,6 @@ public class MaMuT implements ModelChangeListener
 		displaySettings.put( KEY_TRACK_DISPLAY_DEPTH, DEFAULT_TRACK_DISPLAY_DEPTH );
 		displaySettings.put( KEY_TRACK_COLORING, trackColorProvider );
 		displaySettings.put( KEY_SPOT_COLORING, spotColorProvider );
-		displaySettings.put( KEY_COLORMAP, DEFAULT_COLOR_MAP );
 		displaySettings.put( KEY_LIMIT_DRAWING_DEPTH, DEFAULT_LIMIT_DRAWING_DEPTH );
 		displaySettings.put( KEY_DRAWING_DEPTH, DEFAULT_DRAWING_DEPTH );
 		return displaySettings;
@@ -571,7 +568,7 @@ public class MaMuT implements ModelChangeListener
 	/**
 	 * Instantiates the color providers of this MaMuT.
 	 * <p>
-	 * This needs the follwing fields to be set:
+	 * This needs the following fields to be set:
 	 * <ul>
 	 * <li>{@link #model}
 	 * </ul>
