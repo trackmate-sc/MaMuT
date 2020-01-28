@@ -74,6 +74,7 @@ import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
 import org.jgrapht.graph.DefaultWeightedEdge;
+import org.scijava.util.VersionUtils;
 
 import bdv.BigDataViewer;
 import bdv.BigDataViewerActions;
@@ -160,7 +161,7 @@ public class MaMuT implements ModelChangeListener
 
 	public static final String PLUGIN_NAME = "MaMuT";
 
-	public static final String PLUGIN_VERSION = "0.28.3";
+	public static final String PLUGIN_VERSION = VersionUtils.getVersion( MaMuT.class );
 
 	private static final double DEFAULT_RADIUS = 10;
 
