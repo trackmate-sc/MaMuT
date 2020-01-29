@@ -8,12 +8,12 @@
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -21,6 +21,8 @@
  */
 package fiji.plugin.mamut.util;
 
+import bdv.viewer.Source;
+import fiji.plugin.trackmate.Spot;
 import net.imglib2.Cursor;
 import net.imglib2.Interval;
 import net.imglib2.Point;
@@ -40,8 +42,6 @@ import net.imglib2.util.Util;
 import net.imglib2.view.ExtendedRandomAccessibleInterval;
 import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
-import bdv.viewer.Source;
-import fiji.plugin.trackmate.Spot;
 
 public class MamutUtils
 {
@@ -110,13 +110,13 @@ public class MamutUtils
 
 		if ( isEmpty( cropInterval ) )
 		{
-			final Img ret = new ArrayImgFactory().create( size, ntype );
+			final Img ret = new ArrayImgFactory( ntype ).create( size );
 			return ret;
 		}
-		
+
 		final ExtendedRandomAccessibleInterval extendZero = Views.extendZero(img);
 		final IntervalView crop = Views.zeroMin(Views.interval(extendZero, cropInterval));
-		final Img target = Util.getArrayOrCellImgFactory(crop, ntype).create(size, ntype);
+		final Img target = Util.getArrayOrCellImgFactory(crop, ntype).create( size );
 
 		final RandomAccess randomAccess = crop.randomAccess();
 		final Cursor cursor = target.localizingCursor();
@@ -162,13 +162,13 @@ public class MamutUtils
 
 		if ( isEmpty( cropInterval ) )
 		{
-			final Img ret = new ArrayImgFactory().create( size, ntype );
+			final Img ret = new ArrayImgFactory( ntype ).create( size );
 			return ret;
 		}
 
 		final ExtendedRandomAccessibleInterval extendZero = Views.extendZero(slice);
 		final IntervalView crop = Views.zeroMin(Views.interval(extendZero, cropInterval));
-		final Img target = Util.getArrayOrCellImgFactory(crop, ntype).create(size, ntype);
+		final Img target = Util.getArrayOrCellImgFactory(crop, ntype).create( size );
 		new IterableIntervalProjector2D(0, 1, crop, target, new TypeIdentity()).map();
 		return target;
 	}
