@@ -724,7 +724,7 @@ public class MaMuT implements ModelChangeListener
 		autotracker.setNumThreads( 4 );
 		autotracker.setParameters( guimodel.qualityThreshold, guimodel.distanceTolerance, guimodel.maxNFrames );
 
-		new Thread( "MaMuT semi-automated tracking thread")
+		new Thread( "MaMuT semi-automated tracking thread" )
 		{
 			@Override
 			public void run()
@@ -751,7 +751,11 @@ public class MaMuT implements ModelChangeListener
 		final Point mouseScreenLocation = MouseInfo.getPointerInfo().getLocation();
 		final Point viewerPosition = viewer.getLocationOnScreen();
 		final Dimension viewerSize = viewer.getSize();
-		if ( mouseScreenLocation.x < viewerPosition.x || mouseScreenLocation.y < viewerPosition.y || mouseScreenLocation.x > viewerPosition.x + viewerSize.width || mouseScreenLocation.y > viewerPosition.y + viewerSize.height ) { return; }
+		if ( mouseScreenLocation.x < viewerPosition.x
+				|| mouseScreenLocation.y < viewerPosition.y
+				|| mouseScreenLocation.x > viewerPosition.x + viewerSize.width
+				|| mouseScreenLocation.y > viewerPosition.y + viewerSize.height )
+			return;
 
 		final ViewerState state = viewer.getViewerPanel().state();
 		final int frame = state.getCurrentTimepoint();
@@ -886,7 +890,8 @@ public class MaMuT implements ModelChangeListener
 			double rad = spot.getFeature( Spot.RADIUS );
 			rad += factor * RADIUS_CHANGE_FACTOR * rad;
 
-			if ( rad < minRadius ) { return; }
+			if ( rad < minRadius )
+				return;
 
 			radius = rad;
 			spot.putFeature( Spot.RADIUS, rad );
@@ -1361,7 +1366,7 @@ public class MaMuT implements ModelChangeListener
 	private void launchTrackScheme( final JButton button )
 	{
 		button.setEnabled( false );
-		new Thread( "Launching TrackScheme thread")
+		new Thread( "Launching TrackScheme thread" )
 		{
 
 			@Override
@@ -1385,7 +1390,7 @@ public class MaMuT implements ModelChangeListener
 	private void launch3DViewer( final JButton button )
 	{
 		button.setEnabled( false );
-		new Thread( "MaMuT new 3D viewer thread")
+		new Thread( "MaMuT new 3D viewer thread" )
 		{
 			@Override
 			public void run()
@@ -1450,7 +1455,8 @@ public class MaMuT implements ModelChangeListener
 		gPos.localize( coordinates );
 		final Spot location = new Spot( coordinates[ 0 ], coordinates[ 1 ], coordinates[ 2 ], radius, -1d );
 		final Spot closestSpot = model.getSpots().getClosestSpot( location, frame, true );
-		if ( null == closestSpot ) { return null; }
+		if ( null == closestSpot )
+			return null;
 		/*
 		 * Determine if we are inside the spot
 		 */

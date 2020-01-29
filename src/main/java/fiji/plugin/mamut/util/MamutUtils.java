@@ -104,7 +104,6 @@ public class MamutUtils
 		final int zp = depth / 2;
 		final int zm = depth - zp;
 
-
 		// Crop
 		final Interval cropInterval = Intervals.createMinMax( x - xm, y - ym, z - zm, x + xp, y + yp, z + zp );
 
@@ -114,16 +113,17 @@ public class MamutUtils
 			return ret;
 		}
 
-		final ExtendedRandomAccessibleInterval extendZero = Views.extendZero(img);
-		final IntervalView crop = Views.zeroMin(Views.interval(extendZero, cropInterval));
-		final Img target = Util.getArrayOrCellImgFactory(crop, ntype).create( size );
+		final ExtendedRandomAccessibleInterval extendZero = Views.extendZero( img );
+		final IntervalView crop = Views.zeroMin( Views.interval( extendZero, cropInterval ) );
+		final Img target = Util.getArrayOrCellImgFactory( crop, ntype ).create( size );
 
 		final RandomAccess randomAccess = crop.randomAccess();
 		final Cursor cursor = target.localizingCursor();
-		while (cursor.hasNext()) {
+		while ( cursor.hasNext() )
+		{
 			cursor.fwd();
-			randomAccess.setPosition(cursor);
-			((Type) cursor.get()).set((Type) randomAccess.get());
+			randomAccess.setPosition( cursor );
+			( ( Type ) cursor.get() ).set( ( Type ) randomAccess.get() );
 		}
 
 		return target;
@@ -166,10 +166,10 @@ public class MamutUtils
 			return ret;
 		}
 
-		final ExtendedRandomAccessibleInterval extendZero = Views.extendZero(slice);
-		final IntervalView crop = Views.zeroMin(Views.interval(extendZero, cropInterval));
-		final Img target = Util.getArrayOrCellImgFactory(crop, ntype).create( size );
-		new IterableIntervalProjector2D(0, 1, crop, target, new TypeIdentity()).map();
+		final ExtendedRandomAccessibleInterval extendZero = Views.extendZero( slice );
+		final IntervalView crop = Views.zeroMin( Views.interval( extendZero, cropInterval ) );
+		final Img target = Util.getArrayOrCellImgFactory( crop, ntype ).create( size );
+		new IterableIntervalProjector2D( 0, 1, crop, target, new TypeIdentity() ).map();
 		return target;
 	}
 

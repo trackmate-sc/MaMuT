@@ -153,9 +153,8 @@ public class MamutOverlay
 				else
 				{
 					if ( null == viewer.spotColorProvider || null == ( color = viewer.spotColorProvider.color( spot ) ) )
-					{
 						color = TrackMateModelView.DEFAULT_SPOT_COLOR;
-					}
+
 					stroke = NORMAL_STROKE;
 				}
 				g.setColor( color );
@@ -274,14 +273,14 @@ public class MamutOverlay
 			{
 
 				// Sort edges by their track id.
-				final HashMap< Integer, ArrayList< DefaultWeightedEdge > > sortedEdges = new HashMap< >();
+				final HashMap< Integer, ArrayList< DefaultWeightedEdge > > sortedEdges = new HashMap<>();
 				for ( final DefaultWeightedEdge edge : selectionModel.getEdgeSelection() )
 				{
 					final Integer trackID = model.getTrackModel().trackIDOf( edge );
 					ArrayList< DefaultWeightedEdge > edges = sortedEdges.get( trackID );
 					if ( null == edges )
 					{
-						edges = new ArrayList< >();
+						edges = new ArrayList<>();
 						sortedEdges.put( trackID, edges );
 					}
 					edges.add( edge );
@@ -409,7 +408,7 @@ public class MamutOverlay
 		final double[] pixelPositionTarget = new double[ 3 ];
 		lTransform.apply( physicalPositionTarget, pixelPositionTarget );
 
-		if (limitDrawingDetph && Math.abs( pixelPositionSource[2]) > drawingDepth &&  Math.abs( pixelPositionTarget[2]) > drawingDepth)
+		if ( limitDrawingDetph && Math.abs( pixelPositionSource[ 2 ] ) > drawingDepth && Math.abs( pixelPositionTarget[ 2 ] ) > drawingDepth )
 			return;
 
 		// Round

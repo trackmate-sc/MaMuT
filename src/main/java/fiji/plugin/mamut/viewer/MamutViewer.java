@@ -8,12 +8,12 @@
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -79,7 +79,7 @@ public class MamutViewer extends JFrame implements TrackMateModelView
 
 	private static final double DEFAULT_FADEOUTTIME = 0.5;
 
-	private static final Font DEFAULT_FONT = new Font("SansSerif", Font.PLAIN, 14);
+	private static final Font DEFAULT_FONT = new Font( "SansSerif", Font.PLAIN, 14 );
 
 	/** The logger instance that echoes message on this view. */
 	private final Logger logger;
@@ -88,7 +88,9 @@ public class MamutViewer extends JFrame implements TrackMateModelView
 
 	private final SelectionModel selectionModel;
 
-	/** A map of String/Object that configures the look and feel of the display. */
+	/**
+	 * A map of String/Object that configures the look and feel of the display.
+	 */
 	protected Map< String, Object > displaySettings = new HashMap<>();
 
 	/** The mapping from spot to a color. */
@@ -109,7 +111,6 @@ public class MamutViewer extends JFrame implements TrackMateModelView
 	private final MamutRecordMaxProjectionDialog recordMaxProjectionMovieDialog;
 
 	private final BookmarksEditor bookmarkEditor;
-
 
 	/**
 	 *
@@ -182,7 +183,7 @@ public class MamutViewer extends JFrame implements TrackMateModelView
 		recordMovieDialog.setLocationRelativeTo( this );
 		viewerPanel.getDisplay().addOverlayRenderer( recordMovieDialog );
 
-		this.recordMaxProjectionMovieDialog = new MamutRecordMaxProjectionDialog( this, this, new ProgressWriterLogger( logger )  );
+		this.recordMaxProjectionMovieDialog = new MamutRecordMaxProjectionDialog( this, this, new ProgressWriterLogger( logger ) );
 		recordMaxProjectionMovieDialog.setLocationRelativeTo( this );
 		viewerPanel.getDisplay().addOverlayRenderer( recordMaxProjectionMovieDialog );
 
@@ -195,9 +196,7 @@ public class MamutViewer extends JFrame implements TrackMateModelView
 	{
 		viewerPanel.getDisplay().addHandler( handler );
 		if ( KeyListener.class.isInstance( handler ) )
-		{
 			addKeyListener( ( KeyListener ) handler );
-		}
 	}
 
 	public MamutViewerPanel getViewerPanel()
@@ -230,7 +229,6 @@ public class MamutViewer extends JFrame implements TrackMateModelView
 	@Override
 	public void refresh()
 	{
-		// System.out.println("refresh");
 		viewerPanel.requestRepaint();
 	}
 
@@ -259,18 +257,16 @@ public class MamutViewer extends JFrame implements TrackMateModelView
 		if ( key.equals( KEY_SPOT_COLORING ) )
 		{
 			if ( null != spotColorProvider )
-			{
 				spotColorProvider.terminate();
-			}
+
 			spotColorProvider = ( FeatureColorGenerator< Spot > ) value;
 			spotColorProvider.activate();
 		}
 		else if ( key.equals( KEY_TRACK_COLORING ) )
 		{
 			if ( null != trackColorProvider )
-			{
 				trackColorProvider.terminate();
-			}
+
 			trackColorProvider = ( TrackColorGenerator ) value;
 			trackColorProvider.activate();
 		}
