@@ -95,7 +95,7 @@ import bdv.viewer.RequestRepaint;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import bdv.viewer.ViewerOptions;
-import bdv.viewer.state.ViewerState;
+import bdv.viewer.ViewerState;
 import fiji.plugin.mamut.detection.SourceSemiAutoTracker;
 import fiji.plugin.mamut.feature.spot.SpotSourceIdAnalyzerFactory;
 import fiji.plugin.mamut.gui.AnnotationPanel;
@@ -753,9 +753,8 @@ public class MaMuT implements ModelChangeListener
 		final Dimension viewerSize = viewer.getSize();
 		if ( mouseScreenLocation.x < viewerPosition.x || mouseScreenLocation.y < viewerPosition.y || mouseScreenLocation.x > viewerPosition.x + viewerSize.width || mouseScreenLocation.y > viewerPosition.y + viewerSize.height ) { return; }
 
-		final ViewerState state = viewer.getViewerPanel().getState();
+		final ViewerState state = viewer.getViewerPanel().state();
 		final int frame = state.getCurrentTimepoint();
-		final int sourceId = state.getCurrentSource();
 
 		// Ok, then create this spot, wherever it is.
 		final double[] coordinates = new double[ 3 ];
@@ -779,6 +778,12 @@ public class MaMuT implements ModelChangeListener
 
 		spot.putFeature( Spot.QUALITY, -1d );
 		spot.putFeature( Spot.POSITION_T, Double.valueOf( frame ) );
+
+		// Determine source id.
+		final SourceAndConverter< ? > source = state.getCurrentSource();
+		int sourceId = -1;
+		if ( source != null )
+			sourceId = state.getSources().indexOf( source );
 		spot.putFeature( SpotSourceIdAnalyzerFactory.SOURCE_ID, Double.valueOf( sourceId ) );
 
 		model.beginUpdate();
@@ -1058,7 +1063,7 @@ public class MaMuT implements ModelChangeListener
 		if ( is2D )
 		{
 			final AffineTransform3D t = new AffineTransform3D();
-			viewer.getViewerPanel().getState().getViewerTransform( t );
+			viewer.getViewerPanel().state().getViewerTransform( t );
 			t.set( 0., 2, 3 );
 			viewer.getViewerPanel().setCurrentViewerTransform( t );
 
@@ -1438,7 +1443,7 @@ public class MaMuT implements ModelChangeListener
 		/*
 		 * Get the closest spot
 		 */
-		final int frame = viewer.getState().getCurrentTimepoint();
+		final int frame = viewer.state().getCurrentTimepoint();
 		final RealPoint gPos = new RealPoint( 3 );
 		viewer.getGlobalMouseCoordinates( gPos );
 		final double[] coordinates = new double[ 3 ];

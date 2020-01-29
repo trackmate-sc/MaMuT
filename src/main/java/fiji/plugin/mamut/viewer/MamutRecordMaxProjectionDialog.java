@@ -8,12 +8,12 @@
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -57,9 +57,10 @@ import javax.swing.event.ChangeListener;
 import bdv.cache.CacheControl;
 import bdv.export.ProgressWriter;
 import bdv.util.Prefs;
+import bdv.viewer.SynchronizedViewerState;
+import bdv.viewer.ViewerState;
 import bdv.viewer.overlay.ScaleBarOverlayRenderer;
 import bdv.viewer.render.MultiResolutionRenderer;
-import bdv.viewer.state.ViewerState;
 import net.imglib2.Cursor;
 import net.imglib2.display.screenimage.awt.ARGBScreenImage;
 import net.imglib2.img.Img;
@@ -102,7 +103,7 @@ public class MamutRecordMaxProjectionDialog extends JDialog implements OverlayRe
 		super( owner, "record max projection movie", false );
 		this.viewer = mv.getViewerPanel();
 		this.overlay = new MamutZProjectedOverlay( mv.getModel(), mv.getSelectionModel(), mv );
-		maxTimepoint = viewer.getState().getNumTimepoints() - 1;
+		maxTimepoint = viewer.state().getNumTimepoints() - 1;
 		this.progressWriter = progressWriter;
 
 		final JPanel boxes = new JPanel();
@@ -281,7 +282,7 @@ public class MamutRecordMaxProjectionDialog extends JDialog implements OverlayRe
 	 */
 	public void recordMovie( final int width, final int height, final int minTimepointIndex, final int maxTimepointIndex, final double stepSize, final int numSteps, final File dir ) throws IOException
 	{
-		final ViewerState renderState = viewer.getState();
+		final ViewerState renderState = viewer.state();
 		final int canvasW = viewer.getDisplay().getWidth();
 		final int canvasH = viewer.getDisplay().getHeight();
 
@@ -374,7 +375,7 @@ public class MamutRecordMaxProjectionDialog extends JDialog implements OverlayRe
 				affine.concatenate( tGV );
 				renderState.setViewerTransform( affine );
 				renderer.requestRepaint();
-				renderer.paint( renderState );
+				renderer.paint( new bdv.viewer.state.ViewerState( new SynchronizedViewerState( renderState ) ) );
 			}
 
 			final BufferedImage bi = target.accumulated.image();

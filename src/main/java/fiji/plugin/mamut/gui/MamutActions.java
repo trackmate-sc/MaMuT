@@ -8,12 +8,12 @@
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -158,7 +158,7 @@ public class MamutActions
 		@Override
 		public void actionPerformed( final ActionEvent e )
 		{
-			final int currentT = viewer.getViewerPanel().getState().getCurrentTimepoint();
+			final int currentT = viewer.getViewerPanel().state().getCurrentTimepoint();
 			final int prevStep = ( currentT / guiModel.timeStep ) * guiModel.timeStep;
 			int tp;
 			if ( forward )
@@ -178,13 +178,11 @@ public class MamutActions
 			}
 
 			if ( tp < 0 )
-			{
 				tp = 0;
-			}
-			if ( tp > viewer.getViewerPanel().getState().getNumTimepoints() - 1 )
-			{
-				tp = viewer.getViewerPanel().getState().getNumTimepoints() - 1;
-			}
+
+			if ( tp > viewer.getViewerPanel().state().getNumTimepoints() - 1 )
+				tp = viewer.getViewerPanel().state().getNumTimepoints() - 1;
+
 			viewer.getViewerPanel().setTimepoint( tp );
 		}
 	}
