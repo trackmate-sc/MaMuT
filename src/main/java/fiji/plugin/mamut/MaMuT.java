@@ -74,6 +74,7 @@ import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
 import org.jgrapht.graph.DefaultWeightedEdge;
+import org.scijava.listeners.Listeners;
 import org.scijava.util.VersionUtils;
 
 import bdv.BigDataViewer;
@@ -678,6 +679,12 @@ public class MaMuT implements ModelChangeListener
 				@Override
 				public void setViewer( final RequestRepaint rp )
 				{}
+
+				@Override
+				public Listeners< SetupChangeListener > setupChangeListeners()
+				{
+					return null;
+				}
 			} );
 		}
 		setupAssignments = new SetupAssignments( converterSetups, 0, 65535 );
