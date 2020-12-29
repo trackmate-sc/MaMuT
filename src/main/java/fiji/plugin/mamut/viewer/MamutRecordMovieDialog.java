@@ -254,6 +254,7 @@ public class MamutRecordMovieDialog extends JDialog implements OverlayRenderer
 		setDefaultCloseOperation( WindowConstants.HIDE_ON_CLOSE );
 	}
 
+	@SuppressWarnings( "deprecation" )
 	public void recordMovie( final int width, final int height, final int minTimepointIndex, final int maxTimepointIndex, final File dir ) throws IOException
 	{
 		final ViewerState renderState = viewer.state();

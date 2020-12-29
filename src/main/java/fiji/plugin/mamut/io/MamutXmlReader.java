@@ -39,23 +39,68 @@ import org.jdom2.Element;
 
 import bdv.tools.bookmarks.Bookmarks;
 import bdv.tools.brightness.SetupAssignments;
+import fiji.plugin.mamut.SourceSettings;
 import fiji.plugin.mamut.viewer.MamutViewer;
 import fiji.plugin.mamut.viewer.MamutViewerFactory;
 import fiji.plugin.trackmate.Model;
 import fiji.plugin.trackmate.SelectionModel;
 import fiji.plugin.trackmate.Settings;
+import fiji.plugin.trackmate.gui.displaysettings.DisplaySettings;
 import fiji.plugin.trackmate.io.TmXmlReader;
+import fiji.plugin.trackmate.providers.DetectorProvider;
+import fiji.plugin.trackmate.providers.EdgeAnalyzerProvider;
+import fiji.plugin.trackmate.providers.SpotAnalyzerProvider;
+import fiji.plugin.trackmate.providers.SpotMorphologyAnalyzerProvider;
+import fiji.plugin.trackmate.providers.TrackAnalyzerProvider;
+import fiji.plugin.trackmate.providers.TrackerProvider;
 import fiji.plugin.trackmate.providers.ViewProvider;
 import fiji.plugin.trackmate.visualization.TrackMateModelView;
 import fiji.plugin.trackmate.visualization.ViewFactory;
 import fiji.plugin.trackmate.visualization.trackscheme.TrackScheme;
+import ij.ImagePlus;
 
+@SuppressWarnings( "deprecation" )
 public class MamutXmlReader extends TmXmlReader
 {
 
 	public MamutXmlReader( final File file )
 	{
 		super( file );
+	}
+
+	@Override
+	public Settings readSettings( final ImagePlus imp )
+	{
+		return readSettings( imp,
+				new DetectorProvider(),
+				new TrackerProvider(),
+				new SpotAnalyzerProvider( imp ),
+				new EdgeAnalyzerProvider(),
+				new TrackAnalyzerProvider(),
+				new SpotMorphologyAnalyzerProvider( imp ) );
+	}
+
+	@Override
+	public Settings readSettings(
+			final ImagePlus imp,
+			final DetectorProvider detectorProvider,
+			final TrackerProvider trackerProvider,
+			final SpotAnalyzerProvider spotAnalyzerProvider,
+			final EdgeAnalyzerProvider edgeAnalyzerProvider,
+			final TrackAnalyzerProvider trackAnalyzerProvider,
+			final SpotMorphologyAnalyzerProvider spotMorphologyAnalyzerProvider )
+	{
+		final Settings settings = super.readSettings(
+				imp,
+				detectorProvider,
+				trackerProvider,
+				spotAnalyzerProvider,
+				edgeAnalyzerProvider,
+				trackAnalyzerProvider,
+				spotMorphologyAnalyzerProvider );
+
+		final SourceSettings sourceSettings = new SourceSettings( settings );
+		return sourceSettings;
 	}
 
 	/**
@@ -69,7 +114,12 @@ public class MamutXmlReader extends TmXmlReader
 	 * @see TrackMateModelView#render()
 	 */
 	@Override
-	public Collection< TrackMateModelView > getViews( final ViewProvider provider, final Model model, final Settings settings, final SelectionModel selectionModel )
+	public Collection< TrackMateModelView > getViews(
+			final ViewProvider provider,
+			final Model model,
+			final Settings settings,
+			final SelectionModel selectionModel,
+			final DisplaySettings displaySettings )
 	{
 		final Element guiel = root.getChild( GUI_STATE_ELEMENT_KEY );
 		if ( null != guiel )
@@ -104,7 +154,7 @@ public class MamutXmlReader extends TmXmlReader
 					else
 					{
 
-						final TrackMateModelView view = viewFactory.create( model, settings, selectionModel );
+						final TrackMateModelView view = viewFactory.create( model, settings, selectionModel, displaySettings );
 						views.add( view );
 
 						new Thread( "MaMuT view rendering thread")

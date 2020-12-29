@@ -41,20 +41,11 @@ import bdv.spimdata.SpimDataMinimal;
 import bdv.spimdata.XmlIoSpimDataMinimal;
 import fiji.plugin.mamut.io.MamutXmlWriter;
 import fiji.plugin.mamut.io.TGMMImporter2;
-import fiji.plugin.mamut.providers.MamutEdgeAnalyzerProvider;
-import fiji.plugin.mamut.providers.MamutSpotAnalyzerProvider;
-import fiji.plugin.mamut.providers.MamutTrackAnalyzerProvider;
 import fiji.plugin.trackmate.Logger;
 import fiji.plugin.trackmate.Model;
 import fiji.plugin.trackmate.Settings;
 import fiji.plugin.trackmate.TrackMate;
 import fiji.plugin.trackmate.action.ResetSpotTimeFeatureAction;
-import fiji.plugin.trackmate.features.edges.EdgeAnalyzer;
-import fiji.plugin.trackmate.features.spot.SpotAnalyzerFactory;
-import fiji.plugin.trackmate.features.track.TrackAnalyzer;
-import fiji.plugin.trackmate.providers.EdgeAnalyzerProvider;
-import fiji.plugin.trackmate.providers.SpotAnalyzerProvider;
-import fiji.plugin.trackmate.providers.TrackAnalyzerProvider;
 import fiji.util.gui.GenericDialogPlus;
 import ij.plugin.PlugIn;
 import ij.text.TextWindow;
@@ -384,37 +375,10 @@ public class ImportTGMMAnnotationPlugin_ implements PlugIn
 
 	protected SourceSettings createSettings( final File file )
 	{
-		final SourceSettings settings = new SourceSettings();
+		final SourceSettings settings = new SourceSettings( new Settings() );
 		settings.imageFileName = file.getName();
 		settings.imageFolder = file.getParent();
-
-		settings.clearSpotAnalyzerFactories();
-		final SpotAnalyzerProvider spotAnalyzerProvider = new MamutSpotAnalyzerProvider();
-		final List< String > spotAnalyzerKeys = spotAnalyzerProvider.getKeys();
-		for ( final String key : spotAnalyzerKeys )
-		{
-			final SpotAnalyzerFactory< ? > spotFeatureAnalyzer = spotAnalyzerProvider.getFactory( key );
-			settings.addSpotAnalyzerFactory( spotFeatureAnalyzer );
-		}
-
-		settings.clearEdgeAnalyzers();
-		final EdgeAnalyzerProvider edgeAnalyzerProvider = new MamutEdgeAnalyzerProvider();
-		final List< String > edgeAnalyzerKeys = edgeAnalyzerProvider.getKeys();
-		for ( final String key : edgeAnalyzerKeys )
-		{
-			final EdgeAnalyzer edgeAnalyzer = edgeAnalyzerProvider.getFactory( key );
-			settings.addEdgeAnalyzer( edgeAnalyzer );
-		}
-
-		settings.clearTrackAnalyzers();
-		final TrackAnalyzerProvider trackAnalyzerProvider = new MamutTrackAnalyzerProvider();
-		final List< String > trackAnalyzerKeys = trackAnalyzerProvider.getKeys();
-		for ( final String key : trackAnalyzerKeys )
-		{
-			final TrackAnalyzer trackAnalyzer = trackAnalyzerProvider.getFactory( key );
-			settings.addTrackAnalyzer( trackAnalyzer );
-		}
-
+		settings.addAllAnalyzers();
 		return settings;
 	}
 

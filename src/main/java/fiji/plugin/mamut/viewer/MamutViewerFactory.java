@@ -35,13 +35,14 @@ import fiji.plugin.mamut.SourceSettings;
 import fiji.plugin.trackmate.Model;
 import fiji.plugin.trackmate.SelectionModel;
 import fiji.plugin.trackmate.Settings;
+import fiji.plugin.trackmate.gui.displaysettings.DisplaySettings;
 import fiji.plugin.trackmate.visualization.TrackMateModelView;
 import fiji.plugin.trackmate.visualization.ViewFactory;
 import net.imglib2.RandomAccessibleInterval;
 
 public class MamutViewerFactory implements ViewFactory
 {
-	private static final String INFO_TEXT = "A viewer based on Tobias Pietzsch SPIM Viewer";
+	private static final String INFO_TEXT = "A viewer based on the BDV";
 
 	public static final String KEY = "MaMuT Viewer";
 
@@ -76,7 +77,7 @@ public class MamutViewerFactory implements ViewFactory
 	}
 
 	@Override
-	public TrackMateModelView create( final Model model, final Settings settings, final SelectionModel selectionModel )
+	public TrackMateModelView create( final Model model, final Settings settings, final SelectionModel selectionModel, final DisplaySettings ds )
 	{
 		final SourceSettings ss = ( SourceSettings ) settings;
 		final List< SourceAndConverter< ? >> sources = ss.getSources();
@@ -105,11 +106,16 @@ public class MamutViewerFactory implements ViewFactory
 		if ( is2D )
 			options.transformEventHandlerFactory( BehaviourTransformEventHandlerPlanar.factory() );
 
-		return new MamutViewer( DEFAULT_WIDTH, DEFAULT_HEIGHT,
-				sources, numTimePoints, cache,
-				model, selectionModel,
+		return new MamutViewer(
+				DEFAULT_WIDTH,
+				DEFAULT_HEIGHT,
+				sources,
+				numTimePoints,
+				cache,
+				model,
+				selectionModel,
+				ds,
 				options,
 				bookmarks );
 	}
-
 }

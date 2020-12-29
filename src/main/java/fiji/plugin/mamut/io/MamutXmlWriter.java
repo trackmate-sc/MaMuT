@@ -48,6 +48,7 @@ import fiji.plugin.trackmate.io.TmXmlWriter;
 import fiji.plugin.trackmate.visualization.TrackMateModelView;
 import fiji.plugin.trackmate.visualization.trackscheme.TrackScheme;
 
+@SuppressWarnings( "deprecation" )
 public class MamutXmlWriter extends TmXmlWriter
 {
 

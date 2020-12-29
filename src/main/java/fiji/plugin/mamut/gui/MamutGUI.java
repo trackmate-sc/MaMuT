@@ -43,6 +43,8 @@ import fiji.plugin.mamut.action.MamutActionFactory;
 import fiji.plugin.mamut.providers.MamutActionProvider;
 import fiji.plugin.trackmate.TrackMate;
 import fiji.plugin.trackmate.action.TrackMateAction;
+import fiji.plugin.trackmate.gui.FeatureDisplaySelector;
+import fiji.plugin.trackmate.gui.displaysettings.DisplaySettings;
 
 public class MamutGUI extends JFrame
 {
@@ -50,17 +52,11 @@ public class MamutGUI extends JFrame
 	private static final long serialVersionUID = 1L;
 
 	private final static ImageIcon ANNOTATION_ICON_ORIG = new ImageIcon( MaMuT.class.getResource( "Logo50x50-color-nofont-72p.png" ) );
-
 	private final static ImageIcon ANNOTATION_ICON;
-
 	private static final ImageIcon MAMUT_ICON_ORIG = new ImageIcon( MaMuT.class.getResource( "mammouth-256x256.png" ) );
-
 	private static final ImageIcon MAMUT_ICON;
-
 	private static final ImageIcon ACTION_ICON_ORIG = new ImageIcon( MaMuT.class.getResource( "cog.png" ) );
-
 	private static final ImageIcon ACTION_ICON;
-
 	static
 	{
 		final Image image1 = ANNOTATION_ICON_ORIG.getImage();
@@ -72,7 +68,7 @@ public class MamutGUI extends JFrame
 		MAMUT_ICON = new ImageIcon( newimg2 );
 
 		final Image image3 = ACTION_ICON_ORIG.getImage();
-		final Image newimg3 = image3.getScaledInstance( 32, 32, java.awt.Image.SCALE_SMOOTH );
+		final Image newimg3 = image3.getScaledInstance( 16, 16, java.awt.Image.SCALE_SMOOTH );
 		ACTION_ICON = new ImageIcon( newimg3 );
 	}
 
@@ -85,18 +81,29 @@ public class MamutGUI extends JFrame
 
 	private final MamutActionPanel actionPanel;
 
-	public MamutGUI( final TrackMate trackmate, final MaMuT mamut )
+	public MamutGUI(
+			final TrackMate trackmate,
+			final MaMuT mamut,
+			final DisplaySettings ds )
 	{
 		setTitle( PLUGIN_NAME + " v" + PLUGIN_VERSION );
 		setIconImage( MAMUT_ICON.getImage() );
-		setSize( 340, 580 );
 
 		final JTabbedPane tabbedPane = new JTabbedPane( SwingConstants.TOP );
 		getContentPane().add( tabbedPane, BorderLayout.CENTER );
 		setLocationByPlatform( true );
-		setVisible( true );
 
-		viewPanel = new MamutControlPanel( trackmate.getModel() );
+		final FeatureDisplaySelector featureSelector = new FeatureDisplaySelector( trackmate.getModel(), trackmate.getSettings(), ds );
+		viewPanel = new MamutControlPanel(
+				ds,
+				featureSelector,
+				trackmate.getModel().getSpaceUnits(),
+				e -> mamut.newViewer(),
+				e -> mamut.newTrackScheme(),
+				e -> mamut.newTrackTables(),
+				e -> mamut.newSpotTable(),
+				e -> mamut.save() );
+
 		tabbedPane.addTab( "Views", MAMUT_ICON, viewPanel, "The control panel for views" );
 
 		annotationPanel = new AnnotationPanel( mamut.getGuimodel() );

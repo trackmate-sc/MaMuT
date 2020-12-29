@@ -29,9 +29,7 @@ import java.awt.event.KeyListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.swing.JComponent;
 import javax.swing.JFrame;
@@ -56,8 +54,7 @@ import fiji.plugin.trackmate.Logger;
 import fiji.plugin.trackmate.Model;
 import fiji.plugin.trackmate.SelectionModel;
 import fiji.plugin.trackmate.Spot;
-import fiji.plugin.trackmate.visualization.FeatureColorGenerator;
-import fiji.plugin.trackmate.visualization.TrackColorGenerator;
+import fiji.plugin.trackmate.gui.displaysettings.DisplaySettings;
 import fiji.plugin.trackmate.visualization.TrackMateModelView;
 import ij.IJ;
 import net.imglib2.ui.TransformEventHandler;
@@ -69,6 +66,7 @@ import net.imglib2.ui.util.GuiUtil;
  *
  * @author Tobias Pietzsch &lt;tobias.pietzsch@gmail.com&gt;
  */
+@SuppressWarnings( "deprecation" )
 public class MamutViewer extends JFrame implements TrackMateModelView
 {
 	private static final long serialVersionUID = 1L;
@@ -88,16 +86,6 @@ public class MamutViewer extends JFrame implements TrackMateModelView
 
 	private final SelectionModel selectionModel;
 
-	/**
-	 * A map of String/Object that configures the look and feel of the display.
-	 */
-	protected Map< String, Object > displaySettings = new HashMap<>();
-
-	/** The mapping from spot to a color. */
-	FeatureColorGenerator< Spot > spotColorProvider;
-
-	TrackColorGenerator trackColorProvider;
-
 	protected final MamutViewerPanel viewerPanel;
 
 	private final InputActionBindings keybindings;
@@ -111,6 +99,8 @@ public class MamutViewer extends JFrame implements TrackMateModelView
 	private final MamutRecordMaxProjectionDialog recordMaxProjectionMovieDialog;
 
 	private final BookmarksEditor bookmarkEditor;
+
+	private final DisplaySettings ds;
 
 	/**
 	 *
@@ -134,12 +124,20 @@ public class MamutViewer extends JFrame implements TrackMateModelView
 	 *            optional parameters. See
 	 *            {@link bdv.viewer.ViewerPanel#getOptionValues()}.
 	 */
-	public MamutViewer( final int width, final int height, final List< SourceAndConverter< ? > > sources, final int numTimePoints, final CacheControl cache,
-			final Model model, final SelectionModel selectionModel,
+	public MamutViewer(
+			final int width,
+			final int height,
+			final List< SourceAndConverter< ? > > sources,
+			final int numTimePoints,
+			final CacheControl cache,
+			final Model model,
+			final SelectionModel selectionModel,
+			final DisplaySettings ds,
 			final ViewerOptions optional,
 			final Bookmarks bookmarks )
 	{
 		super( "MaMut Viewer", GuiUtil.getSuitableGraphicsConfiguration( GuiUtil.RGB_COLOR_MODEL ) );
+		this.ds = ds;
 		final MessageOverlayAnimator msgOverlay = new MessageOverlayAnimator( DEFAULT_TEXT_DISPLAY_DURATION, DEFAULT_FADEINTIME, DEFAULT_FADEOUTTIME, DEFAULT_FONT );
 		viewerPanel = new MamutViewerPanel( sources, numTimePoints, cache, optional.width( width ).height( height ).msgOverlay( msgOverlay ) );
 		keybindings = new InputActionBindings();
@@ -183,7 +181,7 @@ public class MamutViewer extends JFrame implements TrackMateModelView
 		recordMovieDialog.setLocationRelativeTo( this );
 		viewerPanel.getDisplay().addOverlayRenderer( recordMovieDialog );
 
-		this.recordMaxProjectionMovieDialog = new MamutRecordMaxProjectionDialog( this, this, new ProgressWriterLogger( logger ) );
+		this.recordMaxProjectionMovieDialog = new MamutRecordMaxProjectionDialog( this, this, ds, new ProgressWriterLogger( logger ) );
 		recordMaxProjectionMovieDialog.setLocationRelativeTo( this );
 		viewerPanel.getDisplay().addOverlayRenderer( recordMaxProjectionMovieDialog );
 
@@ -223,7 +221,7 @@ public class MamutViewer extends JFrame implements TrackMateModelView
 	@Override
 	public void render()
 	{
-		viewerPanel.overlay = new MamutOverlay( model, selectionModel, this );
+		viewerPanel.overlay = new MamutOverlay( model, selectionModel, this, ds );
 	}
 
 	@Override
@@ -242,43 +240,6 @@ public class MamutViewer extends JFrame implements TrackMateModelView
 	public void centerViewOn( final Spot spot )
 	{
 		viewerPanel.centerViewOn( spot );
-	}
-
-	@Override
-	public Map< String, Object > getDisplaySettings()
-	{
-		return displaySettings;
-	}
-
-	@SuppressWarnings( "unchecked" )
-	@Override
-	public void setDisplaySettings( final String key, final Object value )
-	{
-		if ( key.equals( KEY_SPOT_COLORING ) )
-		{
-			if ( null != spotColorProvider )
-				spotColorProvider.terminate();
-
-			spotColorProvider = ( FeatureColorGenerator< Spot > ) value;
-			spotColorProvider.activate();
-		}
-		else if ( key.equals( KEY_TRACK_COLORING ) )
-		{
-			if ( null != trackColorProvider )
-				trackColorProvider.terminate();
-
-			trackColorProvider = ( TrackColorGenerator ) value;
-			trackColorProvider.activate();
-		}
-
-		displaySettings.put( key, value );
-		refresh();
-	}
-
-	@Override
-	public Object getDisplaySettings( final String key )
-	{
-		return displaySettings.get( key );
 	}
 
 	@Override

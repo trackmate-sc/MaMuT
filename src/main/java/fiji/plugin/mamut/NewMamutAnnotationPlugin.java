@@ -25,6 +25,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
+
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.JDOMException;
@@ -36,6 +39,8 @@ import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import fiji.plugin.trackmate.Logger;
 import fiji.plugin.trackmate.Model;
+import fiji.plugin.trackmate.Settings;
+import fiji.plugin.trackmate.gui.displaysettings.DisplaySettingsIO;
 import fiji.plugin.trackmate.io.IOUtils;
 import ij.IJ;
 import ij.ImageJ;
@@ -47,6 +52,7 @@ import net.imglib2.histogram.Real1dBinMapper;
 import net.imglib2.type.numeric.integer.UnsignedShortType;
 import net.imglib2.view.Views;
 
+@SuppressWarnings( "deprecation" )
 public class NewMamutAnnotationPlugin implements PlugIn
 {
 
@@ -64,7 +70,7 @@ public class NewMamutAnnotationPlugin implements PlugIn
 			file = new File( fileStr );
 			if ( file.isDirectory() )
 			{
-				file = IOUtils.askForFileForLoading( file, "Open a MaMuT xml file", IJ.getInstance(), logger );
+				file = IOUtils.askForFileForLoading( file, "Open a BDV xml/h5 file", IJ.getInstance(), logger );
 				if ( null == file ) { return; }
 			}
 			if ( !file.exists() )
@@ -90,10 +96,11 @@ public class NewMamutAnnotationPlugin implements PlugIn
 			if ( null == file ) { return; }
 		}
 
-		final Model model = createModel();
+		final Model model = new Model();
 		model.setLogger( logger );
-		final SourceSettings settings = createSettings();
-		final MaMuT mamut = new MaMuT( file, model, settings );
+		final SourceSettings settings = new SourceSettings( new Settings() );
+		settings.addAllAnalyzers();
+		final MaMuT mamut = new MaMuT( file, model, settings, DisplaySettingsIO.readUserDefault() );
 
 		/*
 		 * Initialize default settings.
@@ -145,16 +152,6 @@ public class NewMamutAnnotationPlugin implements PlugIn
 			return new File( folder.getPath() + File.separator + "data.xml" );
 
 		return new File( "data.xml" );
-	}
-
-	protected SourceSettings createSettings()
-	{
-		return new SourceSettings();
-	}
-
-	protected Model createModel()
-	{
-		return new Model();
 	}
 
 	/*
@@ -213,14 +210,16 @@ public class NewMamutAnnotationPlugin implements PlugIn
 	 * MAIN METHOD
 	 */
 
-	public static void main( final String[] args )
+	public static void main( final String[] args ) throws ClassNotFoundException, InstantiationException, IllegalAccessException, UnsupportedLookAndFeelException
 	{
+		UIManager.setLookAndFeel( UIManager.getSystemLookAndFeelClassName() );
 		ImageJ.main( args );
 
 		final NewMamutAnnotationPlugin plugin = new NewMamutAnnotationPlugin();
 		plugin.run(
 //				"/Users/tinevez/Desktop/Data/Mamut/parhyale/BDV130418A325_NoTempReg.xml"
-				"/Users/tinevez/Desktop/MaMuT_demo_dataset/MaMuT_Parhyale_demo.xml" );
+//				"/Users/tinevez/Desktop/MaMuT_demo_dataset/MaMuT_Parhyale_demo.xml" );
+				"D:/Projects/JYTinevez/Mastodon/Tutorial/datasethdf5.xml" );
 //		plugin.run( "/Users/tinevez/Desktop/Celegans.xml" );
 	}
 

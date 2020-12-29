@@ -21,25 +21,6 @@
  */
 package fiji.plugin.mamut;
 
-import static fiji.plugin.trackmate.visualization.TrackMateModelView.DEFAULT_DRAWING_DEPTH;
-import static fiji.plugin.trackmate.visualization.TrackMateModelView.DEFAULT_HIGHLIGHT_COLOR;
-import static fiji.plugin.trackmate.visualization.TrackMateModelView.DEFAULT_LIMIT_DRAWING_DEPTH;
-import static fiji.plugin.trackmate.visualization.TrackMateModelView.DEFAULT_SPOT_COLOR;
-import static fiji.plugin.trackmate.visualization.TrackMateModelView.DEFAULT_TRACK_DISPLAY_DEPTH;
-import static fiji.plugin.trackmate.visualization.TrackMateModelView.DEFAULT_TRACK_DISPLAY_MODE;
-import static fiji.plugin.trackmate.visualization.TrackMateModelView.KEY_COLOR;
-import static fiji.plugin.trackmate.visualization.TrackMateModelView.KEY_DISPLAY_SPOT_NAMES;
-import static fiji.plugin.trackmate.visualization.TrackMateModelView.KEY_DRAWING_DEPTH;
-import static fiji.plugin.trackmate.visualization.TrackMateModelView.KEY_HIGHLIGHT_COLOR;
-import static fiji.plugin.trackmate.visualization.TrackMateModelView.KEY_LIMIT_DRAWING_DEPTH;
-import static fiji.plugin.trackmate.visualization.TrackMateModelView.KEY_SPOTS_VISIBLE;
-import static fiji.plugin.trackmate.visualization.TrackMateModelView.KEY_SPOT_COLORING;
-import static fiji.plugin.trackmate.visualization.TrackMateModelView.KEY_SPOT_RADIUS_RATIO;
-import static fiji.plugin.trackmate.visualization.TrackMateModelView.KEY_TRACKS_VISIBLE;
-import static fiji.plugin.trackmate.visualization.TrackMateModelView.KEY_TRACK_COLORING;
-import static fiji.plugin.trackmate.visualization.TrackMateModelView.KEY_TRACK_DISPLAY_DEPTH;
-import static fiji.plugin.trackmate.visualization.TrackMateModelView.KEY_TRACK_DISPLAY_MODE;
-
 import java.awt.Dimension;
 import java.awt.MouseInfo;
 import java.awt.Point;
@@ -50,28 +31,23 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
+import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
 import javax.swing.ImageIcon;
-import javax.swing.JButton;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.KeyStroke;
-import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
 
 import org.jgrapht.graph.DefaultWeightedEdge;
 import org.scijava.listeners.Listeners;
@@ -100,53 +76,30 @@ import bdv.viewer.ViewerState;
 import fiji.plugin.mamut.detection.SourceSemiAutoTracker;
 import fiji.plugin.mamut.feature.spot.SpotSourceIdAnalyzerFactory;
 import fiji.plugin.mamut.gui.AnnotationPanel;
-import fiji.plugin.mamut.gui.MamutControlPanel;
 import fiji.plugin.mamut.gui.MamutGUI;
 import fiji.plugin.mamut.gui.MamutGUIModel;
 import fiji.plugin.mamut.gui.MamutKeyboardHandler;
 import fiji.plugin.mamut.io.MamutXmlWriter;
-import fiji.plugin.mamut.providers.MamutEdgeAnalyzerProvider;
-import fiji.plugin.mamut.providers.MamutSpotAnalyzerProvider;
-import fiji.plugin.mamut.providers.MamutTrackAnalyzerProvider;
 import fiji.plugin.mamut.util.SourceSpotImageUpdater;
-import fiji.plugin.mamut.viewer.MamutOverlay;
 import fiji.plugin.mamut.viewer.MamutViewer;
 import fiji.plugin.mamut.viewer.MamutViewerPanel;
 import fiji.plugin.trackmate.Logger;
 import fiji.plugin.trackmate.Model;
 import fiji.plugin.trackmate.ModelChangeEvent;
 import fiji.plugin.trackmate.ModelChangeListener;
-import fiji.plugin.trackmate.SelectionChangeEvent;
-import fiji.plugin.trackmate.SelectionChangeListener;
 import fiji.plugin.trackmate.SelectionModel;
 import fiji.plugin.trackmate.Spot;
 import fiji.plugin.trackmate.TrackMate;
+import fiji.plugin.trackmate.action.ExportAllSpotsStatsAction;
+import fiji.plugin.trackmate.action.ExportStatsTablesAction;
 import fiji.plugin.trackmate.features.ModelFeatureUpdater;
-import fiji.plugin.trackmate.features.edges.EdgeAnalyzer;
-import fiji.plugin.trackmate.features.edges.EdgeTargetAnalyzer;
-import fiji.plugin.trackmate.features.spot.SpotAnalyzerFactory;
-import fiji.plugin.trackmate.features.track.TrackAnalyzer;
-import fiji.plugin.trackmate.features.track.TrackIndexAnalyzer;
-import fiji.plugin.trackmate.gui.DisplaySettingsEvent;
-import fiji.plugin.trackmate.gui.DisplaySettingsListener;
+import fiji.plugin.trackmate.gui.displaysettings.DisplaySettings;
 import fiji.plugin.trackmate.io.IOUtils;
-import fiji.plugin.trackmate.providers.EdgeAnalyzerProvider;
-import fiji.plugin.trackmate.providers.SpotAnalyzerProvider;
-import fiji.plugin.trackmate.providers.TrackAnalyzerProvider;
 import fiji.plugin.trackmate.util.ModelTools;
-import fiji.plugin.trackmate.visualization.ManualEdgeColorGenerator;
-import fiji.plugin.trackmate.visualization.ManualSpotColorGenerator;
-import fiji.plugin.trackmate.visualization.PerEdgeFeatureColorGenerator;
-import fiji.plugin.trackmate.visualization.PerTrackFeatureColorGenerator;
-import fiji.plugin.trackmate.visualization.SpotColorGenerator;
-import fiji.plugin.trackmate.visualization.SpotColorGeneratorPerTrackFeature;
 import fiji.plugin.trackmate.visualization.TrackMateModelView;
-import fiji.plugin.trackmate.visualization.threedviewer.SpotDisplayer3D;
 import fiji.plugin.trackmate.visualization.trackscheme.TrackScheme;
 import ij.IJ;
 import ij.text.TextWindow;
-import ij3d.Image3DUniverse;
-import ij3d.ImageWindow3D;
 import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.generic.sequence.AbstractSequenceDescription;
 import mpicbg.spim.data.sequence.TimePoint;
@@ -155,6 +108,7 @@ import net.imglib2.RealPoint;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.ARGBType;
 
+@SuppressWarnings( "deprecation" )
 public class MaMuT implements ModelChangeListener
 {
 
@@ -193,8 +147,7 @@ public class MaMuT implements ModelChangeListener
 	private double radius = DEFAULT_RADIUS;
 
 	/** The radius below which a spot cannot go. */
-	private final double minRadius = 2; // TODO change this when we have a
-	// physical calibration
+	private final double minRadius = 2;
 
 	/** The spot currently moved under the mouse. */
 	private Spot movedSpot = null;
@@ -213,22 +166,6 @@ public class MaMuT implements ModelChangeListener
 	 * subsequent frame.
 	 */
 	private boolean isLinkingMode = false;
-
-	/**
-	 * The color map for painting the spots. It is centralized here and is used
-	 * in the {@link MamutOverlay}s.
-	 */
-	private SpotColorGenerator spotColorProvider;
-
-	private PerTrackFeatureColorGenerator trackColorProvider;
-
-	private PerEdgeFeatureColorGenerator edgeColorProvider;
-
-	private SpotColorGeneratorPerTrackFeature spotColorPerTrackFeatureProvider;
-
-	private ManualSpotColorGenerator manualSpotColorGenerator;
-
-	private ManualEdgeColorGenerator manualEdgeColorGenerator;
 
 	private TrackMate trackmate;
 
@@ -249,104 +186,60 @@ public class MaMuT implements ModelChangeListener
 	 */
 	private boolean testWithinSpot = true;
 
-	private MamutGUI gui;
-
 	private ManualTransformationEditor manualTransformationEditor;
 
-	private Bookmarks bookmarks;
+	private final Bookmarks bookmarks;
+
+	private final DisplaySettings ds;
+
+	private final MamutGUI gui;
 
 	private static File mamutFile;
 
-	public MaMuT( final File imageFile, final Model model, final SourceSettings settings )
+	public MaMuT( final File file, final Model model, final SourceSettings settings, final DisplaySettings ds )
 	{
 		this.model = model;
 		this.settings = settings;
-		setLaF();
+		this.ds = ds;
+		this.guimodel = new MamutGUIModel();
 
-		final String pf = imageFile.getParent();
-		String lf = imageFile.getName();
-		lf = lf.split( "\\." )[ 0 ] + "-mamut.xml";
-		mamutFile = new File( pf, lf );
-
-		launch( imageFile );
-	}
-
-	/*
-	 * PROTECTED METHODS. They are all about configuring and preparing the MaMuT
-	 * session.
-	 */
-
-	/**
-	 * Loads the specified image data (hd5/xml couple), configures and launches
-	 * MaMuT.
-	 *
-	 * @param file
-	 *            the file that points to the xml file of the hd5/xml image data
-	 *            couple.
-	 */
-	@SuppressWarnings( { "unchecked", "rawtypes" } )
-	protected void launch( final File file )
-	{
-
-		/*
-		 * Prepare model & settings
-		 */
-
-		model.addModelChangeListener( this );
-
-		/*
-		 * Configure settings object with spot, edge and track analyzers as
-		 * specified in the providers.
-		 */
-
-		prepareSettingsObject();
-
-		/*
-		 * Auto-update features & declare them
-		 */
-
-		new ModelFeatureUpdater( model, settings );
-
-		trackmate = new TrackMate( model, settings );
+		this.trackmate = new TrackMate( model, settings );
 		trackmate.computeSpotFeatures( true );
 		trackmate.computeEdgeFeatures( true );
 		trackmate.computeTrackFeatures( true );
 
+		this.gui = new MamutGUI( trackmate, this, ds );
+		this.bookmarks = new Bookmarks();
+
+		final String pf = file.getParent();
+		String lf = file.getName();
+		lf = lf.split( "\\." )[ 0 ] + "-mamut.xml";
+		mamutFile = new File( pf, lf );
+
+		/*
+		 * Prepare model & settings
+		 */
+		model.addModelChangeListener( this );
+
+		/*
+		 * Auto-update features & declare them
+		 */
+		new ModelFeatureUpdater( model, settings );
+
 		/*
 		 * Selection model
 		 */
-
 		selectionModel = new SelectionModel( model );
-		selectionModel.addSelectionChangeListener( new SelectionChangeListener()
-		{
-			@Override
-			public void selectionChanged( final SelectionChangeEvent event )
-			{
-				refresh();
-				if ( selectionModel.getSpotSelection().size() == 1 )
-				{
-					centerOnSpot( selectionModel.getSpotSelection().iterator().next() );
-				}
-			}
+		selectionModel.addSelectionChangeListener( e -> {
+			refresh();
+			if ( selectionModel.getSpotSelection().size() == 1 )
+				centerOnSpot( selectionModel.getSpotSelection().iterator().next() );
 		} );
 
-		/*
-		 * Color providers
-		 */
-
-		prepareColorProviders();
-
-		/*
-		 * GUI model
-		 */
-
-		guimodel = new MamutGUIModel();
-		guimodel.setDisplaySettings( createDisplaySettings( model ) );
 
 		/*
 		 * Load image source
 		 */
-
 		try
 		{
 			prepareSources( file );
@@ -360,114 +253,14 @@ public class MaMuT implements ModelChangeListener
 		/*
 		 * Update settings.
 		 */
-
 		settings.setFrom( sources, file, nTimepoints, cache );
 
 		/*
 		 * Thumbnail updater. We need to have the sources loaded for it.
 		 */
-
-		thumbnailUpdater = new SourceSpotImageUpdater( settings, sources );
-
-		/*
-		 * Brightness
-		 */
-
-		brightnessDialog = new BrightnessDialog( gui, setupAssignments );
-
-		/*
-		 * Help
-		 */
-
-		helpDialog = new HelpDialog( gui, MaMuT.class.getResource( "Help.html" ) );
-
-		/*
-		 * Bookmarks.
-		 */
-
-		bookmarks = new Bookmarks();
-
-		/*
-		 * Control Panel
-		 */
-
-		launchGUI();
-
-	}
-
-	/**
-	 * Instantiates and displays the MaMuT GUI.
-	 * <p>
-	 * This will sets the following fields:
-	 * <ul>
-	 * <li>{@link #gui}
-	 * <li>{@link #logger}
-	 * </ul>
-	 * This requires the following fields to be set:
-	 * <ul>
-	 * <li>{@link #trackmate}, properly instantiated with {@link #model} and
-	 * {@link #settings}
-	 * <li>{@link #spotColorProvider}
-	 * <li>{@link #edgeColorProvider}
-	 * <li>{@link #trackColorProvider}
-	 * <li>{@link #spotColorPerTrackFeatureProvider}
-	 * <li>{@link #manualSpotColorGenerator}
-	 * <li>{@link #manualEdgeColorGenerator}
-	 * </ul>
-	 */
-	protected void launchGUI()
-	{
-		gui = new MamutGUI( trackmate, this );
-
-		final MamutControlPanel viewPanel = gui.getViewPanel();
-		viewPanel.setSpotColorGenerator( spotColorProvider );
-		viewPanel.setSpotColorGeneratorPerTrackFeature( spotColorPerTrackFeatureProvider );
-		viewPanel.setManualSpotColorGenerator( manualSpotColorGenerator );
-		viewPanel.setEdgeColorGenerator( edgeColorProvider );
-		viewPanel.setManualEdgeColorGenerator( manualEdgeColorGenerator );
-		viewPanel.setTrackColorGenerator( trackColorProvider );
-
-		viewPanel.addActionListener( new ActionListener()
-		{
-			@Override
-			public void actionPerformed( final ActionEvent event )
-			{
-				if ( event == viewPanel.TRACK_SCHEME_BUTTON_PRESSED )
-				{
-					launchTrackScheme( viewPanel.getTrackSchemeButton() );
-				}
-				else if ( event == viewPanel.DO_ANALYSIS_BUTTON_PRESSED )
-				{
-					launch3DViewer( viewPanel.getDoAnalysisButton() );
-				}
-				else if ( event == viewPanel.MAMUT_VIEWER_BUTTON_PRESSED )
-				{
-					newViewer();
-				}
-				else if ( event == viewPanel.MAMUT_SAVE_BUTTON_PRESSED )
-				{
-					save();
-				}
-				else
-				{
-					System.out.println( "[MaMuT] Caught unknown event: " + event );
-				}
-			}
-
-		} );
-		viewPanel.addDisplaySettingsChangeListener( new DisplaySettingsListener()
-		{
-			@Override
-			public void displaySettingsChanged( final DisplaySettingsEvent event )
-			{
-				guimodel.getDisplaySettings().put( event.getKey(), event.getNewValue() );
-				for ( final TrackMateModelView view : guimodel.getViews() )
-				{
-					view.setDisplaySettings( event.getKey(), event.getNewValue() );
-					view.refresh();
-				}
-			}
-		} );
+		@SuppressWarnings( { "rawtypes", "unchecked" } )
+		final SourceSpotImageUpdater tmpUpdater = new SourceSpotImageUpdater( settings, sources );
+		thumbnailUpdater = tmpUpdater;
 
 		final AnnotationPanel annotationPanel = gui.getAnnotationPanel();
 		logger = annotationPanel.getLogger();
@@ -503,95 +296,18 @@ public class MaMuT implements ModelChangeListener
 			}
 		} );
 
-		gui.pack();
-	}
+		/*
+		 * Help
+		 */
+		helpDialog = new HelpDialog( gui, MaMuT.class.getResource( "Help.html" ) );
 
-	/**
-	 * Sets the {@link #settings} field with the analyzers configured for MaMuT.
-	 * This does not require the image sources to be loaded.
-	 */
-	protected void prepareSettingsObject()
-	{
-		settings.clearSpotAnalyzerFactories();
-		final SpotAnalyzerProvider spotAnalyzerProvider = new MamutSpotAnalyzerProvider();
-		final List< String > spotAnalyzerKeys = spotAnalyzerProvider.getKeys();
-		for ( final String key : spotAnalyzerKeys )
-		{
-			final SpotAnalyzerFactory< ? > spotFeatureAnalyzer = spotAnalyzerProvider.getFactory( key );
-			settings.addSpotAnalyzerFactory( spotFeatureAnalyzer );
-		}
+		/*
+		 * Brightness
+		 */
+		brightnessDialog = new BrightnessDialog( gui, setupAssignments );
 
-		settings.clearEdgeAnalyzers();
-		final EdgeAnalyzerProvider edgeAnalyzerProvider = new MamutEdgeAnalyzerProvider();
-		final List< String > edgeAnalyzerKeys = edgeAnalyzerProvider.getKeys();
-		for ( final String key : edgeAnalyzerKeys )
-		{
-			final EdgeAnalyzer edgeAnalyzer = edgeAnalyzerProvider.getFactory( key );
-			settings.addEdgeAnalyzer( edgeAnalyzer );
-		}
-
-		settings.clearTrackAnalyzers();
-		final TrackAnalyzerProvider trackAnalyzerProvider = new MamutTrackAnalyzerProvider();
-		final List< String > trackAnalyzerKeys = trackAnalyzerProvider.getKeys();
-		for ( final String key : trackAnalyzerKeys )
-		{
-			final TrackAnalyzer trackAnalyzer = trackAnalyzerProvider.getFactory( key );
-			settings.addTrackAnalyzer( trackAnalyzer );
-		}
-	}
-
-	/**
-	 * Returns the starting display settings that will be passed to any new view
-	 * registered within this GUI.
-	 *
-	 * @param lModel
-	 *            the model this GUI will configure; might be required by some
-	 *            display settings.
-	 * @return a map of display settings mappings.
-	 */
-	protected Map< String, Object > createDisplaySettings( final Model lModel )
-	{
-		final Map< String, Object > displaySettings = new HashMap<>();
-		displaySettings.put( KEY_COLOR, DEFAULT_SPOT_COLOR );
-		displaySettings.put( KEY_HIGHLIGHT_COLOR, DEFAULT_HIGHLIGHT_COLOR );
-		displaySettings.put( KEY_SPOTS_VISIBLE, true );
-		displaySettings.put( KEY_DISPLAY_SPOT_NAMES, false );
-		displaySettings.put( KEY_SPOT_RADIUS_RATIO, 1.0d );
-		displaySettings.put( KEY_TRACKS_VISIBLE, true );
-		displaySettings.put( KEY_TRACK_DISPLAY_MODE, DEFAULT_TRACK_DISPLAY_MODE );
-		displaySettings.put( KEY_TRACK_DISPLAY_DEPTH, DEFAULT_TRACK_DISPLAY_DEPTH );
-		displaySettings.put( KEY_TRACK_COLORING, trackColorProvider );
-		displaySettings.put( KEY_SPOT_COLORING, spotColorProvider );
-		displaySettings.put( KEY_LIMIT_DRAWING_DEPTH, DEFAULT_LIMIT_DRAWING_DEPTH );
-		displaySettings.put( KEY_DRAWING_DEPTH, DEFAULT_DRAWING_DEPTH );
-		return displaySettings;
-	}
-
-	/**
-	 * Instantiates the color providers of this MaMuT.
-	 * <p>
-	 * This needs the following fields to be set:
-	 * <ul>
-	 * <li>{@link #model}
-	 * </ul>
-	 * This will set the following fields:
-	 * <ul>
-	 * <li>{@link #spotColorProvider}
-	 * <li>{@link #edgeColorProvider}
-	 * <li>{@link #trackColorProvider}
-	 * <li>{@link #spotColorPerTrackFeatureProvider}
-	 * <li>{@link #manualSpotColorGenerator}
-	 * <li>{@link #manualEdgeColorGenerator}
-	 * </ul>
-	 */
-	protected void prepareColorProviders()
-	{
-		spotColorProvider = new SpotColorGenerator( model );
-		trackColorProvider = new PerTrackFeatureColorGenerator( model, TrackIndexAnalyzer.TRACK_ID );
-		edgeColorProvider = new PerEdgeFeatureColorGenerator( model, EdgeTargetAnalyzer.EDGE_COST );
-		spotColorPerTrackFeatureProvider = new SpotColorGeneratorPerTrackFeature( model, TrackIndexAnalyzer.TRACK_ID );
-		manualSpotColorGenerator = new ManualSpotColorGenerator();
-		manualEdgeColorGenerator = new ManualEdgeColorGenerator( model );
+		gui.setSize( 340, 580 );
+		gui.setVisible( true );
 	}
 
 	/**
@@ -1022,11 +738,28 @@ public class MaMuT implements ModelChangeListener
 		}
 	}
 
-	/*
-	 * PRIVATE METHODS
-	 */
+	public void newTrackTables()
+	{
+		new ExportStatsTablesAction( selectionModel, ds ).execute( trackmate );
+	}
 
-	private MamutViewer newViewer()
+	public void newSpotTable()
+	{
+		new ExportAllSpotsStatsAction( selectionModel, ds ).execute( trackmate );
+	}
+
+	public TrackScheme newTrackScheme()
+	{
+		final TrackScheme trackscheme = new TrackScheme( model, selectionModel, ds );
+		trackscheme.getGUI().addWindowListener( new DeregisterWindowListener( trackscheme ) );
+		trackscheme.setSpotImageUpdater( thumbnailUpdater );
+		selectionModel.addSelectionChangeListener( trackscheme );
+		trackscheme.render();
+		guimodel.addView( trackscheme );
+		return trackscheme;
+	}
+
+	public MamutViewer newViewer()
 	{
 		/*
 		 * Test if we have 2D images.
@@ -1059,12 +792,9 @@ public class MaMuT implements ModelChangeListener
 		final MamutViewer viewer = new MamutViewer(
 				DEFAULT_WIDTH, DEFAULT_HEIGHT,
 				sources, nTimepoints, cache,
-				model, selectionModel,
+				model, selectionModel, ds,
 				options,
 				bookmarks );
-
-		for ( final String key : guimodel.getDisplaySettings().keySet() )
-			viewer.setDisplaySettings( key, guimodel.getDisplaySettings().get( key ) );
 
 		installKeyBindings( viewer );
 		installMouseListeners( viewer );
@@ -1105,6 +835,10 @@ public class MaMuT implements ModelChangeListener
 		return viewer;
 
 	}
+
+	/*
+	 * PRIVATE METHODS
+	 */
 
 	private JMenuBar createMenuBar( final MamutViewer viewer )
 	{
@@ -1156,7 +890,7 @@ public class MaMuT implements ModelChangeListener
 		return menubar;
 	}
 
-	private void save()
+	public void save()
 	{
 		final Logger lLogger = Logger.IJ_LOGGER;
 		final File proposed = IOUtils.askForFileForSaving( mamutFile, IJ.getInstance(), lLogger );
@@ -1214,15 +948,9 @@ public class MaMuT implements ModelChangeListener
 	private void requestRepaintAllViewers()
 	{
 		if ( guimodel != null )
-		{
 			for ( final TrackMateModelView view : guimodel.getViews() )
-			{
 				if ( view instanceof MamutViewer )
-				{
 					( ( MamutViewer ) view ).getViewerPanel().requestRepaint();
-				}
-			}
-		}
 	}
 
 	/**
@@ -1329,20 +1057,14 @@ public class MaMuT implements ModelChangeListener
 					{
 						// Center view on it
 						centerOnSpot( spot );
+						// Replace selection
 						if ( !event.isShiftDown() )
-						{
-							// Replace selection
 							selectionModel.clearSpotSelection();
-						}
 						// Toggle it to selection
 						if ( selectionModel.getSpotSelection().contains( spot ) )
-						{
 							selectionModel.removeSpotFromSelection( spot );
-						}
 						else
-						{
 							selectionModel.addSpotToSelection( spot );
-						}
 
 					}
 					else
@@ -1355,13 +1077,9 @@ public class MaMuT implements ModelChangeListener
 				}
 				else
 				{
-
 					final Spot spot = getSpotWithinRadius( viewer.getViewerPanel() );
 					if ( null == spot )
-					{
-						// Create a new spot
-						addSpot( viewer );
-					}
+						addSpot( viewer ); // Create a new spot
 
 				}
 				refresh();
@@ -1370,74 +1088,17 @@ public class MaMuT implements ModelChangeListener
 
 	}
 
-	private void launchTrackScheme( final JButton button )
-	{
-		button.setEnabled( false );
-		new Thread( "Launching TrackScheme thread" )
-		{
-
-			@Override
-			public void run()
-			{
-				final TrackScheme trackscheme = new TrackScheme( model, selectionModel );
-				trackscheme.getGUI().addWindowListener( new DeregisterWindowListener( trackscheme ) );
-				trackscheme.setSpotImageUpdater( thumbnailUpdater );
-				for ( final String settingKey : guimodel.getDisplaySettings().keySet() )
-				{
-					trackscheme.setDisplaySettings( settingKey, guimodel.getDisplaySettings().get( settingKey ) );
-				}
-				selectionModel.addSelectionChangeListener( trackscheme );
-				trackscheme.render();
-				guimodel.addView( trackscheme );
-				button.setEnabled( true );
-			}
-		}.start();
-	}
-
-	private void launch3DViewer( final JButton button )
-	{
-		button.setEnabled( false );
-		new Thread( "MaMuT new 3D viewer thread" )
-		{
-			@Override
-			public void run()
-			{
-				final Image3DUniverse universe = new Image3DUniverse();
-				final ImageWindow3D win = new ImageWindow3D( "MaMuT 3D Viewer", universe );
-				win.setIconImage( MamutControlPanel.THREEDVIEWER_ICON.getImage() );
-				universe.init( win );
-				win.pack();
-				win.setLocationByPlatform( true );
-				win.setVisible( true );
-
-				// universe.show();
-				final SpotDisplayer3D newDisplayer = new SpotDisplayer3D( model, selectionModel, universe );
-				for ( final String key : guimodel.getDisplaySettings().keySet() )
-				{
-					newDisplayer.setDisplaySettings( key, guimodel.getDisplaySettings().get( key ) );
-				}
-				guimodel.addView( newDisplayer );
-				newDisplayer.render();
-				button.setEnabled( true );
-			}
-		}.start();
-	}
-
 	private void refresh()
 	{
 		// Just ask to repaint the TrackMate overlay
 		for ( final TrackMateModelView viewer : guimodel.getViews() )
-		{
 			viewer.refresh();
-		}
 	}
 
 	private void centerOnSpot( final Spot spot )
 	{
 		for ( final TrackMateModelView otherView : guimodel.getViews() )
-		{
 			otherView.centerViewOn( spot );
-		}
 	}
 
 	/**
@@ -1546,7 +1207,7 @@ public class MaMuT implements ModelChangeListener
 	 * PRIVATE CLASSES
 	 */
 
-	private class DeregisterWindowListener implements WindowListener
+	private class DeregisterWindowListener extends WindowAdapter
 	{
 
 		private final TrackMateModelView view;
@@ -1557,67 +1218,9 @@ public class MaMuT implements ModelChangeListener
 		}
 
 		@Override
-		public void windowActivated( final WindowEvent arg0 )
-		{}
-
-		@Override
-		public void windowClosed( final WindowEvent arg0 )
-		{}
-
-		@Override
 		public void windowClosing( final WindowEvent arg0 )
 		{
 			guimodel.removeView( view );
-		}
-
-		@Override
-		public void windowDeactivated( final WindowEvent arg0 )
-		{}
-
-		@Override
-		public void windowDeiconified( final WindowEvent arg0 )
-		{}
-
-		@Override
-		public void windowIconified( final WindowEvent arg0 )
-		{}
-
-		@Override
-		public void windowOpened( final WindowEvent arg0 )
-		{}
-
-	}
-
-	/*
-	 * STATIC METHODS
-	 */
-
-	private static final void setLaF()
-	{
-		// I can't stand the metal look. If this is a problem, contact me
-		// (jeanyves.tinevez@gmail.com)
-		if ( IJ.isMacOSX() || IJ.isWindows() )
-		{
-			try
-			{
-				UIManager.setLookAndFeel( UIManager.getSystemLookAndFeelClassName() );
-			}
-			catch ( final ClassNotFoundException e )
-			{
-				e.printStackTrace();
-			}
-			catch ( final InstantiationException e )
-			{
-				e.printStackTrace();
-			}
-			catch ( final IllegalAccessException e )
-			{
-				e.printStackTrace();
-			}
-			catch ( final UnsupportedLookAndFeelException e )
-			{
-				e.printStackTrace();
-			}
 		}
 	}
 }

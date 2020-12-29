@@ -61,6 +61,7 @@ import bdv.viewer.SynchronizedViewerState;
 import bdv.viewer.ViewerState;
 import bdv.viewer.overlay.ScaleBarOverlayRenderer;
 import bdv.viewer.render.MultiResolutionRenderer;
+import fiji.plugin.trackmate.gui.displaysettings.DisplaySettings;
 import net.imglib2.Cursor;
 import net.imglib2.display.screenimage.awt.ARGBScreenImage;
 import net.imglib2.img.Img;
@@ -96,13 +97,13 @@ public class MamutRecordMaxProjectionDialog extends JDialog implements OverlayRe
 
 	private final JSpinner spinnerNumSteps;
 
-	private MamutZProjectedOverlay overlay;
+	private final MamutZProjectedOverlay overlay;
 
-	public MamutRecordMaxProjectionDialog( final Frame owner, final MamutViewer mv, final ProgressWriter progressWriter )
+	public MamutRecordMaxProjectionDialog( final Frame owner, final MamutViewer mv, final DisplaySettings ds, final ProgressWriter progressWriter )
 	{
 		super( owner, "record max projection movie", false );
 		this.viewer = mv.getViewerPanel();
-		this.overlay = new MamutZProjectedOverlay( mv.getModel(), mv.getSelectionModel(), mv );
+		this.overlay = new MamutZProjectedOverlay( mv.getModel(), mv.getSelectionModel(), mv, ds );
 		maxTimepoint = viewer.state().getNumTimepoints() - 1;
 		this.progressWriter = progressWriter;
 
@@ -280,6 +281,7 @@ public class MamutRecordMaxProjectionDialog extends JDialog implements OverlayRe
 	 * @param stepSize
 	 *            in multiples of width of a source voxel.
 	 */
+	@SuppressWarnings( "deprecation" )
 	public void recordMovie( final int width, final int height, final int minTimepointIndex, final int maxTimepointIndex, final double stepSize, final int numSteps, final File dir ) throws IOException
 	{
 		final ViewerState renderState = viewer.state();

@@ -36,6 +36,13 @@ public class SourceSettings extends Settings {
 
 	private CacheControl cache;
 
+	public SourceSettings( final Settings settings )
+	{
+		// File info
+		this.imageFileName = settings.imageFileName;
+		this.imageFolder = settings.imageFolder;
+	}
+
 	@Override
 	public void setFrom(final ImagePlus imp) {
 		throw new UnsupportedOperationException("Cannot use ImagePlus with SourceSettings.");
