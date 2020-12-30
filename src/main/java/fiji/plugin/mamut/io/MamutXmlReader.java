@@ -21,6 +21,10 @@
  */
 package fiji.plugin.mamut.io;
 
+import static fiji.plugin.trackmate.io.TmXmlKeys.ANALYSER_ELEMENT_KEY;
+import static fiji.plugin.trackmate.io.TmXmlKeys.ANALYSER_KEY_ATTRIBUTE;
+import static fiji.plugin.trackmate.io.TmXmlKeys.ANALYZER_COLLECTION_ELEMENT_KEY;
+import static fiji.plugin.trackmate.io.TmXmlKeys.EDGE_ANALYSERS_ELEMENT_KEY;
 import static fiji.plugin.trackmate.io.TmXmlKeys.GUI_STATE_ELEMENT_KEY;
 import static fiji.plugin.trackmate.io.TmXmlKeys.GUI_VIEW_ATTRIBUTE;
 import static fiji.plugin.trackmate.io.TmXmlKeys.GUI_VIEW_ATTRIBUTE_POSITION_HEIGHT;
@@ -28,6 +32,12 @@ import static fiji.plugin.trackmate.io.TmXmlKeys.GUI_VIEW_ATTRIBUTE_POSITION_WID
 import static fiji.plugin.trackmate.io.TmXmlKeys.GUI_VIEW_ATTRIBUTE_POSITION_X;
 import static fiji.plugin.trackmate.io.TmXmlKeys.GUI_VIEW_ATTRIBUTE_POSITION_Y;
 import static fiji.plugin.trackmate.io.TmXmlKeys.GUI_VIEW_ELEMENT_KEY;
+import static fiji.plugin.trackmate.io.TmXmlKeys.IMAGE_ELEMENT_KEY;
+import static fiji.plugin.trackmate.io.TmXmlKeys.IMAGE_FILENAME_ATTRIBUTE_NAME;
+import static fiji.plugin.trackmate.io.TmXmlKeys.IMAGE_FOLDER_ATTRIBUTE_NAME;
+import static fiji.plugin.trackmate.io.TmXmlKeys.SETTINGS_ELEMENT_KEY;
+import static fiji.plugin.trackmate.io.TmXmlKeys.SPOT_ANALYSERS_ELEMENT_KEY;
+import static fiji.plugin.trackmate.io.TmXmlKeys.TRACK_ANALYSERS_ELEMENT_KEY;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -39,12 +49,17 @@ import org.jdom2.Element;
 
 import bdv.tools.bookmarks.Bookmarks;
 import bdv.tools.brightness.SetupAssignments;
+import fiji.plugin.mamut.MaMuT;
 import fiji.plugin.mamut.SourceSettings;
+import fiji.plugin.mamut.providers.MamutSpotAnalyzerProvider;
 import fiji.plugin.mamut.viewer.MamutViewer;
-import fiji.plugin.mamut.viewer.MamutViewerFactory;
 import fiji.plugin.trackmate.Model;
 import fiji.plugin.trackmate.SelectionModel;
 import fiji.plugin.trackmate.Settings;
+import fiji.plugin.trackmate.features.FeatureFilter;
+import fiji.plugin.trackmate.features.edges.EdgeAnalyzer;
+import fiji.plugin.trackmate.features.spot.SpotAnalyzerFactoryBase;
+import fiji.plugin.trackmate.features.track.TrackAnalyzer;
 import fiji.plugin.trackmate.gui.displaysettings.DisplaySettings;
 import fiji.plugin.trackmate.io.TmXmlReader;
 import fiji.plugin.trackmate.providers.DetectorProvider;
@@ -71,13 +86,7 @@ public class MamutXmlReader extends TmXmlReader
 	@Override
 	public Settings readSettings( final ImagePlus imp )
 	{
-		return readSettings( imp,
-				new DetectorProvider(),
-				new TrackerProvider(),
-				new SpotAnalyzerProvider( imp ),
-				new EdgeAnalyzerProvider(),
-				new TrackAnalyzerProvider(),
-				new SpotMorphologyAnalyzerProvider( imp ) );
+		throw new UnsupportedOperationException( "MaMuT cannot load a XML file that requires specifying an ImagePlus." );
 	}
 
 	@Override
@@ -90,17 +99,222 @@ public class MamutXmlReader extends TmXmlReader
 			final TrackAnalyzerProvider trackAnalyzerProvider,
 			final SpotMorphologyAnalyzerProvider spotMorphologyAnalyzerProvider )
 	{
-		final Settings settings = super.readSettings(
-				imp,
-				detectorProvider,
-				trackerProvider,
-				spotAnalyzerProvider,
-				edgeAnalyzerProvider,
-				trackAnalyzerProvider,
-				spotMorphologyAnalyzerProvider );
+		throw new UnsupportedOperationException( "MaMuT cannot load a XML file that requires specifying an ImagePlus." );
+	}
 
-		final SourceSettings sourceSettings = new SourceSettings( settings );
-		return sourceSettings;
+	@Override
+	public ImagePlus readImage()
+	{
+		throw new UnsupportedOperationException( "MaMuT cannot load a XML file that requires specifying an ImagePlus." );
+	}
+
+	public SourceSettings readSourceSettings()
+	{
+		final Element settingsElement = root.getChild( SETTINGS_ELEMENT_KEY );
+		if ( null == settingsElement )
+			return null;
+
+		/*
+		 * Read image path.
+		 */
+
+		final Element imageInfoElement = settingsElement.getChild( IMAGE_ELEMENT_KEY );
+		final String filename = imageInfoElement.getAttributeValue( IMAGE_FILENAME_ATTRIBUTE_NAME );
+		String folder = imageInfoElement.getAttributeValue( IMAGE_FOLDER_ATTRIBUTE_NAME );
+		if ( null == filename || filename.isEmpty() )
+		{
+			logger.error( "Cannot find image file name in xml file.\n" );
+			ok = false;
+			return null;
+		}
+		if ( null == folder || folder.isEmpty() )
+			folder = file.getParent(); // it is a relative path, then
+
+		File imageFile = new File( folder, filename );
+		if ( !imageFile.exists() || !imageFile.canRead() )
+		{
+			/*
+			 * Could not find it to the absolute path. Then we look for the same
+			 * path of the xml file
+			 */
+			folder = file.getParent();
+			imageFile = new File( folder, filename );
+			if ( !imageFile.exists() || !imageFile.canRead() )
+			{
+				logger.error( "Cannot read image file: " + imageFile + ".\n" );
+				ok = false;
+				return null;
+			}
+		}
+
+		final SourceSettings settings = new SourceSettings( folder, filename );
+		settings.imp = null;
+
+		// Detector
+		getDetectorSettings( settingsElement, settings, new DetectorProvider() );
+
+		// Tracker
+		getTrackerSettings( settingsElement, settings, new TrackerProvider() );
+
+		// Spot Filters
+		final FeatureFilter initialFilter = getInitialFilter( settingsElement );
+		if ( null != initialFilter )
+			settings.initialSpotFilterValue = initialFilter.value;
+
+		final List< FeatureFilter > spotFilters = getSpotFeatureFilters( settingsElement );
+		settings.setSpotFilters( spotFilters );
+
+		// Track Filters
+		final List< FeatureFilter > trackFilters = getTrackFeatureFilters( settingsElement );
+		settings.setTrackFilters( trackFilters );
+
+		// Features analyzers
+
+		final Element analyzersEl = settingsElement.getChild( ANALYZER_COLLECTION_ELEMENT_KEY );
+		if ( null == analyzersEl )
+		{
+			logger.error( "Could not find the feature analyzer element.\n" );
+			ok = false;
+		}
+		else
+		{
+
+			// Spot analyzers
+			final Element spotAnalyzerEl = analyzersEl.getChild( SPOT_ANALYSERS_ELEMENT_KEY );
+			if ( null == spotAnalyzerEl )
+			{
+				logger.error( "Could not find the spot analyzer element.\n" );
+				ok = false;
+
+			}
+			else
+			{
+
+				final List< Element > children = spotAnalyzerEl.getChildren( ANALYSER_ELEMENT_KEY );
+				final int nSetups = settings.getSources().size();
+				final SpotAnalyzerProvider spotAnalyzerProvider = new SpotAnalyzerProvider( nSetups );
+				final SpotMorphologyAnalyzerProvider spotMorphologyAnalyzerProvider = new SpotMorphologyAnalyzerProvider( nSetups );
+				final MamutSpotAnalyzerProvider mamutSpotAnalyzerProvider = new MamutSpotAnalyzerProvider( nSetups );
+				for ( final Element child : children )
+				{
+
+					final String key = child.getAttributeValue( ANALYSER_KEY_ATTRIBUTE );
+					if ( null == key )
+					{
+						logger.error( "Could not find analyzer name for element " + child + ".\n" );
+						ok = false;
+						continue;
+					}
+
+					SpotAnalyzerFactoryBase< ? > spotAnalyzer = spotAnalyzerProvider.getFactory( key );
+					if ( null == spotAnalyzer )
+					{
+						/*
+						 * Special case: if we cannot find a matching analyzer
+						 * for a declared factory, then we will try to see
+						 * whether it is a morphology spot analyzer, that are
+						 * treated separately.
+						 */
+						spotAnalyzer = spotMorphologyAnalyzerProvider.getFactory( key );
+					}
+					if ( null == spotAnalyzer )
+					{
+						/*
+						 * SECOND special case: now we will try if it is a mamut
+						 * analyzer, that is also treated separately.
+						 */
+						spotAnalyzer = mamutSpotAnalyzerProvider.getFactory( key );
+					}
+
+					if ( null == spotAnalyzer )
+					{
+						// We finally give up.
+						logger.error( "Unknown spot analyzer key: " + key + ".\n" );
+						ok = false;
+					}
+					else
+					{
+						settings.addSpotAnalyzerFactory( spotAnalyzer );
+					}
+				}
+			}
+
+			// Edge analyzers
+			final Element edgeAnalyzerEl = analyzersEl.getChild( EDGE_ANALYSERS_ELEMENT_KEY );
+			if ( null == edgeAnalyzerEl )
+			{
+				logger.error( "Could not find the edge analyzer element.\n" );
+				ok = false;
+
+			}
+			else
+			{
+
+				final List< Element > children = edgeAnalyzerEl.getChildren( ANALYSER_ELEMENT_KEY );
+				final EdgeAnalyzerProvider edgeAnalyzerProvider = new EdgeAnalyzerProvider();
+				for ( final Element child : children )
+				{
+
+					final String key = child.getAttributeValue( ANALYSER_KEY_ATTRIBUTE );
+					if ( null == key )
+					{
+						logger.error( "Could not find analyzer name for element " + child + ".\n" );
+						ok = false;
+						continue;
+					}
+
+					final EdgeAnalyzer edgeAnalyzer = edgeAnalyzerProvider.getFactory( key );
+					if ( null == edgeAnalyzer )
+					{
+						logger.error( "Unknown edge analyzer key: " + key + ".\n" );
+						ok = false;
+					}
+					else
+					{
+						settings.addEdgeAnalyzer( edgeAnalyzer );
+					}
+				}
+			}
+
+			// Track analyzers
+			final Element trackAnalyzerEl = analyzersEl.getChild( TRACK_ANALYSERS_ELEMENT_KEY );
+			if ( null == trackAnalyzerEl )
+			{
+				logger.error( "Could not find the track analyzer element.\n" );
+				ok = false;
+
+			}
+			else
+			{
+
+				final List< Element > children = trackAnalyzerEl.getChildren( ANALYSER_ELEMENT_KEY );
+				final TrackAnalyzerProvider trackAnalyzerProvider = new TrackAnalyzerProvider();
+				for ( final Element child : children )
+				{
+
+					final String key = child.getAttributeValue( ANALYSER_KEY_ATTRIBUTE );
+					if ( null == key )
+					{
+						logger.error( "Could not find analyzer name for element " + child + ".\n" );
+						ok = false;
+						continue;
+					}
+
+					final TrackAnalyzer trackAnalyzer = trackAnalyzerProvider.getFactory( key );
+					if ( null == trackAnalyzer )
+					{
+						logger.error( "Unknown track analyzer key: " + key + ".\n" );
+						ok = false;
+					}
+					else
+					{
+						settings.addTrackAnalyzer( trackAnalyzer );
+					}
+				}
+			}
+		}
+
+		return settings;
 	}
 
 	/**
@@ -113,8 +327,8 @@ public class MamutXmlReader extends TmXmlReader
 	 * @return the collection of views.
 	 * @see TrackMateModelView#render()
 	 */
-	@Override
 	public Collection< TrackMateModelView > getViews(
+			final MaMuT mamut,
 			final ViewProvider provider,
 			final Model model,
 			final Settings settings,
@@ -124,16 +338,12 @@ public class MamutXmlReader extends TmXmlReader
 		final Element guiel = root.getChild( GUI_STATE_ELEMENT_KEY );
 		if ( null != guiel )
 		{
-
-			final List< Element > children = guiel
-					.getChildren( GUI_VIEW_ELEMENT_KEY );
-			final Collection< TrackMateModelView > views = new ArrayList< >(
-					children.size() );
+			final List< Element > children = guiel.getChildren( GUI_VIEW_ELEMENT_KEY );
+			final Collection< TrackMateModelView > views = new ArrayList<>( children.size() );
 
 			for ( final Element child : children )
 			{
-				final String viewKey = child
-						.getAttributeValue( GUI_VIEW_ATTRIBUTE );
+				final String viewKey = child.getAttributeValue( GUI_VIEW_ATTRIBUTE );
 				if ( null == viewKey )
 				{
 					logger.error( "Could not find view key attribute for element "
@@ -142,14 +352,30 @@ public class MamutXmlReader extends TmXmlReader
 				}
 				else
 				{
+					if ( viewKey.equals( MamutViewer.KEY ) )
+					{
+						final MamutViewer mv = mamut.newViewer();
+						try
+						{
+							final int mvx = child.getAttribute( GUI_VIEW_ATTRIBUTE_POSITION_X ).getIntValue();
+							final int mvy = child.getAttribute( GUI_VIEW_ATTRIBUTE_POSITION_Y ).getIntValue();
+							final int mvwidth = child.getAttribute( GUI_VIEW_ATTRIBUTE_POSITION_WIDTH ).getIntValue();
+							final int mvheight = child.getAttribute( GUI_VIEW_ATTRIBUTE_POSITION_HEIGHT ).getIntValue();
+							mv.setLocation( mvx, mvy );
+							mv.setSize( mvwidth, mvheight );
+						}
+						catch ( final DataConversionException e )
+						{
+							e.printStackTrace();
+						}
+						continue;
+					}
 
 					final ViewFactory viewFactory = provider.getFactory( viewKey );
-
 					if ( null == viewFactory )
 					{
 						logger.error( "Unknown view for key " + viewKey + ".\n" );
 						ok = false;
-
 					}
 					else
 					{
@@ -157,69 +383,28 @@ public class MamutXmlReader extends TmXmlReader
 						final TrackMateModelView view = viewFactory.create( model, settings, selectionModel, displaySettings );
 						views.add( view );
 
-						new Thread( "MaMuT view rendering thread")
+						new Thread( "MaMuT view rendering thread" )
 						{
 							@Override
 							public void run()
 							{
-
-								if ( viewKey.equals( MamutViewerFactory.KEY ) )
-								{
-									final MamutViewer mv = ( MamutViewer ) view;
-									// mv.render();
-
-									try
-									{
-										final int mvx = child.getAttribute(
-												GUI_VIEW_ATTRIBUTE_POSITION_X )
-												.getIntValue();
-										final int mvy = child.getAttribute(
-												GUI_VIEW_ATTRIBUTE_POSITION_Y )
-												.getIntValue();
-										final int mvwidth = child
-												.getAttribute(
-														GUI_VIEW_ATTRIBUTE_POSITION_WIDTH )
-												.getIntValue();
-										final int mvheight = child
-												.getAttribute(
-														GUI_VIEW_ATTRIBUTE_POSITION_HEIGHT )
-												.getIntValue();
-										mv.setLocation( mvx, mvy );
-										mv.setSize( mvwidth, mvheight );
-									}
-									catch ( final DataConversionException e )
-									{
-										e.printStackTrace();
-									}
-
-								}
-								else if ( viewKey.equals( "TRACKSCHEME" ) )
+								if ( viewKey.equals( "TRACKSCHEME" ) )
 								{
 									final TrackScheme ts = ( TrackScheme ) view;
 									// ts.render();
 
 									try
 									{
-										final int mvx = child.getAttribute(
-												GUI_VIEW_ATTRIBUTE_POSITION_X )
-												.getIntValue();
-										final int mvy = child.getAttribute(
-												GUI_VIEW_ATTRIBUTE_POSITION_Y )
-												.getIntValue();
-										final int mvwidth = child
-												.getAttribute(
-														GUI_VIEW_ATTRIBUTE_POSITION_WIDTH )
-												.getIntValue();
-										final int mvheight = child
-												.getAttribute(
-														GUI_VIEW_ATTRIBUTE_POSITION_HEIGHT )
-												.getIntValue();
+										final int mvx = child.getAttribute( GUI_VIEW_ATTRIBUTE_POSITION_X ).getIntValue();
+										final int mvy = child.getAttribute( GUI_VIEW_ATTRIBUTE_POSITION_Y ).getIntValue();
+										final int mvwidth = child.getAttribute( GUI_VIEW_ATTRIBUTE_POSITION_WIDTH ).getIntValue();
+										final int mvheight = child.getAttribute( GUI_VIEW_ATTRIBUTE_POSITION_HEIGHT ).getIntValue();
 										ts.getGUI().setLocation( mvx, mvy );
 										ts.getGUI().setSize( mvwidth, mvheight );
 									}
 									catch ( final DataConversionException e )
 									{
-										e.printStackTrace( );
+										e.printStackTrace();
 									}
 								}
 							}
@@ -230,7 +415,7 @@ public class MamutXmlReader extends TmXmlReader
 			return views;
 
 		}
-		
+
 		logger.error( "Could not find GUI state element.\n" );
 		ok = false;
 		return null;
@@ -271,5 +456,4 @@ public class MamutXmlReader extends TmXmlReader
 			ok = false;
 		}
 	}
-
 }

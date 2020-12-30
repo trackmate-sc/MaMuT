@@ -22,48 +22,90 @@
 package fiji.plugin.mamut;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
+import bdv.BigDataViewer;
+import bdv.ViewerImgLoader;
 import bdv.cache.CacheControl;
+import bdv.spimdata.SpimDataMinimal;
+import bdv.spimdata.WrapBasicImgLoader;
+import bdv.spimdata.XmlIoSpimDataMinimal;
+import bdv.tools.brightness.ConverterSetup;
 import bdv.viewer.SourceAndConverter;
+import fiji.plugin.mamut.providers.MamutSpotAnalyzerProvider;
 import fiji.plugin.trackmate.Settings;
+import fiji.plugin.trackmate.providers.EdgeAnalyzerProvider;
+import fiji.plugin.trackmate.providers.SpotAnalyzerProvider;
+import fiji.plugin.trackmate.providers.TrackAnalyzerProvider;
 import ij.ImagePlus;
+import mpicbg.spim.data.SpimDataException;
+import mpicbg.spim.data.generic.sequence.AbstractSequenceDescription;
+import mpicbg.spim.data.sequence.TimePoint;
 import net.imglib2.RandomAccessibleInterval;
 
-public class SourceSettings extends Settings {
+public class SourceSettings extends Settings
+{
 
-	private List<SourceAndConverter<?>> sources;
+	private final List< SourceAndConverter< ? > > sources;
 
-	private CacheControl cache;
+	private final CacheControl cache;
 
-	public SourceSettings( final Settings settings )
+	private final ArrayList< ConverterSetup > converterSetups;
+
+	/**
+	 * Loads and prepares the image sources from the specified files.
+	 * <p>
+	 * This instantiates and sets the following fields:
+	 * <ul>
+	 * <li>{@link #nTimepoints}
+	 * <li>{@link #sources}
+	 * <li>{@link #cache}
+	 * <li>{@link #setupAssignments}
+	 * <ul>
+	 *
+	 * @param dataFile
+	 *            the file that points to the xml master file of the image data.
+	 *
+	 * @throws SpimDataException
+	 *             if the xml master file cannot be read or is incorrectly
+	 *             formatted.
+	 */
+	public SourceSettings( final String imageFolder, final String imageFileName )
 	{
-		// File info
-		this.imageFileName = settings.imageFileName;
-		this.imageFolder = settings.imageFolder;
-	}
+		this.imageFileName = imageFileName;
+		this.imageFolder = imageFolder;
+		this.sources = new ArrayList<>();
+		this.converterSetups = new ArrayList<>();
 
-	@Override
-	public void setFrom(final ImagePlus imp) {
-		throw new UnsupportedOperationException("Cannot use ImagePlus with SourceSettings.");
-	}
+		final File bdvFile = new File( imageFolder, imageFileName );
+		AbstractSequenceDescription< ?, ?, ? > seq = null;
+		try
+		{
+			SpimDataMinimal spimData;
+			spimData = new XmlIoSpimDataMinimal().load( bdvFile.getAbsolutePath() );
+			if ( WrapBasicImgLoader.wrapImgLoaderIfNecessary( spimData ) )
+				System.err.println( "WARNING:\n"
+						+ "Opening <SpimData> dataset that is not suited for suited for interactive browsing.\n"
+						+ "Consider resaving as HDF5 for better performance." );
 
-	public void setFrom( final List< SourceAndConverter< ? >> sources, final File file, final int numTimePoints, final CacheControl cache )
-	{
-		this.sources = sources;
-		this.cache = cache;
-
-		// File info
-		this.imageFileName = file.getName();
-		this.imageFolder = file.getParent();
+			seq = spimData.getSequenceDescription();
+			BigDataViewer.initSetups( spimData, converterSetups, sources );
+		}
+		catch ( final SpimDataException e )
+		{
+			e.printStackTrace();
+		}
+		this.cache = ( ( ViewerImgLoader ) seq.getImgLoader() ).getCacheControl();
+		final List< TimePoint > timepoints = seq.getTimePoints().getTimePointsOrdered();
+		this.nframes = timepoints.size();
 
 		// Image size
-		final SourceAndConverter<?> firstSource = sources.get(0);
-		final RandomAccessibleInterval<?> firstStack = firstSource.getSpimSource().getSource(0, 0);
-		this.width = (int) firstStack.dimension(0);
-		this.height = (int) firstStack.dimension(1);
-		this.nslices = (int) firstStack.dimension(2);
-		this.nframes = numTimePoints;
+		final SourceAndConverter< ? > firstSource = sources.get( 0 );
+		final RandomAccessibleInterval< ? > firstStack = firstSource.getSpimSource().getSource( 0, 0 );
+		this.width = ( int ) firstStack.dimension( 0 );
+		this.height = ( int ) firstStack.dimension( 1 );
+		this.nslices = ( int ) firstStack.dimension( 2 );
 		this.dx = 1f;
 		this.dy = 1f;
 		this.dz = 1f;
@@ -77,12 +119,52 @@ public class SourceSettings extends Settings {
 		this.roi = null;
 	}
 
-	public List<SourceAndConverter<?>> getSources() {
+	@Override
+	public void addAllAnalyzers()
+	{
+		clearSpotAnalyzerFactories();
+
+		final SpotAnalyzerProvider spotAnalyzerProvider = new SpotAnalyzerProvider( sources.size() );
+		final List< String > spotAnalyzerKeys = spotAnalyzerProvider.getKeys();
+		for ( final String key : spotAnalyzerKeys )
+			addSpotAnalyzerFactory( spotAnalyzerProvider.getFactory( key ) );
+
+		final MamutSpotAnalyzerProvider mamutSpotAnalyzerProvider = new MamutSpotAnalyzerProvider( sources.size() );
+		final List< String > mamutSpotAnalyzerKeys = mamutSpotAnalyzerProvider.getKeys();
+		for ( final String key : mamutSpotAnalyzerKeys )
+			addSpotAnalyzerFactory( mamutSpotAnalyzerProvider.getFactory( key ) );
+
+		clearEdgeAnalyzers();
+		final EdgeAnalyzerProvider edgeAnalyzerProvider = new EdgeAnalyzerProvider();
+		final List< String > edgeAnalyzerKeys = edgeAnalyzerProvider.getKeys();
+		for ( final String key : edgeAnalyzerKeys )
+			addEdgeAnalyzer( edgeAnalyzerProvider.getFactory( key ) );
+
+		clearTrackAnalyzers();
+		final TrackAnalyzerProvider trackAnalyzerProvider = new TrackAnalyzerProvider();
+		final List< String > trackAnalyzerKeys = trackAnalyzerProvider.getKeys();
+		for ( final String key : trackAnalyzerKeys )
+			addTrackAnalyzer( trackAnalyzerProvider.getFactory( key ) );
+	}
+
+	@Override
+	public void setFrom( final ImagePlus imp )
+	{
+		throw new UnsupportedOperationException( "Cannot use ImagePlus with SourceSettings." );
+	}
+
+	public List< SourceAndConverter< ? > > getSources()
+	{
 		return sources;
 	}
 
 	public CacheControl getCacheControl()
 	{
 		return cache;
+	}
+
+	public ArrayList< ConverterSetup > getConverterSetups()
+	{
+		return converterSetups;
 	}
 }

@@ -31,6 +31,7 @@ import fiji.plugin.trackmate.Logger;
 import fiji.plugin.trackmate.Model;
 import fiji.plugin.trackmate.gui.displaysettings.DisplaySettings;
 import fiji.plugin.trackmate.io.IOUtils;
+import fiji.plugin.trackmate.providers.ViewProvider;
 import ij.IJ;
 import ij.ImageJ;
 import ij.plugin.PlugIn;
@@ -99,10 +100,12 @@ public class LoadMamutAnnotationPlugin implements PlugIn
 		 * Read settings
 		 */
 
-		final SourceSettings settings = ( SourceSettings ) reader.readSettings( null );
+		final SourceSettings settings = reader.readSourceSettings();
+		System.out.println( settings ); // DEBUG
 
 		/*
-		 * Read image source location from settings object.
+		 * Check that the image source location from settings object can be
+		 * found.
 		 */
 
 		File imageFile = new File( settings.imageFolder, settings.imageFileName );
@@ -128,7 +131,7 @@ public class LoadMamutAnnotationPlugin implements PlugIn
 		 * Launch MaMuT.
 		 */
 
-		final MaMuT mamut = new MaMuT( imageFile, model, settings, ds );
+		final MaMuT mamut = new MaMuT( model, settings, ds );
 
 		/*
 		 * Update setup assignments.
@@ -142,6 +145,20 @@ public class LoadMamutAnnotationPlugin implements PlugIn
 
 		reader.readBookmarks( mamut.getBookmarks() );
 
+		// Views
+		reader.getViews(
+				mamut,
+				new ViewProvider(),
+				model,
+				settings,
+				mamut.getSelectionModel(),
+				ds );
+
+		if ( !reader.isReadingOk() )
+		{
+			Logger.IJ_LOGGER.error( "Some errors occurred while reading file:\n" );
+			Logger.IJ_LOGGER.error( reader.getErrorMessage() );
+		}
 	}
 
 	public static void main( final String[] args ) throws ClassNotFoundException, InstantiationException, IllegalAccessException, UnsupportedLookAndFeelException
@@ -150,8 +167,9 @@ public class LoadMamutAnnotationPlugin implements PlugIn
 		ImageJ.main( args );
 
 		final LoadMamutAnnotationPlugin plugin = new LoadMamutAnnotationPlugin();
-		plugin.run( "D:/Projects/JYTinevez/MaMuT/Mastodon-dataset/MaMuT_Parhyale_demo-mamut.xml" );
+//		plugin.run( "D:/Projects/JYTinevez/MaMuT/Mastodon-dataset/MaMuT_Parhyale_demo-mamut.xml" );
 //		plugin.run( "/Users/tinevez/Desktop/Data/Mamut/parhyale/BDV130418A325_NoTempReg-mamut_JY2.xml" );
+		plugin.run( null );
 	}
 
 }

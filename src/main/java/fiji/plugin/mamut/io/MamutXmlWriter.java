@@ -40,7 +40,6 @@ import bdv.tools.bookmarks.Bookmarks;
 import bdv.tools.brightness.SetupAssignments;
 import fiji.plugin.mamut.SourceSettings;
 import fiji.plugin.mamut.viewer.MamutViewer;
-import fiji.plugin.mamut.viewer.MamutViewerFactory;
 import fiji.plugin.trackmate.Logger;
 import fiji.plugin.trackmate.Settings;
 import fiji.plugin.trackmate.gui.TrackMateGUIModel;
@@ -116,7 +115,7 @@ public class MamutXmlWriter extends TmXmlWriter
 			viewel.setAttribute( GUI_VIEW_ATTRIBUTE, view.getKey() );
 			guiel.addContent( viewel );
 
-			if ( view.getKey().equals( MamutViewerFactory.KEY ) )
+			if ( view.getKey().equals( MamutViewer.KEY ) )
 			{
 				final MamutViewer mv = ( MamutViewer ) view;
 				final Point location = mv.getLocation();

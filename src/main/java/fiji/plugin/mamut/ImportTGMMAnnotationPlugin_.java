@@ -375,9 +375,7 @@ public class ImportTGMMAnnotationPlugin_ implements PlugIn
 
 	protected SourceSettings createSettings( final File file )
 	{
-		final SourceSettings settings = new SourceSettings( new Settings() );
-		settings.imageFileName = file.getName();
-		settings.imageFolder = file.getParent();
+		final SourceSettings settings = new SourceSettings( file.getParent(), file.getName() );
 		settings.addAllAnalyzers();
 		return settings;
 	}

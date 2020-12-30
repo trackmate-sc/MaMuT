@@ -71,12 +71,11 @@ public class MamutViewer extends JFrame implements TrackMateModelView
 {
 	private static final long serialVersionUID = 1L;
 
+	public static final String KEY = "MaMuT Viewer";
+
 	private static final long DEFAULT_TEXT_DISPLAY_DURATION = 3000;
-
 	private static final double DEFAULT_FADEINTIME = 0;
-
 	private static final double DEFAULT_FADEOUTTIME = 0.5;
-
 	private static final Font DEFAULT_FONT = new Font( "SansSerif", Font.PLAIN, 14 );
 
 	/** The logger instance that echoes message on this view. */
@@ -256,7 +255,7 @@ public class MamutViewer extends JFrame implements TrackMateModelView
 	@Override
 	public String getKey()
 	{
-		return MamutViewerFactory.KEY;
+		return KEY;
 	}
 
 	public VisibilityAndGroupingDialog getVisibilityAndGroupingDialog()

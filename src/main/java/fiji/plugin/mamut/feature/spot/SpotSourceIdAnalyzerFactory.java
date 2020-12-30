@@ -28,10 +28,11 @@ import java.util.Map;
 
 import javax.swing.ImageIcon;
 
+import org.scijava.plugin.Plugin;
+
 import fiji.plugin.trackmate.Dimension;
 import fiji.plugin.trackmate.Model;
 import fiji.plugin.trackmate.features.spot.SpotAnalyzer;
-import fiji.plugin.trackmate.features.spot.SpotAnalyzerFactory;
 import net.imagej.ImgPlus;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
@@ -45,7 +46,8 @@ import net.imglib2.type.numeric.RealType;
  *            the type of the pixels. Must extend {@link RealType} and
  *            {@link NativeType}.
  */
-public class SpotSourceIdAnalyzerFactory< T extends RealType< T > & NativeType< T >> implements SpotAnalyzerFactory< T >
+@Plugin( type = MamutSpotAnalyzerFactory.class )
+public class SpotSourceIdAnalyzerFactory< T extends RealType< T > & NativeType< T > > implements MamutSpotAnalyzerFactory< T >
 {
 
 	/** The name of the spot source id feature. */
@@ -53,15 +55,10 @@ public class SpotSourceIdAnalyzerFactory< T extends RealType< T > & NativeType< 
 
 	/** Additional spot features used in MaMuT. */
 	public final static List< String > FEATURES = new ArrayList<>();
-
 	public final static Map< String, String > FEATURE_NAMES = new HashMap<>();
-
 	public final static Map< String, String > FEATURE_SHORT_NAMES = new HashMap<>();
-
 	public final static Map< String, Dimension > FEATURE_DIMENSIONS = new HashMap<>();
-
 	public static final Map< String, Boolean > IS_INT = new HashMap<>();
-
 	public static final String KEY = "Spot Source ID";
 
 	static

@@ -38,7 +38,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Set;
 
 import javax.swing.AbstractAction;
@@ -53,13 +52,7 @@ import org.jgrapht.graph.DefaultWeightedEdge;
 import org.scijava.listeners.Listeners;
 import org.scijava.util.VersionUtils;
 
-import bdv.BigDataViewer;
 import bdv.BigDataViewerActions;
-import bdv.ViewerImgLoader;
-import bdv.cache.CacheControl;
-import bdv.spimdata.SpimDataMinimal;
-import bdv.spimdata.WrapBasicImgLoader;
-import bdv.spimdata.XmlIoSpimDataMinimal;
 import bdv.tools.HelpDialog;
 import bdv.tools.InitializeViewerState;
 import bdv.tools.bookmarks.Bookmarks;
@@ -100,9 +93,6 @@ import fiji.plugin.trackmate.visualization.TrackMateModelView;
 import fiji.plugin.trackmate.visualization.trackscheme.TrackScheme;
 import ij.IJ;
 import ij.text.TextWindow;
-import mpicbg.spim.data.SpimDataException;
-import mpicbg.spim.data.generic.sequence.AbstractSequenceDescription;
-import mpicbg.spim.data.sequence.TimePoint;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.RealPoint;
 import net.imglib2.realtransform.AffineTransform3D;
@@ -134,11 +124,11 @@ public class MaMuT implements ModelChangeListener
 
 	private final KeyStroke moveSpotKeystroke = KeyStroke.getKeyStroke( KeyEvent.VK_SPACE, 0 );
 
-	private SetupAssignments setupAssignments;
+	private final SetupAssignments setupAssignments;
 
-	private BrightnessDialog brightnessDialog;
+	private final BrightnessDialog brightnessDialog;
 
-	private HelpDialog helpDialog;
+	private final HelpDialog helpDialog;
 
 	/** The model shown and edited by this plugin. */
 	private final Model model;
@@ -152,14 +142,6 @@ public class MaMuT implements ModelChangeListener
 	/** The spot currently moved under the mouse. */
 	private Spot movedSpot = null;
 
-	/** The image data sources to be displayed in the views. */
-	private List< SourceAndConverter< ? > > sources;
-
-	private CacheControl cache;
-
-	/** The number of timepoints in the image sources. */
-	private int nTimepoints;
-
 	/**
 	 * If true, the next added spot will be automatically linked to the
 	 * previously created one, given that the new spot is created in a
@@ -167,15 +149,15 @@ public class MaMuT implements ModelChangeListener
 	 */
 	private boolean isLinkingMode = false;
 
-	private TrackMate trackmate;
+	private final TrackMate trackmate;
 
 	private final SourceSettings settings;
 
-	private SelectionModel selectionModel;
+	private final SelectionModel selectionModel;
 
-	private MamutGUIModel guimodel;
+	private final MamutGUIModel guimodel;
 
-	private SourceSpotImageUpdater< ? > thumbnailUpdater;
+	private final SourceSpotImageUpdater< ? > thumbnailUpdater;
 
 	private Logger logger = Logger.DEFAULT_LOGGER;
 
@@ -196,11 +178,12 @@ public class MaMuT implements ModelChangeListener
 
 	private static File mamutFile;
 
-	public MaMuT( final File file, final Model model, final SourceSettings settings, final DisplaySettings ds )
+	public MaMuT( final Model model, final SourceSettings settings, final DisplaySettings ds )
 	{
 		this.model = model;
 		this.settings = settings;
 		this.ds = ds;
+		ds.listeners().add( () -> requestRepaintAllViewers() );
 		this.guimodel = new MamutGUIModel();
 
 		this.trackmate = new TrackMate( model, settings );
@@ -211,8 +194,9 @@ public class MaMuT implements ModelChangeListener
 		this.gui = new MamutGUI( trackmate, this, ds );
 		this.bookmarks = new Bookmarks();
 
-		final String pf = file.getParent();
-		String lf = file.getName();
+		final File bdvFile = new File( settings.imageFolder, settings.imageFileName );
+		final String pf = bdvFile.getParent();
+		String lf = bdvFile.getName();
 		lf = lf.split( "\\." )[ 0 ] + "-mamut.xml";
 		mamutFile = new File( pf, lf );
 
@@ -240,26 +224,20 @@ public class MaMuT implements ModelChangeListener
 		/*
 		 * Load image source
 		 */
-		try
-		{
-			prepareSources( file );
-		}
-		catch ( final SpimDataException e )
-		{
-			logger.error( "Problem loading the image data file " + file + ".\n" + e.getMessage() + "\n" );
-			return;
-		}
 
-		/*
-		 * Update settings.
-		 */
-		settings.setFrom( sources, file, nTimepoints, cache );
+		final ArrayList< ConverterSetup > converterSetups = settings.getConverterSetups();
+		for ( int i = 0; i < converterSetups.size(); ++i )
+		{
+			final ConverterSetup s = converterSetups.get( i );
+			converterSetups.set( i, new MyConverterSetup( s ) );
+		}
+		setupAssignments = new SetupAssignments( converterSetups, 0, 65535 );
 
 		/*
 		 * Thumbnail updater. We need to have the sources loaded for it.
 		 */
-		@SuppressWarnings( { "rawtypes", "unchecked" } )
-		final SourceSpotImageUpdater tmpUpdater = new SourceSpotImageUpdater( settings, sources );
+		@SuppressWarnings( "rawtypes" )
+		final SourceSpotImageUpdater tmpUpdater = new SourceSpotImageUpdater( settings );
 		thumbnailUpdater = tmpUpdater;
 
 		final AnnotationPanel annotationPanel = gui.getAnnotationPanel();
@@ -310,101 +288,6 @@ public class MaMuT implements ModelChangeListener
 		gui.setVisible( true );
 	}
 
-	/**
-	 * Loads and prepares the image sources from the specified files.
-	 * <p>
-	 * This instantiates and sets the following fields:
-	 * <ul>
-	 * <li>{@link #nTimepoints}
-	 * <li>{@link #sources}
-	 * <li>{@link #cache}
-	 * <li>{@link #setupAssignments}
-	 * <ul>
-	 *
-	 * @param dataFile
-	 *            the file that points to the xml master file of the image data.
-	 *
-	 * @throws SpimDataException
-	 *             if the xml master file cannot be read or is incorrectly
-	 *             formatted.
-	 */
-	private void prepareSources( final File dataFile ) throws SpimDataException
-	{
-		final SpimDataMinimal spimData = new XmlIoSpimDataMinimal().load( dataFile.getAbsolutePath() );
-		if ( WrapBasicImgLoader.wrapImgLoaderIfNecessary( spimData ) )
-		{
-			System.err.println( "WARNING:\nOpening <SpimData> dataset that is not suited for suited for interactive browsing.\nConsider resaving as HDF5 for better performance." );
-		}
-		final AbstractSequenceDescription< ?, ?, ? > seq = spimData.getSequenceDescription();
-		final List< TimePoint > timepoints = seq.getTimePoints().getTimePointsOrdered();
-		nTimepoints = timepoints.size();
-		sources = new ArrayList<>();
-		cache = ( ( ViewerImgLoader ) seq.getImgLoader() ).getCacheControl();
-		final ArrayList< ConverterSetup > converterSetups = new ArrayList<>();
-		BigDataViewer.initSetups( spimData, converterSetups, sources );
-		for ( int i = 0; i < converterSetups.size(); ++i )
-		{
-			final ConverterSetup s = converterSetups.get( i );
-			converterSetups.set( i, new ConverterSetup()
-			{
-
-				@Override
-				public void setDisplayRange( final double min, final double max )
-				{
-					s.setDisplayRange( min, max );
-					requestRepaintAllViewers();
-				}
-
-				@Override
-				public void setColor( final ARGBType color )
-				{
-					s.setColor( color );
-					requestRepaintAllViewers();
-				}
-
-				@Override
-				public int getSetupId()
-				{
-					return s.getSetupId();
-				}
-
-				@Override
-				public double getDisplayRangeMin()
-				{
-					return s.getDisplayRangeMin();
-				}
-
-				@Override
-				public double getDisplayRangeMax()
-				{
-					return s.getDisplayRangeMax();
-				}
-
-				@Override
-				public ARGBType getColor()
-				{
-					return s.getColor();
-				}
-
-				@Override
-				public boolean supportsColor()
-				{
-					return true;
-				}
-
-				@Override
-				public void setViewer( final RequestRepaint rp )
-				{}
-
-				@Override
-				public Listeners< SetupChangeListener > setupChangeListeners()
-				{
-					return null;
-				}
-			} );
-		}
-		setupAssignments = new SetupAssignments( converterSetups, 0, 65535 );
-	}
 
 	/*
 	 * PUBLIC METHODS
@@ -443,7 +326,7 @@ public class MaMuT implements ModelChangeListener
 	@SuppressWarnings( { "rawtypes", "unchecked" } )
 	public void semiAutoDetectSpot()
 	{
-		final SourceSemiAutoTracker autotracker = new SourceSemiAutoTracker( model, selectionModel, sources, logger );
+		final SourceSemiAutoTracker autotracker = new SourceSemiAutoTracker( model, selectionModel, settings.getSources(), logger );
 		autotracker.setNumThreads( 4 );
 		autotracker.setParameters( guimodel.qualityThreshold, guimodel.distanceTolerance, guimodel.maxNFrames );
 
@@ -769,10 +652,10 @@ public class MaMuT implements ModelChangeListener
 		 * in the 3rd dimension equals or lower than 1.
 		 */
 		boolean is2D = true;
-		for ( final SourceAndConverter< ? > sac : sources )
+		for ( final SourceAndConverter< ? > sac : settings.getSources() )
 		{
 			final Source< ? > source = sac.getSpimSource();
-			for ( int t = 0; t < nTimepoints; t++ )
+			for ( int t = 0; t < settings.nframes; t++ )
 			{
 				if ( source.isPresent( t ) )
 				{
@@ -791,7 +674,7 @@ public class MaMuT implements ModelChangeListener
 
 		final MamutViewer viewer = new MamutViewer(
 				DEFAULT_WIDTH, DEFAULT_HEIGHT,
-				sources, nTimepoints, cache,
+				settings.getSources(), settings.nframes, settings.getCacheControl(),
 				model, selectionModel, ds,
 				options,
 				bookmarks );
@@ -909,6 +792,7 @@ public class MaMuT implements ModelChangeListener
 			writer.appendModel( model );
 			writer.appendSettings( settings );
 			writer.appendMamutState( guimodel, setupAssignments, bookmarks );
+			writer.appendDisplaySettings( ds );
 			writer.writeToFile();
 			lLogger.log( "Done.\n" );
 		}
@@ -1221,6 +1105,71 @@ public class MaMuT implements ModelChangeListener
 		public void windowClosing( final WindowEvent arg0 )
 		{
 			guimodel.removeView( view );
+		}
+	}
+
+	private class MyConverterSetup implements ConverterSetup
+	{
+
+		private final ConverterSetup s;
+
+		public MyConverterSetup( final ConverterSetup s )
+		{
+			this.s = s;
+		}
+
+		@Override
+		public void setDisplayRange( final double min, final double max )
+		{
+			s.setDisplayRange( min, max );
+			requestRepaintAllViewers();
+		}
+
+		@Override
+		public void setColor( final ARGBType color )
+		{
+			s.setColor( color );
+			requestRepaintAllViewers();
+		}
+
+		@Override
+		public int getSetupId()
+		{
+			return s.getSetupId();
+		}
+
+		@Override
+		public double getDisplayRangeMin()
+		{
+			return s.getDisplayRangeMin();
+		}
+
+		@Override
+		public double getDisplayRangeMax()
+		{
+			return s.getDisplayRangeMax();
+		}
+
+		@Override
+		public ARGBType getColor()
+		{
+			return s.getColor();
+		}
+
+		@Override
+		public boolean supportsColor()
+		{
+			return true;
+		}
+
+		@Override
+		public void setViewer( final RequestRepaint rp )
+		{}
+
+		@Override
+		public Listeners< SetupChangeListener > setupChangeListeners()
+		{
+			return null;
 		}
 	}
 }

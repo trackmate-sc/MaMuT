@@ -39,7 +39,6 @@ import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import fiji.plugin.trackmate.Logger;
 import fiji.plugin.trackmate.Model;
-import fiji.plugin.trackmate.Settings;
 import fiji.plugin.trackmate.gui.displaysettings.DisplaySettingsIO;
 import fiji.plugin.trackmate.io.IOUtils;
 import ij.IJ;
@@ -98,9 +97,9 @@ public class NewMamutAnnotationPlugin implements PlugIn
 
 		final Model model = new Model();
 		model.setLogger( logger );
-		final SourceSettings settings = new SourceSettings( new Settings() );
+		final SourceSettings settings = new SourceSettings( file.getParent(), file.getName() );
 		settings.addAllAnalyzers();
-		final MaMuT mamut = new MaMuT( file, model, settings, DisplaySettingsIO.readUserDefault() );
+		final MaMuT mamut = new MaMuT( model, settings, DisplaySettingsIO.readUserDefault() );
 
 		/*
 		 * Initialize default settings.

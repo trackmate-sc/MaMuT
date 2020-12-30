@@ -43,31 +43,24 @@ import net.imglib2.type.numeric.RealType;
  * features that will be assigned by
  * {@link fiji.plugin.mamut.feature.track.CellDivisionTimeAnalyzer}.
  *
- * @author Jean-Yves Tinevez &lt;jeanyves.tinevez@gmail.com&gt; Mar 5, 2014
+ * @author Jean-Yves Tinevez - Mar 5, 2014
  *
  * @param <T>
  *            the type of the pixels in the image. Must extends {@link RealType}
  *            and {@link NativeType}.
  */
-@Plugin( type = SpotAnalyzerFactory.class )
-public class CellDivisionTimeAnalyzerSpotFactory< T extends RealType< T > & NativeType< T >> implements SpotAnalyzerFactory< T >
+@Plugin( type = MamutSpotAnalyzerFactory.class )
+public class CellDivisionTimeAnalyzerSpotFactory< T extends RealType< T > & NativeType< T > > implements MamutSpotAnalyzerFactory< T >
 {
 
 	public static final String CELL_DIVISION_TIME = "CELL_DIVISION_TIME";
-
 	private static final List< String > FEATURES = new ArrayList<>( 1 );
-
 	private static final Map< String, String > FEATURE_SHORT_NAMES = new HashMap<>( 1 );
-
 	private static final Map< String, String > FEATURE_NAMES = new HashMap<>( 1 );
-
 	private static final Map< String, Dimension > FEATURE_DIMENSIONS = new HashMap<>( 1 );
-
 	private static final Map< String, Boolean > IS_INT = new HashMap<>( 1 );
-
-	public static final String KEY = "CELL_DIVISION_TIME_ON_SPOTS";
-
 	private static final String NAME = "Cell division time on spots";
+	public static final String KEY = NAME;
 
 	static
 	{
@@ -169,5 +162,4 @@ public class CellDivisionTimeAnalyzerSpotFactory< T extends RealType< T > & Nati
 			}
 		};
 	}
-
 }
