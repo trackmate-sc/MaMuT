@@ -67,6 +67,7 @@ import bdv.viewer.SourceAndConverter;
 import bdv.viewer.ViewerOptions;
 import bdv.viewer.ViewerState;
 import fiji.plugin.mamut.detection.SourceSemiAutoTracker;
+import fiji.plugin.mamut.feature.MamutModelFeatureUpdater;
 import fiji.plugin.mamut.feature.spot.SpotSourceIdAnalyzerFactory;
 import fiji.plugin.mamut.gui.AnnotationPanel;
 import fiji.plugin.mamut.gui.MamutGUI;
@@ -85,7 +86,6 @@ import fiji.plugin.trackmate.Spot;
 import fiji.plugin.trackmate.TrackMate;
 import fiji.plugin.trackmate.action.ExportAllSpotsStatsAction;
 import fiji.plugin.trackmate.action.ExportStatsTablesAction;
-import fiji.plugin.trackmate.features.ModelFeatureUpdater;
 import fiji.plugin.trackmate.gui.displaysettings.DisplaySettings;
 import fiji.plugin.trackmate.io.IOUtils;
 import fiji.plugin.trackmate.util.ModelTools;
@@ -208,7 +208,7 @@ public class MaMuT implements ModelChangeListener
 		/*
 		 * Auto-update features & declare them
 		 */
-		new ModelFeatureUpdater( model, settings );
+		new MamutModelFeatureUpdater( model, settings );
 
 		/*
 		 * Selection model

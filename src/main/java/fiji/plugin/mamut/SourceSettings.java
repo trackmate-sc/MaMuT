@@ -35,10 +35,10 @@ import bdv.tools.brightness.ConverterSetup;
 import bdv.viewer.SourceAndConverter;
 import fiji.plugin.mamut.providers.MamutSpotAnalyzerProvider;
 import fiji.plugin.trackmate.Settings;
+import fiji.plugin.trackmate.features.spot.SpotAnalyzerFactoryBase;
 import fiji.plugin.trackmate.providers.EdgeAnalyzerProvider;
 import fiji.plugin.trackmate.providers.SpotAnalyzerProvider;
 import fiji.plugin.trackmate.providers.TrackAnalyzerProvider;
-import ij.ImagePlus;
 import mpicbg.spim.data.SpimDataException;
 import mpicbg.spim.data.generic.sequence.AbstractSequenceDescription;
 import mpicbg.spim.data.sequence.TimePoint;
@@ -52,6 +52,8 @@ public class SourceSettings extends Settings
 	private final CacheControl cache;
 
 	private final ArrayList< ConverterSetup > converterSetups;
+
+	private final List< SpotAnalyzerFactoryBase< ? > > mamutSpotAnalyzerFactories;
 
 	/**
 	 * Loads and prepares the image sources from the specified files.
@@ -77,6 +79,7 @@ public class SourceSettings extends Settings
 		this.imageFolder = imageFolder;
 		this.sources = new ArrayList<>();
 		this.converterSetups = new ArrayList<>();
+		this.mamutSpotAnalyzerFactories = new ArrayList<>();
 
 		final File bdvFile = new File( imageFolder, imageFileName );
 		AbstractSequenceDescription< ?, ?, ? > seq = null;
@@ -124,15 +127,17 @@ public class SourceSettings extends Settings
 	{
 		clearSpotAnalyzerFactories();
 
-		final SpotAnalyzerProvider spotAnalyzerProvider = new SpotAnalyzerProvider( sources.size() );
-		final List< String > spotAnalyzerKeys = spotAnalyzerProvider.getKeys();
-		for ( final String key : spotAnalyzerKeys )
-			addSpotAnalyzerFactory( spotAnalyzerProvider.getFactory( key ) );
-
+		// Analyzers specific to MaMuT.
 		final MamutSpotAnalyzerProvider mamutSpotAnalyzerProvider = new MamutSpotAnalyzerProvider( sources.size() );
 		final List< String > mamutSpotAnalyzerKeys = mamutSpotAnalyzerProvider.getKeys();
 		for ( final String key : mamutSpotAnalyzerKeys )
 			addSpotAnalyzerFactory( mamutSpotAnalyzerProvider.getFactory( key ) );
+
+		// TrackMate analyzers.
+		final SpotAnalyzerProvider spotAnalyzerProvider = new SpotAnalyzerProvider( sources.size() );
+		final List< String > spotAnalyzerKeys = spotAnalyzerProvider.getKeys();
+		for ( final String key : spotAnalyzerKeys )
+			addSpotAnalyzerFactory( spotAnalyzerProvider.getFactory( key ) );
 
 		clearEdgeAnalyzers();
 		final EdgeAnalyzerProvider edgeAnalyzerProvider = new EdgeAnalyzerProvider();
@@ -145,12 +150,6 @@ public class SourceSettings extends Settings
 		final List< String > trackAnalyzerKeys = trackAnalyzerProvider.getKeys();
 		for ( final String key : trackAnalyzerKeys )
 			addTrackAnalyzer( trackAnalyzerProvider.getFactory( key ) );
-	}
-
-	@Override
-	public void setFrom( final ImagePlus imp )
-	{
-		throw new UnsupportedOperationException( "Cannot use ImagePlus with SourceSettings." );
 	}
 
 	public List< SourceAndConverter< ? > > getSources()
@@ -166,5 +165,43 @@ public class SourceSettings extends Settings
 	public ArrayList< ConverterSetup > getConverterSetups()
 	{
 		return converterSetups;
+	}
+
+	@Override
+	public String toStringFeatureAnalyzersInfo()
+	{
+		final StringBuilder str = new StringBuilder();
+
+		if ( mamutSpotAnalyzerFactories.isEmpty() )
+		{
+			str.append( "No spot feature analyzers.\n" );
+		}
+		else
+		{
+			str.append( "Mamut spot feature analyzers:\n" );
+			prettyPrintFeatureAnalyzer( mamutSpotAnalyzerFactories, str );
+		}
+
+		if ( edgeAnalyzers.isEmpty() )
+		{
+			str.append( "No edge feature analyzers.\n" );
+		}
+		else
+		{
+			str.append( "Edge feature analyzers:\n" );
+			prettyPrintFeatureAnalyzer( edgeAnalyzers, str );
+		}
+
+		if ( trackAnalyzers.isEmpty() )
+		{
+			str.append( "No track feature analyzers.\n" );
+		}
+		else
+		{
+			str.append( "Track feature analyzers:\n" );
+			prettyPrintFeatureAnalyzer( trackAnalyzers, str );
+		}
+
+		return str.toString();
 	}
 }

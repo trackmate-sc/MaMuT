@@ -31,7 +31,6 @@ import javax.swing.ImageIcon;
 import org.scijava.plugin.Plugin;
 
 import fiji.plugin.trackmate.Dimension;
-import fiji.plugin.trackmate.Model;
 import fiji.plugin.trackmate.features.spot.SpotAnalyzer;
 import fiji.plugin.trackmate.features.spot.SpotAnalyzerFactory;
 import net.imagej.ImgPlus;
@@ -132,34 +131,8 @@ public class CellDivisionTimeAnalyzerSpotFactory< T extends RealType< T > & Nati
 	}
 
 	@Override
-	public SpotAnalyzer< T > getAnalyzer( final Model model, final ImgPlus< T > img, final int frame, final int channel )
+	public SpotAnalyzer< T > getAnalyzer( final ImgPlus< T > img, final int frame, final int channel )
 	{
-		return new SpotAnalyzer< T >()
-		{
-
-			@Override
-			public boolean checkInput()
-			{
-				return true;
-			}
-
-			@Override
-			public boolean process()
-			{
-				return true;
-			}
-
-			@Override
-			public String getErrorMessage()
-			{
-				return null;
-			}
-
-			@Override
-			public long getProcessingTime()
-			{
-				return 0;
-			}
-		};
+		return SpotAnalyzer.dummyAnalyzer();
 	}
 }
