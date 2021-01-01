@@ -1,15 +1,14 @@
 package fiji.plugin.mamut.feature;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import fiji.plugin.mamut.SourceSettings;
-import fiji.plugin.trackmate.Dimension;
 import fiji.plugin.trackmate.Logger;
 import fiji.plugin.trackmate.Model;
 import fiji.plugin.trackmate.Settings;
@@ -22,7 +21,6 @@ import net.imagej.axis.Axes;
 import net.imagej.axis.AxisType;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.algorithm.MultiThreaded;
-import net.imglib2.algorithm.MultiThreadedBenchmarkAlgorithm;
 import net.imglib2.img.ImgView;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.NativeType;
@@ -35,75 +33,27 @@ import net.imglib2.type.numeric.RealType;
  * @author Jean-Yves Tinevez - 2020
  * 
  */
-public class MamutSpotFeatureCalculator extends MultiThreadedBenchmarkAlgorithm
+public class MamutSpotFeatureCalculator implements MultiThreaded
 {
-
-	private static final String BASE_ERROR_MSG = "[MamutSpotFeatureCalculator] ";
 
 	private final SourceSettings settings;
 
 	private final Model model;
 
+	private ExecutorService executor;
+
+	private int numThreads;
+
 	public MamutSpotFeatureCalculator( final Model model, final SourceSettings settings )
 	{
 		this.settings = settings;
 		this.model = model;
+		setNumThreads();
 	}
 
 	/*
 	 * METHODS
 	 */
-
-	@Override
-	public boolean checkInput()
-	{
-		if ( null == model )
-		{
-			errorMessage = BASE_ERROR_MSG + "Model object is null.";
-			return false;
-		}
-		if ( null == settings )
-		{
-			errorMessage = BASE_ERROR_MSG + "Settings object is null.";
-			return false;
-		}
-		return true;
-	}
-
-	/**
-	 * Calculates the spot features configured in the {@link Settings} for all
-	 * the spots of this model,
-	 * <p>
-	 * Features are calculated for each spot, using their location, and the raw
-	 * image. Since a {@link SpotAnalyzer} can compute more than a feature at
-	 * once, spots might received more data than required.
-	 */
-	@SuppressWarnings( "unchecked" )
-	@Override
-	public boolean process()
-	{
-		final long start = System.currentTimeMillis();
-
-		// Declare what you do.
-		for ( final SpotAnalyzerFactoryBase< ? > factory : settings.getSpotAnalyzerFactories() )
-		{
-			final Collection< String > features = factory.getFeatures();
-			final Map< String, String > featureNames = factory.getFeatureNames();
-			final Map< String, String > featureShortNames = factory.getFeatureShortNames();
-			final Map< String, Dimension > featureDimensions = factory.getFeatureDimensions();
-			final Map< String, Boolean > isIntFeature = factory.getIsIntFeature();
-			model.getFeatureModel().declareSpotFeatures( features, featureNames, featureShortNames, featureDimensions, isIntFeature );
-		}
-
-		// Do it.
-		@SuppressWarnings( "rawtypes" )
-		final List saf = settings.getSpotAnalyzerFactories();
-		computeSpotFeaturesAgent( model.getSpots(), saf, true );
-
-		final long end = System.currentTimeMillis();
-		processingTime = end - start;
-		return true;
-	}
 
 	/**
 	 * Calculates all the spot features configured in the {@link Settings}
@@ -113,9 +63,18 @@ public class MamutSpotFeatureCalculator extends MultiThreadedBenchmarkAlgorithm
 	@SuppressWarnings( "unchecked" )
 	public void computeSpotFeatures( final SpotCollection toCompute, final boolean doLogIt )
 	{
-		@SuppressWarnings( "rawtypes" )
-		final List saf = settings.getSpotAnalyzerFactories();
-		computeSpotFeaturesAgent( toCompute, saf, doLogIt );
+		executor.execute( () -> {
+			@SuppressWarnings( "rawtypes" )
+			final List saf = settings.getSpotAnalyzerFactories();
+			try
+			{
+				computeSpotFeaturesAgent( toCompute, saf, doLogIt );
+			}
+			catch ( final Exception e )
+			{
+				e.printStackTrace();
+			}
+		} );
 	}
 
 	/**
@@ -194,6 +153,7 @@ public class MamutSpotFeatureCalculator extends MultiThreadedBenchmarkAlgorithm
 				for ( final SpotAnalyzerFactoryBase< T > factory : analyzerFactories )
 				{
 					final SpotAnalyzer< T > analyzer = factory.getAnalyzer( imgPlus, frame, channel );
+
 					// Multithread if we can.
 					if ( analyzer instanceof MultiThreaded )
 						( ( MultiThreaded ) analyzer ).setNumThreads( numThreads );
@@ -205,5 +165,24 @@ public class MamutSpotFeatureCalculator extends MultiThreadedBenchmarkAlgorithm
 		}
 		logger.setProgress( 1 );
 		logger.setStatus( "" );
+	}
+
+	@Override
+	public void setNumThreads()
+	{
+		setNumThreads( Runtime.getRuntime().availableProcessors() / 2 );
+	}
+
+	@Override
+	public void setNumThreads( final int numThreads )
+	{
+		this.numThreads = numThreads;
+		this.executor = Executors.newFixedThreadPool( numThreads );
+	}
+
+	@Override
+	public int getNumThreads()
+	{
+		return numThreads;
 	}
 }

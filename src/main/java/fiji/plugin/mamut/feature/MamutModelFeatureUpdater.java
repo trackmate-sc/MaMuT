@@ -76,8 +76,6 @@ public class MamutModelFeatureUpdater implements ModelChangeListener, MultiThrea
 			if ( event.getEdgeFlag( edge ) != ModelChangeEvent.FLAG_EDGE_REMOVED )
 				edges.add( edge );
 
-		System.out.println( "Calling recompute features on " + sc ); // DEBUG
-
 		// Update spot features
 		mamutSpotFeatureCalculator.computeSpotFeatures( sc, false );
 
