@@ -1,17 +1,17 @@
 package fiji.plugin.mamut.feature;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.NavigableSet;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.Future;
 
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import fiji.plugin.mamut.SourceSettings;
-import fiji.plugin.trackmate.Logger;
-import fiji.plugin.trackmate.Model;
-import fiji.plugin.trackmate.Settings;
 import fiji.plugin.trackmate.Spot;
 import fiji.plugin.trackmate.SpotCollection;
 import fiji.plugin.trackmate.features.spot.SpotAnalyzer;
@@ -23,8 +23,6 @@ import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.algorithm.MultiThreaded;
 import net.imglib2.img.ImgView;
 import net.imglib2.realtransform.AffineTransform3D;
-import net.imglib2.type.NativeType;
-import net.imglib2.type.numeric.RealType;
 
 /**
  * A class dedicated to centralizing the calculation of the numerical features
@@ -33,96 +31,66 @@ import net.imglib2.type.numeric.RealType;
  * @author Jean-Yves Tinevez - 2020
  * 
  */
-public class MamutSpotFeatureCalculator implements MultiThreaded
+public class MamutSpotFeatureCalculator
 {
 
 	private final SourceSettings settings;
 
-	private final Model model;
+	private final ExecutorService executor;
 
-	private ExecutorService executor;
-
-	private int numThreads;
-
-	public MamutSpotFeatureCalculator( final Model model, final SourceSettings settings )
+	public MamutSpotFeatureCalculator( final SourceSettings settings )
 	{
 		this.settings = settings;
-		this.model = model;
-		setNumThreads();
-	}
-
-	/*
-	 * METHODS
-	 */
-
-	/**
-	 * Calculates all the spot features configured in the {@link Settings}
-	 * object for the specified spot collection. Features are calculated for
-	 * each spot, using their location, and the raw image.
-	 */
-	@SuppressWarnings( "unchecked" )
-	public void computeSpotFeatures( final SpotCollection toCompute, final boolean doLogIt )
-	{
-		executor.execute( () -> {
-			@SuppressWarnings( "rawtypes" )
-			final List saf = settings.getSpotAnalyzerFactories();
-			try
-			{
-				computeSpotFeaturesAgent( toCompute, saf, doLogIt );
-			}
-			catch ( final Exception e )
-			{
-				e.printStackTrace();
-			}
-		} );
+		this.executor = Executors.newCachedThreadPool();
 	}
 
 	/**
-	 * The method in charge of computing spot features with the given
-	 * {@link SpotAnalyzer}s, for the given {@link SpotCollection}.
-	 * 
-	 * @param toCompute
+	 * Update the specified spot feature values.
+	 * <p>
+	 * Computation is done in another thread and this method returns
+	 * immediately.
 	 */
-	private < T extends RealType< T > & NativeType< T > > void computeSpotFeaturesAgent( final SpotCollection toCompute, final List< SpotAnalyzerFactoryBase< T > > analyzerFactories, final boolean doLogIt )
+	public void updateSpotFeatures( final Iterable< Spot > toCompute )
 	{
-		final Logger logger = doLogIt ? model.getLogger() : Logger.VOID_LOGGER;
-		logger.setStatus( "Calculating " + toCompute.getNSpots( false ) + " spots features..." );
-		logger.setProgress( 0 );
+		executor.execute( () -> computeSpotFeatures( toCompute ) );
+	}
 
-		// Do it.
-		final List< Integer > frameSet = new ArrayList<>( toCompute.keySet() );
-		final int numFrames = frameSet.size();
-
-		final AtomicInteger progress = new AtomicInteger( 0 );
-
-		@SuppressWarnings( "rawtypes" )
-		final List s = settings.getSources();
-		@SuppressWarnings( "unchecked" )
-		final List< SourceAndConverter< T > > sources = s;
-
+	/**
+	 * Update the specified spot feature values.
+	 * <p>
+	 * Computation is done in this thread, which blocks.
+	 */
+	public void computeSpotFeatures( final Iterable< Spot > toCompute )
+	{
 		// We always operate on the lowest resolution level.
 		final int level = 0;
+		final List< SpotAnalyzerFactoryBase< ? > > saf = settings.getSpotAnalyzerFactories();
+		final List< SourceAndConverter< ? > > sources = settings.getSources();
 
-		/*
-		 * Careful with multithreading: We do not want to have one frame per
-		 * thread, like this is the case for TrackMate, because it would force
-		 * loading several time-points at once.
-		 */
+		// Sort spots by frames.
+		final SpotCollection sc = SpotCollection.fromCollection( toCompute );
 
-		for ( int iframe = 0; iframe < numFrames; iframe++ )
+		final NavigableSet< Integer > frames = sc.keySet();
+		for ( final Integer iframe : frames )
 		{
-			final int frame = frameSet.get( iframe ).intValue();
-
-			// Spots to process in this frame.
-			final Iterable< Spot > spots = toCompute.iterable( frame, false );
+			final int frame = iframe.intValue();
 
 			// Loop over each setup in this frame.
-			for ( int channel = 0; channel < sources.size(); channel++ )
+			for ( int c = 0; c < sources.size(); c++ )
 			{
+				final int channel = c;
+
 				// The image for this setup, this frame (so 3D at max).
-				final SourceAndConverter< T > sourceAnConverter = sources.get( channel );
-				final Source< T > source = sourceAnConverter.getSpimSource();
-				final RandomAccessibleInterval< T > rai = source.getSource( frame, level );
+				final SourceAndConverter< ? > sourceAnConverter = sources.get( c );
+				final Source< ? > source = sourceAnConverter.getSpimSource();
+
+				// The transform for this setup, this frame.
+				final AffineTransform3D sourceToGlobal = new AffineTransform3D();
+				source.getSourceTransform( frame, level, sourceToGlobal );
+
+				// The image.
+				@SuppressWarnings( "rawtypes" )
+				final RandomAccessibleInterval rai = source.getSource( frame, level );
 				final AxisType[] axes = new AxisType[] { Axes.X, Axes.Y, Axes.Z };
 				final double[] cal = new double[] {
 						source.getVoxelDimensions().dimension( 0 ),
@@ -133,56 +101,68 @@ public class MamutSpotFeatureCalculator implements MultiThreaded
 						source.getVoxelDimensions().unit(),
 						source.getVoxelDimensions().unit(),
 						source.getVoxelDimensions().unit() };
-				final ImgPlus< T > imgPlus = new ImgPlus<>(
+				@SuppressWarnings( "unchecked" )
+				final ImgPlus< ? > imgPlus = new ImgPlus<>(
 						ImgView.wrap( rai ),
-						source.getName() + "C" + channel + "_T" + frame,
+						source.getName() + "C" + c + "_T" + frame,
 						axes,
 						cal,
 						units );
 
-				// The transform for this setup, this frame.
-				final AffineTransform3D sourceToGlobal = new AffineTransform3D();
-				source.getSourceTransform( frame, level, sourceToGlobal );
-
-				// Transform spot coordinates.
-				final List< Spot > transformedSpots = new ArrayList<>();
-				for ( final Spot spot : spots )
-					transformedSpots.add( TransformedSpot.wrap( spot, sourceToGlobal, cal ) );
-
-				// Process all analyzers.
-				for ( final SpotAnalyzerFactoryBase< T > factory : analyzerFactories )
+				final List< Future< ? > > tasks = new ArrayList<>( sc.getNSpots( frame, false ) );
+				for ( final Spot spot : sc.iterable( frame, false ) )
 				{
-					final SpotAnalyzer< T > analyzer = factory.getAnalyzer( imgPlus, frame, channel );
+					// Transform spot coordinates.
+					final TransformedSpot transformedSpot = TransformedSpot.wrap( spot, sourceToGlobal, cal );
 
-					// Multithread if we can.
-					if ( analyzer instanceof MultiThreaded )
-						( ( MultiThreaded ) analyzer ).setNumThreads( numThreads );
-
-					analyzer.process( transformedSpots );
+					// Execute update.
+					final Future< ? > task = executor.submit( () -> {
+						try
+						{
+							update( transformedSpot, saf, imgPlus, channel );
+						}
+						catch ( final Exception e )
+						{
+							e.printStackTrace();
+						}
+					} );
+					tasks.add( task );
 				}
-				logger.setProgress( progress.incrementAndGet() / ( float ) numFrames );
+				// Force computation before we move to next setup.
+				try
+				{
+					for ( final Future< ? > task : tasks )
+						task.get();
+				}
+				catch ( InterruptedException | ExecutionException e )
+				{
+					e.printStackTrace();
+				}
 			}
 		}
-		logger.setProgress( 1 );
-		logger.setStatus( "" );
+
 	}
 
-	@Override
-	public void setNumThreads()
+	private static final void update( final Spot spot, final List< SpotAnalyzerFactoryBase< ? > > analyzerFactories, final ImgPlus< ? > img, final int channel )
 	{
-		setNumThreads( Runtime.getRuntime().availableProcessors() / 2 );
-	}
+		/*
+		 * We expect to receive a single time-point image, so we point the
+		 * analyzers to its only frame.
+		 */
+		final int frame = 0;
 
-	@Override
-	public void setNumThreads( final int numThreads )
-	{
-		this.numThreads = numThreads;
-		this.executor = Executors.newFixedThreadPool( numThreads );
-	}
+		// Process all analyzers.
+		for ( @SuppressWarnings( "rawtypes" )
+		final SpotAnalyzerFactoryBase factory : analyzerFactories )
+		{
+			@SuppressWarnings( "unchecked" )
+			final SpotAnalyzer< ? > analyzer = factory.getAnalyzer( img, frame, channel );
 
-	@Override
-	public int getNumThreads()
-	{
-		return numThreads;
+			// We do multithread somewhere else.
+			if ( analyzer instanceof MultiThreaded )
+				( ( MultiThreaded ) analyzer ).setNumThreads( 1 );
+
+			analyzer.process( Collections.singletonList( spot ) );
+		}
 	}
 }

@@ -10,7 +10,6 @@ import fiji.plugin.trackmate.ModelChangeEvent;
 import fiji.plugin.trackmate.ModelChangeListener;
 import fiji.plugin.trackmate.Settings;
 import fiji.plugin.trackmate.Spot;
-import fiji.plugin.trackmate.SpotCollection;
 import fiji.plugin.trackmate.features.EdgeFeatureCalculator;
 import fiji.plugin.trackmate.features.ModelFeatureUpdater;
 import fiji.plugin.trackmate.features.TrackFeatureCalculator;
@@ -45,7 +44,7 @@ public class MamutModelFeatureUpdater implements ModelChangeListener, MultiThrea
 	public MamutModelFeatureUpdater( final Model model, final SourceSettings settings )
 	{
 		this.model = model;
-		this.mamutSpotFeatureCalculator = new MamutSpotFeatureCalculator( model, settings );
+		this.mamutSpotFeatureCalculator = new MamutSpotFeatureCalculator( settings );
 		this.edgeFeatureCalculator = new EdgeFeatureCalculator( model, settings );
 		this.trackFeatureCalculator = new TrackFeatureCalculator( model, settings );
 		model.addModelChangeListener( this );
@@ -68,8 +67,6 @@ public class MamutModelFeatureUpdater implements ModelChangeListener, MultiThrea
 			if ( event.getSpotFlag( spot ) != ModelChangeEvent.FLAG_SPOT_REMOVED )
 				spots.add( spot );
 
-		final SpotCollection sc = SpotCollection.fromCollection( spots );
-
 		// Build edge list
 		final ArrayList< DefaultWeightedEdge > edges = new ArrayList<>( event.getEdges().size() );
 		for ( final DefaultWeightedEdge edge : event.getEdges() )
@@ -77,7 +74,7 @@ public class MamutModelFeatureUpdater implements ModelChangeListener, MultiThrea
 				edges.add( edge );
 
 		// Update spot features
-		mamutSpotFeatureCalculator.computeSpotFeatures( sc, false );
+		mamutSpotFeatureCalculator.updateSpotFeatures( spots );
 
 		// Update edge features
 		edgeFeatureCalculator.computeEdgesFeatures( edges, false );
@@ -111,7 +108,6 @@ public class MamutModelFeatureUpdater implements ModelChangeListener, MultiThrea
 	public void setNumThreads( final int numThreads )
 	{
 		this.numThreads = numThreads;
-		mamutSpotFeatureCalculator.setNumThreads( numThreads );
 		edgeFeatureCalculator.setNumThreads( numThreads );
 		trackFeatureCalculator.setNumThreads( numThreads );
 	}
