@@ -9,6 +9,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import bdv.util.Affine3DHelpers;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import fiji.plugin.mamut.SourceSettings;
@@ -92,15 +93,15 @@ public class MamutSpotFeatureCalculator
 				@SuppressWarnings( "rawtypes" )
 				final RandomAccessibleInterval rai = source.getSource( frame, level );
 				final AxisType[] axes = new AxisType[] { Axes.X, Axes.Y, Axes.Z };
+				final double scaleX = Affine3DHelpers.extractScale( sourceToGlobal, 0 ) ;
+				final double scaleY = Affine3DHelpers.extractScale( sourceToGlobal, 1 ) ;
+				final double scaleZ = Affine3DHelpers.extractScale( sourceToGlobal, 2 ) ;
 				final double[] cal = new double[] {
-						source.getVoxelDimensions().dimension( 0 ),
-						source.getVoxelDimensions().dimension( 1 ),
-						source.getVoxelDimensions().dimension( 2 )
+						1.,
+						scaleY / scaleX,
+						scaleZ / scaleX
 				};
-				final String[] units = new String[] {
-						source.getVoxelDimensions().unit(),
-						source.getVoxelDimensions().unit(),
-						source.getVoxelDimensions().unit() };
+				final String[] units = new String[] { "globalpix", "globalpix", "globalpix" };
 				@SuppressWarnings( "unchecked" )
 				final ImgPlus< ? > imgPlus = new ImgPlus<>(
 						ImgView.wrap( rai ),
