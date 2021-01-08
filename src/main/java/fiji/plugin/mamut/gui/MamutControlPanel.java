@@ -328,9 +328,9 @@ public class MamutControlPanel extends JPanel
 		gbcPanelDrawingZDepth.gridy = 5;
 		add( panelDrawingZDepth, gbcPanelDrawingZDepth );
 
-		final JCheckBox chckbxLimitZDepth = new JCheckBox( "Limit drawing Z depth" );
-		chckbxLimitZDepth.setFont( SMALL_FONT );
-		panelDrawingZDepth.add( chckbxLimitZDepth );
+		final JCheckBox chkboxLimitZDepth = new JCheckBox( "Limit drawing Z depth" );
+		chkboxLimitZDepth.setFont( SMALL_FONT );
+		panelDrawingZDepth.add( chkboxLimitZDepth );
 
 		final SpinnerNumberModel numberModelDrawingZDepth = new SpinnerNumberModel( ds.getZDrawingDepth(), 0.5, 5000., 0.5 );
 		final JSpinner spinnerDrawingZDepth = new JSpinner( numberModelDrawingZDepth );
@@ -417,7 +417,7 @@ public class MamutControlPanel extends JPanel
 		chkboxDisplayTracks.addActionListener( fadeTrackRangeEnable );
 		chkboxFadeTracks.addActionListener( fadeTrackRangeEnable );
 
-		chckbxLimitZDepth.addActionListener( e -> spinnerDrawingZDepth.setEnabled( chckbxLimitZDepth.isSelected() ) );
+		chkboxLimitZDepth.addActionListener( e -> spinnerDrawingZDepth.setEnabled( chkboxLimitZDepth.isSelected() ) );
 
 		chkboxDisplaySpots.addActionListener( e -> ds.setSpotVisible( chkboxDisplaySpots.isSelected() ) );
 		ftfSpotRadius.addPropertyChangeListener( "value", e -> ds.setSpotDisplayRadius( ( ( Number ) ftfSpotRadius.getValue() ).doubleValue() ) );
@@ -425,6 +425,8 @@ public class MamutControlPanel extends JPanel
 		chkboxDisplayTracks.addActionListener( e -> ds.setTrackVisible( chkboxDisplayTracks.isSelected() ) );
 		chkboxFadeTracks.addActionListener( e -> ds.setFadeTracks( chkboxFadeTracks.isSelected() ) );
 		fadeTrackDepthModel.addChangeListener( e -> ds.setFadeTrackRange( fadeTrackDepthModel.getNumber().intValue() ) );
+		chkboxLimitZDepth.addActionListener( e -> ds.setZDrawingDepthLimited( chkboxLimitZDepth.isSelected() ) );
+		numberModelDrawingZDepth.addChangeListener( e -> ds.setZDrawingDepth( numberModelDrawingZDepth.getNumber().doubleValue() ) );
 
 		/*
 		 * Set current values.
@@ -435,7 +437,7 @@ public class MamutControlPanel extends JPanel
 			chkboxSpotNames.setSelected( ds.isSpotShowName() );
 			chkboxDisplayTracks.setSelected( ds.isTrackVisible() );
 			chkboxFadeTracks.setSelected( ds.isFadeTracks() );
-			chckbxLimitZDepth.setSelected( ds.isZDrawingDepthLimited() );
+			chkboxLimitZDepth.setSelected( ds.isZDrawingDepthLimited() );
 			ftfSpotRadius.setValue( Double.valueOf( ds.getSpotDisplayRadius() ) );
 			fadeTrackDepthModel.setValue( Integer.valueOf( ds.getFadeTrackRange() ) );
 			numberModelDrawingZDepth.setValue( Double.valueOf( ds.getZDrawingDepth() ) );
@@ -446,7 +448,7 @@ public class MamutControlPanel extends JPanel
 		};
 		l.displaySettingsChanged();
 		ds.listeners().add( l );
-		spinnerDrawingZDepth.setEnabled( chckbxLimitZDepth.isSelected() );
+		spinnerDrawingZDepth.setEnabled( chkboxLimitZDepth.isSelected() );
 		fadeTrackBtnEnable.actionPerformed( null );
 	}
 
