@@ -151,18 +151,6 @@ public class MamutControlPanel extends JPanel
 		gbcCheckBoxDisplaySpots.gridy = 1;
 		add( chkboxDisplaySpots, gbcCheckBoxDisplaySpots );
 
-		final JCheckBox chkboxDisplaySpotsAsRois = new JCheckBox();
-		chkboxDisplaySpotsAsRois.setText( "as ROIs" );
-		final GridBagConstraints gbcChkboxDisplaySpotsAsRois = new GridBagConstraints();
-		gbcChkboxDisplaySpotsAsRois.insets = new Insets( 0, 0, 0, 5 );
-		gbcChkboxDisplaySpotsAsRois.anchor = GridBagConstraints.EAST;
-		gbcChkboxDisplaySpotsAsRois.gridx = 1;
-		gbcChkboxDisplaySpotsAsRois.gridy = 1;
-		add( chkboxDisplaySpotsAsRois, gbcChkboxDisplaySpotsAsRois );
-		chkboxDisplaySpotsAsRois.setFont( FONT );
-		chkboxDisplaySpotsAsRois.addActionListener( e -> ds.setSpotDisplayedAsRoi( chkboxDisplaySpotsAsRois.isSelected() ) );
-		chkboxDisplaySpotsAsRois.setSelected( ds.isSpotDisplayedAsRoi() );
-
 		/*
 		 * Spot options panel.
 		 */
@@ -404,10 +392,7 @@ public class MamutControlPanel extends JPanel
 		 * Listeners & co.
 		 */
 
-		chkboxDisplaySpots.addActionListener( e -> {
-			setEnabled( panelSpotOptions, chkboxDisplaySpots.isSelected() );
-			chkboxDisplaySpotsAsRois.setEnabled( chkboxDisplaySpots.isSelected() );
-		} );
+		chkboxDisplaySpots.addActionListener( e -> setEnabled( panelSpotOptions, chkboxDisplaySpots.isSelected() ) );
 		chkboxDisplayTracks.addActionListener( e -> {
 			setEnabled( panelTrackOptions, chkboxDisplayTracks.isSelected() );
 			cmbboxTrackDisplayMode.setEnabled( chkboxDisplayTracks.isSelected() );
@@ -447,7 +432,6 @@ public class MamutControlPanel extends JPanel
 
 		final UpdateListener l = () -> {
 			chkboxDisplaySpots.setSelected( ds.isSpotVisible() );
-			chkboxDisplaySpotsAsRois.setSelected( ds.isSpotDisplayedAsRoi() );
 			chkboxSpotNames.setSelected( ds.isSpotShowName() );
 			chkboxDisplayTracks.setSelected( ds.isTrackVisible() );
 			chkboxFadeTracks.setSelected( ds.isFadeTracks() );
