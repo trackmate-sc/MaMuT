@@ -25,7 +25,6 @@ import java.awt.Dimension;
 import java.awt.MouseInfo;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
@@ -88,7 +87,6 @@ import fiji.plugin.trackmate.action.ExportAllSpotsStatsAction;
 import fiji.plugin.trackmate.action.ExportStatsTablesAction;
 import fiji.plugin.trackmate.gui.displaysettings.DisplaySettings;
 import fiji.plugin.trackmate.io.IOUtils;
-import fiji.plugin.trackmate.util.ModelTools;
 import fiji.plugin.trackmate.visualization.TrackMateModelView;
 import fiji.plugin.trackmate.visualization.trackscheme.TrackScheme;
 import ij.IJ;
@@ -191,8 +189,6 @@ public class MaMuT implements ModelChangeListener
 		trackmate.computeEdgeFeatures( true );
 		trackmate.computeTrackFeatures( true );
 
-		this.gui = new MamutGUI( trackmate, this, ds );
-		this.bookmarks = new Bookmarks();
 
 		final File bdvFile = new File( settings.imageFolder, settings.imageFileName );
 		final String pf = bdvFile.getParent();
@@ -220,11 +216,15 @@ public class MaMuT implements ModelChangeListener
 				centerOnSpot( selectionModel.getSpotSelection().iterator().next() );
 		} );
 
+		/*
+		 * Gui.
+		 */
+		this.gui = new MamutGUI( trackmate, this, ds );
+		this.bookmarks = new Bookmarks();
 
 		/*
 		 * Load image source
 		 */
-
 		final ArrayList< ConverterSetup > converterSetups = settings.getConverterSetups();
 		for ( int i = 0; i < converterSetups.size(); ++i )
 		{
@@ -240,39 +240,11 @@ public class MaMuT implements ModelChangeListener
 		final SourceSpotImageUpdater tmpUpdater = new SourceSpotImageUpdater( settings );
 		thumbnailUpdater = tmpUpdater;
 
+		/*
+		 * Annotation panel.
+		 */
 		final AnnotationPanel annotationPanel = gui.getAnnotationPanel();
 		logger = annotationPanel.getLogger();
-		annotationPanel.addActionListener( new ActionListener()
-		{
-
-			@Override
-			public void actionPerformed( final ActionEvent event )
-			{
-				if ( event == annotationPanel.SEMI_AUTO_TRACKING_BUTTON_PRESSED )
-				{
-					semiAutoDetectSpot();
-
-				}
-				else if ( event == annotationPanel.SELECT_TRACK_BUTTON_PRESSED )
-				{
-					ModelTools.selectTrack( selectionModel );
-
-				}
-				else if ( event == annotationPanel.SELECT_TRACK_DOWNWARD_BUTTON_PRESSED )
-				{
-					ModelTools.selectTrackDownward( selectionModel );
-
-				}
-				else if ( event == annotationPanel.SELECT_TRACK_UPWARD_BUTTON_PRESSED )
-				{
-					ModelTools.selectTrackUpward( selectionModel );
-				}
-				else
-				{
-					logger.error( "Caught unknown event: " + event );
-				}
-			}
-		} );
 
 		/*
 		 * Help
@@ -623,12 +595,12 @@ public class MaMuT implements ModelChangeListener
 
 	public void newTrackTables()
 	{
-		new ExportStatsTablesAction( selectionModel, ds ).execute( trackmate );
+		new ExportStatsTablesAction().execute( trackmate, selectionModel, ds, gui );
 	}
 
 	public void newSpotTable()
 	{
-		new ExportAllSpotsStatsAction( selectionModel, ds ).execute( trackmate );
+		new ExportAllSpotsStatsAction().execute( trackmate, selectionModel, ds, gui );
 	}
 
 	public TrackScheme newTrackScheme()
@@ -638,7 +610,7 @@ public class MaMuT implements ModelChangeListener
 		trackscheme.setSpotImageUpdater( thumbnailUpdater );
 		selectionModel.addSelectionChangeListener( trackscheme );
 		trackscheme.render();
-		guimodel.addView( trackscheme );
+		guimodel.views.add( trackscheme );
 		return trackscheme;
 	}
 
@@ -712,7 +684,7 @@ public class MaMuT implements ModelChangeListener
 		viewer.setJMenuBar( createMenuBar( viewer ) );
 
 		viewer.render();
-		guimodel.addView( viewer );
+		guimodel.views.add( viewer );
 
 		viewer.refresh();
 		return viewer;
@@ -832,7 +804,7 @@ public class MaMuT implements ModelChangeListener
 	private void requestRepaintAllViewers()
 	{
 		if ( guimodel != null )
-			for ( final TrackMateModelView view : guimodel.getViews() )
+			for ( final TrackMateModelView view : guimodel.views )
 				if ( view instanceof MamutViewer )
 					( ( MamutViewer ) view ).getViewerPanel().requestRepaint();
 	}
@@ -975,13 +947,13 @@ public class MaMuT implements ModelChangeListener
 	private void refresh()
 	{
 		// Just ask to repaint the TrackMate overlay
-		for ( final TrackMateModelView viewer : guimodel.getViews() )
+		for ( final TrackMateModelView viewer : guimodel.views )
 			viewer.refresh();
 	}
 
 	private void centerOnSpot( final Spot spot )
 	{
-		for ( final TrackMateModelView otherView : guimodel.getViews() )
+		for ( final TrackMateModelView otherView : guimodel.views )
 			otherView.centerViewOn( spot );
 	}
 
@@ -1104,7 +1076,7 @@ public class MaMuT implements ModelChangeListener
 		@Override
 		public void windowClosing( final WindowEvent arg0 )
 		{
-			guimodel.removeView( view );
+			guimodel.views.remove( view );
 		}
 	}
 

@@ -1,7 +1,5 @@
 package fiji.plugin.mamut.action;
 
-import java.awt.Image;
-
 import javax.swing.ImageIcon;
 
 import org.scijava.plugin.Plugin;
@@ -9,7 +7,7 @@ import org.scijava.plugin.Plugin;
 import fiji.plugin.mamut.MaMuT;
 import fiji.plugin.trackmate.action.TrackBranchAnalysis;
 import fiji.plugin.trackmate.action.TrackMateAction;
-import fiji.plugin.trackmate.gui.TrackMateWizard;
+import fiji.plugin.trackmate.gui.Icons;
 
 @Plugin( type = MamutActionFactory.class )
 public class MamutTrackBranchAnalysis implements MamutActionFactory
@@ -26,14 +24,6 @@ public class MamutTrackBranchAnalysis implements MamutActionFactory
 
 	private static final String NAME = "Branch hierarchy analysis";
 
-	private static final ImageIcon ICON;
-	static
-	{
-		final Image image = new ImageIcon( TrackMateWizard.class.getResource( "images/Icons4_print_transparency.png" ) ).getImage();
-		final Image newimg = image.getScaledInstance( 16, 16, java.awt.Image.SCALE_SMOOTH );
-		ICON = new ImageIcon( newimg );
-	}
-
 	@Override
 	public String getInfoText()
 	{
@@ -43,7 +33,7 @@ public class MamutTrackBranchAnalysis implements MamutActionFactory
 	@Override
 	public ImageIcon getIcon()
 	{
-		return ICON;
+		return Icons.BRANCH_ICON_16x16;
 	}
 
 	@Override
@@ -61,6 +51,6 @@ public class MamutTrackBranchAnalysis implements MamutActionFactory
 	@Override
 	public TrackMateAction create( final MaMuT mamut )
 	{
-		return new TrackBranchAnalysis( mamut.getSelectionModel() );
+		return new TrackBranchAnalysis();
 	}
 }

@@ -21,8 +21,8 @@
  */
 package fiji.plugin.mamut.gui;
 
-import static fiji.plugin.trackmate.gui.TrackMateWizard.FONT;
-import static fiji.plugin.trackmate.gui.TrackMateWizard.SMALL_FONT;
+import static fiji.plugin.trackmate.gui.Fonts.FONT;
+import static fiji.plugin.trackmate.gui.Fonts.SMALL_FONT;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -31,7 +31,6 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Image;
 import java.awt.Insets;
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
@@ -57,36 +56,17 @@ import javax.swing.text.StyleContext;
 
 import fiji.plugin.mamut.MaMuT;
 import fiji.plugin.trackmate.Logger;
-import fiji.plugin.trackmate.gui.panels.ActionListenablePanel;
+import fiji.plugin.trackmate.util.ModelTools;
 import ij.IJ;
 
-public class AnnotationPanel extends ActionListenablePanel
+public class AnnotationPanel extends JPanel
 {
-
-	/*
-	 * PUBLIC EVENTS
-	 */
-
-	public ActionEvent SEMI_AUTO_TRACKING_BUTTON_PRESSED = new ActionEvent( this, 0, "SemiAutoTrackingButtonPushed" );
-
-	public ActionEvent SELECT_TRACK_BUTTON_PRESSED = new ActionEvent( this, 1, "SelectTrackButtonPushed" );
-
-	public ActionEvent SELECT_TRACK_UPWARD_BUTTON_PRESSED = new ActionEvent( this, 2, "SelectTrackUpwardButtonPushed" );
-
-	public ActionEvent SELECT_TRACK_DOWNWARD_BUTTON_PRESSED = new ActionEvent( this, 3, "SelectTrackDownwardButtonPushed" );
-
-	/*
-	 * FIELDS
-	 */
 
 	private static final long serialVersionUID = 1L;
 
 	private final static ImageIcon SELECT_TRACK_ICON = new ImageIcon( MaMuT.class.getResource( "arrow_updown.png" ) );
-
 	private final static ImageIcon SELECT_TRACK_ICON_UPWARDS = new ImageIcon( MaMuT.class.getResource( "arrow_up.png" ) );
-
 	private final static ImageIcon SELECT_TRACK_ICON_DOWNWARDS = new ImageIcon( MaMuT.class.getResource( "arrow_down.png" ) );
-
 	private final static ImageIcon SEMIAUTO_TRACKING_ICON;
 	static
 	{
@@ -106,8 +86,6 @@ public class AnnotationPanel extends ActionListenablePanel
 
 	private final Logger logger;
 
-	private final MamutGUIModel guiModel;
-
 	private final JFormattedTextField ftfDistanceTolerance;
 
 	private final JFormattedTextField ftfQualityThreshold;
@@ -116,34 +94,20 @@ public class AnnotationPanel extends ActionListenablePanel
 
 	private final JFormattedTextField ftfNFrames;
 
-	public AnnotationPanel()
+	public AnnotationPanel( final MaMuT mamut )
 	{
-		this( new MamutGUIModel() );
-	}
-
-	public AnnotationPanel( final MamutGUIModel guiModel )
-	{
-
-		this.guiModel = guiModel;
 
 		/*
 		 * Listeners
 		 */
 
-		final ActionListener al = new ActionListener()
-		{
-			@Override
-			public void actionPerformed( final ActionEvent e )
-			{
-				updateParamsFromTextFields();
-			}
-		};
+		final ActionListener al = e -> updateParamsFromTextFields( mamut.getGuimodel() );
 		final FocusListener fl = new FocusListener()
 		{
 			@Override
 			public void focusLost( final FocusEvent e )
 			{
-				updateParamsFromTextFields();
+				updateParamsFromTextFields( mamut.getGuimodel() );
 			}
 
 			@Override
@@ -187,7 +151,7 @@ public class AnnotationPanel extends ActionListenablePanel
 		stepWisePanel.add( lblJumpToEvery );
 		stepWisePanel.add( Box.createHorizontalGlue() );
 
-		ftfTimeStep = new JFormattedTextField( Integer.valueOf( guiModel.timeStep ) );
+		ftfTimeStep = new JFormattedTextField( Integer.valueOf( mamut.getGuimodel().timeStep ) );
 		ftfTimeStep.setMaximumSize( new Dimension( 160, 2147483647 ) );
 		ftfTimeStep.setFont( SMALL_FONT );
 		ftfTimeStep.setColumns( 3 );
@@ -241,7 +205,6 @@ public class AnnotationPanel extends ActionListenablePanel
 		panelButtons.add( lblSelectTrack, gbcLblSelectTrack );
 
 		final JButton buttonSelectTrack = new JButton( SELECT_TRACK_ICON );
-		buttonSelectTrack.addActionListener( e -> fireAction( SELECT_TRACK_BUTTON_PRESSED ) );
 		final GridBagConstraints gbcButtonSelectTrack = new GridBagConstraints();
 		gbcButtonSelectTrack.fill = GridBagConstraints.BOTH;
 		gbcButtonSelectTrack.insets = new Insets( 0, 5, 5, 5 );
@@ -262,7 +225,6 @@ public class AnnotationPanel extends ActionListenablePanel
 		panelButtons.add( lblSelectTrackUpward, gbcLblSelectTrackUpward );
 
 		final JButton buttonSelectTrackUp = new JButton( SELECT_TRACK_ICON_UPWARDS );
-		buttonSelectTrackUp.addActionListener( e -> fireAction( SELECT_TRACK_UPWARD_BUTTON_PRESSED ) );
 		final GridBagConstraints gbcButtonSelectTrackUp = new GridBagConstraints();
 		gbcButtonSelectTrackUp.fill = GridBagConstraints.BOTH;
 		gbcButtonSelectTrackUp.insets = new Insets( 0, 5, 5, 5 );
@@ -283,7 +245,6 @@ public class AnnotationPanel extends ActionListenablePanel
 		panelButtons.add( lblSelectTrackDown, gbcLblSelectTrackDown );
 
 		final JButton buttonSelectTrackDown = new JButton( SELECT_TRACK_ICON_DOWNWARDS );
-		buttonSelectTrackDown.addActionListener( e -> fireAction( SELECT_TRACK_DOWNWARD_BUTTON_PRESSED ) );
 		final GridBagConstraints gbcButtonSelectTrackDown = new GridBagConstraints();
 		gbcButtonSelectTrackDown.fill = GridBagConstraints.BOTH;
 		gbcButtonSelectTrackDown.insets = new Insets( 0, 5, 5, 5 );
@@ -331,7 +292,6 @@ public class AnnotationPanel extends ActionListenablePanel
 		panelSemiAutoParams.add( lblSemiAutoTracking, gbcLblSemiAutoTracking );
 
 		final JButton buttonSemiAutoTracking = new JButton( SEMIAUTO_TRACKING_ICON );
-		buttonSemiAutoTracking.addActionListener( e -> fireAction( SEMI_AUTO_TRACKING_BUTTON_PRESSED ) );
 		final GridBagConstraints gbcButtonSemiAutoTracking = new GridBagConstraints();
 		gbcButtonSemiAutoTracking.insets = new Insets( 5, 5, 5, 5 );
 		gbcButtonSemiAutoTracking.gridx = 0;
@@ -352,7 +312,7 @@ public class AnnotationPanel extends ActionListenablePanel
 		gbcLblQualityThreshold.gridy = 2;
 		panelSemiAutoParams.add( lblQualityThreshold, gbcLblQualityThreshold );
 
-		ftfQualityThreshold = new JFormattedTextField( Double.valueOf( guiModel.qualityThreshold ) );
+		ftfQualityThreshold = new JFormattedTextField( Double.valueOf( mamut.getGuimodel().qualityThreshold ) );
 		ftfQualityThreshold.setMaximumSize( new Dimension( 160, 2147483647 ) );
 		ftfQualityThreshold.setColumns( 8 );
 		ftfQualityThreshold.setHorizontalAlignment( SwingConstants.CENTER );
@@ -378,7 +338,7 @@ public class AnnotationPanel extends ActionListenablePanel
 		gbcLblDistanceTolerance.gridy = 3;
 		panelSemiAutoParams.add( lblDistanceTolerance, gbcLblDistanceTolerance );
 
-		ftfDistanceTolerance = new JFormattedTextField( Double.valueOf( guiModel.distanceTolerance ) );
+		ftfDistanceTolerance = new JFormattedTextField( Double.valueOf( mamut.getGuimodel().distanceTolerance ) );
 		ftfDistanceTolerance.setMaximumSize( new Dimension( 160, 2147483647 ) );
 		ftfDistanceTolerance.setColumns( 8 );
 		ftfDistanceTolerance.setHorizontalAlignment( SwingConstants.CENTER );
@@ -403,7 +363,7 @@ public class AnnotationPanel extends ActionListenablePanel
 		gbcLblNFrames.gridy = 4;
 		panelSemiAutoParams.add( lblNFrames, gbcLblNFrames );
 
-		ftfNFrames = new JFormattedTextField( Integer.valueOf( guiModel.maxNFrames ) );
+		ftfNFrames = new JFormattedTextField( Integer.valueOf( mamut.getGuimodel().maxNFrames ) );
 		ftfNFrames.setMaximumSize( new Dimension( 160, 2147483647 ) );
 		ftfNFrames.setColumns( 8 );
 		ftfNFrames.setHorizontalAlignment( SwingConstants.CENTER );
@@ -415,7 +375,6 @@ public class AnnotationPanel extends ActionListenablePanel
 		gbcFtfNFrames.gridx = 2;
 		gbcFtfNFrames.gridy = 4;
 		panelSemiAutoParams.add( ftfNFrames, gbcFtfNFrames );
-
 
 		/*
 		 * Logger panel.
@@ -478,6 +437,11 @@ public class AnnotationPanel extends ActionListenablePanel
 				IJ.showProgress( val );
 			}
 		};
+
+		buttonSelectTrack.addActionListener( e -> ModelTools.selectTrack( mamut.getSelectionModel() ) );
+		buttonSelectTrackUp.addActionListener( e -> ModelTools.selectTrackUpward( mamut.getSelectionModel() ) );
+		buttonSelectTrackDown.addActionListener( e -> ModelTools.selectTrackDownward( mamut.getSelectionModel() ) );
+		buttonSemiAutoTracking.addActionListener( e -> mamut.semiAutoDetectSpot() );
 	}
 
 	/**
@@ -490,7 +454,7 @@ public class AnnotationPanel extends ActionListenablePanel
 		return logger;
 	}
 
-	private void updateParamsFromTextFields()
+	private void updateParamsFromTextFields( final MamutGUIModel guiModel )
 	{
 		guiModel.distanceTolerance = ( ( Number ) ftfDistanceTolerance.getValue() ).doubleValue();
 		guiModel.qualityThreshold = ( ( Number ) ftfQualityThreshold.getValue() ).doubleValue();

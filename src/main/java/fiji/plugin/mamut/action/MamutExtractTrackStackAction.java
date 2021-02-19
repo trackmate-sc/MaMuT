@@ -21,13 +21,12 @@
  */
 package fiji.plugin.mamut.action;
 
+import java.awt.Frame;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
-
-import javax.swing.ImageIcon;
 
 import org.jgrapht.graph.DefaultWeightedEdge;
 
@@ -41,7 +40,7 @@ import fiji.plugin.trackmate.Settings;
 import fiji.plugin.trackmate.Spot;
 import fiji.plugin.trackmate.TrackMate;
 import fiji.plugin.trackmate.action.AbstractTMAction;
-import fiji.plugin.trackmate.gui.TrackMateWizard;
+import fiji.plugin.trackmate.gui.displaysettings.DisplaySettings;
 import ij.ImagePlus;
 import ij.ImageStack;
 import ij.measure.Calibration;
@@ -59,15 +58,11 @@ public class MamutExtractTrackStackAction extends AbstractTMAction
 
 	public static final String INFO_TEXT = "<html> " + "Generate a stack of images taken from the track " + "that joins two selected spots. " + "<p>" + "There must be exactly 2 spots selected for this action " + "to work, and they must belong to a track that connects " + "them." + "<p>" + "A stack of images will be generated from the spots that join them. " + "A dialog will allow defining the source to use, the image size around the spot to capture and whether we generate a 3D stack or just grab the central slice. " + "</html>";
 
-	public static final ImageIcon ICON = new ImageIcon( TrackMateWizard.class.getResource( "images/magnifier.png" ) );
-
 	/**
 	 * By how much we resize the capture window to get a nice border around the
 	 * spot.
 	 */
 	public static final float RESIZE_FACTOR = 1.5f;
-
-	private final SelectionModel selectionModel;
 
 	private final int targetSourceIndex;
 
@@ -83,9 +78,6 @@ public class MamutExtractTrackStackAction extends AbstractTMAction
 	 * Instantiates a new action that extract the image context around a track
 	 * joining two spots.
 	 * 
-	 * @param selectionModel
-	 *            the {@link SelectionModel} model in which exactly two spots
-	 *            must be selected.
 	 * @param targetSourceIndex
 	 *            the index of the source to use for image data.
 	 * @param diameterFactor
@@ -101,7 +93,6 @@ public class MamutExtractTrackStackAction extends AbstractTMAction
 	 */
 	public MamutExtractTrackStackAction( final SelectionModel selectionModel, final int targetSourceIndex, final double diameterFactor, final boolean do3d )
 	{
-		this.selectionModel = selectionModel;
 		this.targetSourceIndex = targetSourceIndex;
 		this.diameterFactor = diameterFactor;
 		this.do3d = do3d;
@@ -111,9 +102,10 @@ public class MamutExtractTrackStackAction extends AbstractTMAction
 	 * METHODS
 	 */
 
+
 	@SuppressWarnings( { "unchecked", "rawtypes" } )
 	@Override
-	public void execute( final TrackMate trackmate )
+	public void execute( final TrackMate trackmate, final SelectionModel selectionModel, final DisplaySettings displaySettings, final Frame parent )
 	{
 		logger.log( "Capturing track stack.\n" );
 

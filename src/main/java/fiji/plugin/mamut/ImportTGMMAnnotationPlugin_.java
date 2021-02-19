@@ -405,7 +405,7 @@ public class ImportTGMMAnnotationPlugin_ implements PlugIn
 		settings.dt = 1;
 		final TrackMate trackmate = new TrackMate( model, settings );
 		final ResetSpotTimeFeatureAction action = new ResetSpotTimeFeatureAction();
-		action.execute( trackmate );
+		action.execute( trackmate, null, null, null );
 
 		return model;
 	}

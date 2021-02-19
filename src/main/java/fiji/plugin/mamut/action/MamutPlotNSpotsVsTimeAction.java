@@ -1,7 +1,9 @@
 package fiji.plugin.mamut.action;
 
-import static fiji.plugin.trackmate.gui.TrackMateWizard.FONT;
-import static fiji.plugin.trackmate.gui.TrackMateWizard.SMALL_FONT;
+import static fiji.plugin.trackmate.gui.Fonts.FONT;
+import static fiji.plugin.trackmate.gui.Fonts.SMALL_FONT;
+
+import java.awt.Frame;
 
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
@@ -15,6 +17,7 @@ import org.scijava.plugin.Plugin;
 
 import fiji.plugin.mamut.MaMuT;
 import fiji.plugin.trackmate.Model;
+import fiji.plugin.trackmate.SelectionModel;
 import fiji.plugin.trackmate.Settings;
 import fiji.plugin.trackmate.Spot;
 import fiji.plugin.trackmate.SpotCollection;
@@ -22,6 +25,8 @@ import fiji.plugin.trackmate.TrackMate;
 import fiji.plugin.trackmate.action.AbstractTMAction;
 import fiji.plugin.trackmate.action.PlotNSpotsVsTimeAction;
 import fiji.plugin.trackmate.action.TrackMateAction;
+import fiji.plugin.trackmate.gui.Icons;
+import fiji.plugin.trackmate.gui.displaysettings.DisplaySettings;
 import fiji.plugin.trackmate.util.ExportableChartPanel;
 
 @Plugin( type = MamutActionFactory.class )
@@ -37,7 +42,7 @@ public class MamutPlotNSpotsVsTimeAction extends AbstractTMAction implements Mam
 	@Override
 	public ImageIcon getIcon()
 	{
-		return PlotNSpotsVsTimeAction.ICON;
+		return Icons.PLOT_ICON;
 	}
 
 	@Override
@@ -59,7 +64,7 @@ public class MamutPlotNSpotsVsTimeAction extends AbstractTMAction implements Mam
 	}
 
 	@Override
-	public void execute( final TrackMate trackmate )
+	public void execute( final TrackMate trackmate, final SelectionModel selectionModel, final DisplaySettings displaySettings, final Frame parent )
 	{
 		// Collect data
 		final Model model = trackmate.getModel();
@@ -104,5 +109,4 @@ public class MamutPlotNSpotsVsTimeAction extends AbstractTMAction implements Mam
 		frame.getContentPane().add( panel );
 		frame.setVisible( true );
 	}
-
 }

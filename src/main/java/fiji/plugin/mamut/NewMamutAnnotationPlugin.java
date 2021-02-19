@@ -218,7 +218,8 @@ public class NewMamutAnnotationPlugin implements PlugIn
 		plugin.run(
 //				"/Users/tinevez/Desktop/Data/Mamut/parhyale/BDV130418A325_NoTempReg.xml"
 //				"/Users/tinevez/Desktop/MaMuT_demo_dataset/MaMuT_Parhyale_demo.xml" );
-				"D:/Projects/JYTinevez/Mastodon/Tutorial/datasethdf5.xml" );
+//				"D:/Projects/JYTinevez/Mastodon/Tutorial/datasethdf5.xml" );
+				"D:/Projects/JYTinevez/MaMuT/Mastodon-dataset/MaMuT_Parhyale_demo.xml" );
 //		plugin.run( "/Users/tinevez/Desktop/Celegans.xml" );
 	}
 

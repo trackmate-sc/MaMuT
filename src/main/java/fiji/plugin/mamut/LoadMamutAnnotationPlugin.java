@@ -101,7 +101,6 @@ public class LoadMamutAnnotationPlugin implements PlugIn
 		 */
 
 		final SourceSettings settings = reader.readSourceSettings();
-		System.out.println( settings ); // DEBUG
 
 		/*
 		 * Check that the image source location from settings object can be
@@ -167,9 +166,8 @@ public class LoadMamutAnnotationPlugin implements PlugIn
 		ImageJ.main( args );
 
 		final LoadMamutAnnotationPlugin plugin = new LoadMamutAnnotationPlugin();
-//		plugin.run( "D:/Projects/JYTinevez/MaMuT/Mastodon-dataset/MaMuT_Parhyale_demo-mamut.xml" );
+		plugin.run( "D:/Projects/JYTinevez/MaMuT/Mastodon-dataset/MaMuT_Parhyale_demo-mamut.xml" );
 //		plugin.run( "/Users/tinevez/Desktop/Data/Mamut/parhyale/BDV130418A325_NoTempReg-mamut_JY2.xml" );
-		plugin.run( null );
+//		plugin.run( null );
 	}
-
 }

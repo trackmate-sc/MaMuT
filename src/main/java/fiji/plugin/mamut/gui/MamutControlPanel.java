@@ -21,9 +21,13 @@
  */
 package fiji.plugin.mamut.gui;
 
-import static fiji.plugin.trackmate.gui.TrackMateWizard.BIG_FONT;
-import static fiji.plugin.trackmate.gui.TrackMateWizard.FONT;
-import static fiji.plugin.trackmate.gui.TrackMateWizard.SMALL_FONT;
+import static fiji.plugin.trackmate.gui.Fonts.BIG_FONT;
+import static fiji.plugin.trackmate.gui.Fonts.FONT;
+import static fiji.plugin.trackmate.gui.Fonts.SMALL_FONT;
+import static fiji.plugin.trackmate.gui.Icons.EDIT_SETTINGS_ICON;
+import static fiji.plugin.trackmate.gui.Icons.SPOT_TABLE_ICON;
+import static fiji.plugin.trackmate.gui.Icons.TRACK_SCHEME_ICON_16x16;
+import static fiji.plugin.trackmate.gui.Icons.TRACK_TABLES_ICON;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -49,14 +53,12 @@ import javax.swing.SwingConstants;
 import javax.swing.border.LineBorder;
 
 import fiji.plugin.mamut.MaMuT;
-import fiji.plugin.trackmate.gui.FeatureDisplaySelector;
 import fiji.plugin.trackmate.gui.GuiUtils;
-import fiji.plugin.trackmate.gui.TrackMateWizard;
+import fiji.plugin.trackmate.gui.components.FeatureDisplaySelector;
 import fiji.plugin.trackmate.gui.displaysettings.ConfigTrackMateDisplaySettings;
 import fiji.plugin.trackmate.gui.displaysettings.DisplaySettings;
 import fiji.plugin.trackmate.gui.displaysettings.DisplaySettings.TrackDisplayMode;
 import fiji.plugin.trackmate.gui.displaysettings.DisplaySettings.UpdateListener;
-import fiji.plugin.trackmate.visualization.trackscheme.TrackScheme;
 
 public class MamutControlPanel extends JPanel
 {
@@ -65,9 +67,6 @@ public class MamutControlPanel extends JPanel
 
 	private static final ImageIcon MAMUT_ICON = new ImageIcon( MaMuT.class.getResource( "mammouth-16x16.png" ) );
 	private static final ImageIcon SAVE_ICON = new ImageIcon( MaMuT.class.getResource( "page_save.png" ) );
-	private static final ImageIcon EDIT_SETTINGS_ICON = new ImageIcon( TrackMateWizard.class.getResource( "images/cog_edit.png" ) );
-	private static final ImageIcon TRACK_TABLES_ICON = new ImageIcon( TrackMateWizard.class.getResource( "images/table_multiple.png" ) );
-	private static final ImageIcon SPOT_TABLE_ICON = new ImageIcon( TrackMateWizard.class.getResource( "images/table.png" ) );
 	private static final Color BORDER_COLOR = new java.awt.Color( 192, 192, 192 );
 	private static final String TRACK_TABLES_BUTTON_TOOLTIP = "<html>"
 			+ "Export the features of all tracks, edges and all <br>"
@@ -354,7 +353,7 @@ public class MamutControlPanel extends JPanel
 		btnMamutViewer.setFont( FONT );
 
 		// TrackScheme button.
-		final JButton btnShowTrackScheme = new JButton( "TrackScheme", TrackScheme.TRACK_SCHEME_ICON_16x16 );
+		final JButton btnShowTrackScheme = new JButton( "TrackScheme", TRACK_SCHEME_ICON_16x16 );
 		btnShowTrackScheme.setToolTipText( TRACKSCHEME_BUTTON_TOOLTIP );
 		btnShowTrackScheme.addActionListener( launchTrackSchemeAction );
 		panelButtons.add( btnShowTrackScheme );

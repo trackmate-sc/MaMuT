@@ -39,10 +39,10 @@ import org.jdom2.Element;
 import bdv.tools.bookmarks.Bookmarks;
 import bdv.tools.brightness.SetupAssignments;
 import fiji.plugin.mamut.SourceSettings;
+import fiji.plugin.mamut.gui.MamutGUIModel;
 import fiji.plugin.mamut.viewer.MamutViewer;
 import fiji.plugin.trackmate.Logger;
 import fiji.plugin.trackmate.Settings;
-import fiji.plugin.trackmate.gui.TrackMateGUIModel;
 import fiji.plugin.trackmate.io.TmXmlWriter;
 import fiji.plugin.trackmate.visualization.TrackMateModelView;
 import fiji.plugin.trackmate.visualization.trackscheme.TrackScheme;
@@ -104,12 +104,12 @@ public class MamutXmlWriter extends TmXmlWriter
 		root.addContent( settingsElement );
 	}
 
-	public void appendMamutState( final TrackMateGUIModel guimodel,
+	public void appendMamutState( final MamutGUIModel guimodel,
 			final SetupAssignments setupAssignments, final Bookmarks bookmarks )
 	{
 		final Element guiel = new Element( GUI_STATE_ELEMENT_KEY );
 		// views
-		for ( final TrackMateModelView view : guimodel.getViews() )
+		for ( final TrackMateModelView view : guimodel.views )
 		{
 			final Element viewel = new Element( GUI_VIEW_ELEMENT_KEY );
 			viewel.setAttribute( GUI_VIEW_ATTRIBUTE, view.getKey() );
