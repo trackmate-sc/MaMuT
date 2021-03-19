@@ -8,12 +8,12 @@
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -27,7 +27,6 @@ import javax.swing.ImageIcon;
 
 import bdv.cache.CacheControl;
 import bdv.tools.bookmarks.Bookmarks;
-import bdv.util.BehaviourTransformEventHandlerPlanar;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
 import bdv.viewer.ViewerOptions;
@@ -101,9 +100,7 @@ public class MamutViewerFactory implements ViewFactory
 			}
 		}
 
-		final ViewerOptions options = ViewerOptions.options();
-		if ( is2D )
-			options.transformEventHandlerFactory( BehaviourTransformEventHandlerPlanar.factory() );
+		final ViewerOptions options = ViewerOptions.options().is2D( is2D );
 
 		return new MamutViewer( DEFAULT_WIDTH, DEFAULT_HEIGHT,
 				sources, numTimePoints, cache,

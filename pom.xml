@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.scijava</groupId>
 		<artifactId>pom-scijava</artifactId>
-		<version>29.0.0</version>
+		<version>30.0.0</version>
 		<relativePath />
 	</parent>
 
@@ -107,6 +107,9 @@
 		<license.licenseName>gpl_v3</license.licenseName>
 		<license.copyrightOwners>MaMuT development team.</license.copyrightOwners>
 
+		<bigdataviewer-core.version>10.2.0</bigdataviewer-core.version>
+		<bigdataviewer-vistools.version>1.0.0-beta-28</bigdataviewer-vistools.version>
+
 		<!-- NB: Deploy releases to the SciJava Maven repository. -->
 		<releaseProfiles>deploy-to-scijava</releaseProfiles>
 	</properties>
@@ -127,7 +130,6 @@
 		<dependency>
 			<groupId>sc.fiji</groupId>
 			<artifactId>bigdataviewer-core</artifactId>
-			<version>9.0.6</version>
 		</dependency>
 		<dependency>
 			<groupId>sc.fiji</groupId>
@@ -170,10 +172,6 @@
 		<dependency>
 			<groupId>net.imglib2</groupId>
 			<artifactId>imglib2-realtransform</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>net.imglib2</groupId>
-			<artifactId>imglib2-ui</artifactId>
 		</dependency>
 
 		<!-- SciJava dependencies -->

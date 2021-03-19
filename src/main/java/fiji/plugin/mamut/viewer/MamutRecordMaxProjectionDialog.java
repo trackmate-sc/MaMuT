@@ -21,6 +21,9 @@
  */
 package fiji.plugin.mamut.viewer;
 
+import bdv.viewer.OverlayRenderer;
+import bdv.viewer.render.RenderTarget;
+import bdv.viewer.render.awt.BufferedImageRenderResult;
 import java.awt.BorderLayout;
 import java.awt.Frame;
 import java.awt.Graphics;
@@ -67,9 +70,6 @@ import net.imglib2.img.Img;
 import net.imglib2.img.array.ArrayImgs;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.type.numeric.ARGBType;
-import net.imglib2.ui.OverlayRenderer;
-import net.imglib2.ui.PainterThread;
-import net.imglib2.ui.RenderTarget;
 import net.imglib2.util.LinAlgHelpers;
 
 public class MamutRecordMaxProjectionDialog extends JDialog implements OverlayRenderer
@@ -311,14 +311,11 @@ public class MamutRecordMaxProjectionDialog extends JDialog implements OverlayRe
 
 		final ScaleBarOverlayRenderer scalebar = Prefs.showScaleBarInMovie() ? new ScaleBarOverlayRenderer() : null;
 
-		class MyTarget implements RenderTarget
+		class MyTarget implements RenderTarget< BufferedImageRenderResult >
 		{
-			final ARGBScreenImage accumulated;
+			final ARGBScreenImage accumulated = new ARGBScreenImage( width, height );
 
-			public MyTarget()
-			{
-				accumulated = new ARGBScreenImage( width, height );
-			}
+			final BufferedImageRenderResult renderResult = new BufferedImageRenderResult();
 
 			public void clear()
 			{
@@ -327,8 +324,21 @@ public class MamutRecordMaxProjectionDialog extends JDialog implements OverlayRe
 			}
 
 			@Override
-			public BufferedImage setBufferedImage( final BufferedImage bufferedImage )
+			public BufferedImageRenderResult getReusableRenderResult()
 			{
+				return renderResult;
+			}
+
+			@Override
+			public BufferedImageRenderResult createRenderResult()
+			{
+				return new BufferedImageRenderResult();
+			}
+
+			@Override
+			public void setRenderResult( final BufferedImageRenderResult renderResult )
+			{
+				final BufferedImage bufferedImage = renderResult.getBufferedImage();
 				final Img< ARGBType > argbs = ArrayImgs.argbs( ( ( DataBufferInt ) bufferedImage.getData().getDataBuffer() ).getData(), width, height );
 				final Cursor< ARGBType > c = argbs.cursor();
 				for ( final ARGBType acc : accumulated )
@@ -339,9 +349,8 @@ public class MamutRecordMaxProjectionDialog extends JDialog implements OverlayRe
 							Math.max( ARGBType.red( in ), ARGBType.red( current ) ),
 							Math.max( ARGBType.green( in ), ARGBType.green( current ) ),
 							Math.max( ARGBType.blue( in ), ARGBType.blue( current ) ),
-							Math.max( ARGBType.alpha( in ), ARGBType.alpha( current ) ) ) );
+							Math.max( ARGBType.alpha( in ), ARGBType.alpha( current ) )	) );
 				}
-				return null;
 			}
 
 			@Override
@@ -358,7 +367,7 @@ public class MamutRecordMaxProjectionDialog extends JDialog implements OverlayRe
 		}
 		final MyTarget target = new MyTarget();
 		final MultiResolutionRenderer renderer = new MultiResolutionRenderer(
-				target, new PainterThread( null ), new double[] { 1 }, 0, false, 1, null, false,
+				target, () -> {}, new double[] { 1 }, 0, 1, null, false,
 				viewer.getOptionValues().getAccumulateProjectorFactory(), new CacheControl.Dummy() );
 		progressWriter.setProgress( 0 );
 		for ( int timepoint = minTimepointIndex; timepoint <= maxTimepointIndex; ++timepoint )
@@ -375,20 +384,19 @@ public class MamutRecordMaxProjectionDialog extends JDialog implements OverlayRe
 				affine.concatenate( tGV );
 				renderState.setViewerTransform( affine );
 				renderer.requestRepaint();
-				renderer.paint( new bdv.viewer.state.ViewerState( new SynchronizedViewerState( renderState ) ) );
+				renderer.paint( renderState );
 			}
 
 			final BufferedImage bi = target.accumulated.image();
+			final Graphics2D g2 = bi.createGraphics();
 
 			if ( Prefs.showScaleBarInMovie() && scalebar != null )
 			{
-				final Graphics2D g2 = bi.createGraphics();
 				g2.setClip( 0, 0, width, height );
 				scalebar.setViewerState( renderState );
 				scalebar.paint( g2 );
 			}
 
-			final Graphics2D g2 = bi.createGraphics();
 			g2.setClip( 0, 0, width, height );
 			g2.setRenderingHint( RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON );
 			g2.setRenderingHint( RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON );

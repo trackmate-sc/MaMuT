@@ -21,6 +21,10 @@
  */
 package fiji.plugin.mamut.viewer;
 
+import bdv.viewer.BasicViewerState;
+import bdv.viewer.OverlayRenderer;
+import bdv.viewer.render.RenderTarget;
+import bdv.viewer.render.awt.BufferedImageRenderResult;
 import java.awt.BorderLayout;
 import java.awt.Frame;
 import java.awt.Graphics;
@@ -62,9 +66,6 @@ import bdv.viewer.ViewerState;
 import bdv.viewer.overlay.ScaleBarOverlayRenderer;
 import bdv.viewer.render.MultiResolutionRenderer;
 import net.imglib2.realtransform.AffineTransform3D;
-import net.imglib2.ui.OverlayRenderer;
-import net.imglib2.ui.PainterThread;
-import net.imglib2.ui.RenderTarget;
 
 /**
  * Adapted from BDV {@link RecordMovieDialog} to also record the MaMuT overlay.
@@ -256,7 +257,7 @@ public class MamutRecordMovieDialog extends JDialog implements OverlayRenderer
 
 	public void recordMovie( final int width, final int height, final int minTimepointIndex, final int maxTimepointIndex, final File dir ) throws IOException
 	{
-		final ViewerState renderState = viewer.state();
+		final ViewerState renderState = new BasicViewerState( viewer.state().snapshot() );
 		final int canvasW = viewer.getDisplay().getWidth();
 		final int canvasH = viewer.getDisplay().getHeight();
 
@@ -271,16 +272,25 @@ public class MamutRecordMovieDialog extends JDialog implements OverlayRenderer
 
 		final ScaleBarOverlayRenderer scalebar = Prefs.showScaleBarInMovie() ? new ScaleBarOverlayRenderer() : null;
 
-		class MyTarget implements RenderTarget
+		class MyTarget implements RenderTarget< BufferedImageRenderResult >
 		{
-			BufferedImage bi;
+			final BufferedImageRenderResult renderResult = new BufferedImageRenderResult();
 
 			@Override
-			public BufferedImage setBufferedImage( final BufferedImage bufferedImage )
+			public BufferedImageRenderResult getReusableRenderResult()
 			{
-				bi = bufferedImage;
-				return null;
+				return renderResult;
 			}
+
+			@Override
+			public BufferedImageRenderResult createRenderResult()
+			{
+				return new BufferedImageRenderResult();
+			}
+
+			@Override
+			public void setRenderResult( final BufferedImageRenderResult renderResult )
+			{}
 
 			@Override
 			public int getWidth()
@@ -296,31 +306,32 @@ public class MamutRecordMovieDialog extends JDialog implements OverlayRenderer
 		}
 		final MyTarget target = new MyTarget();
 		final MultiResolutionRenderer renderer = new MultiResolutionRenderer(
-				target, new PainterThread( null ), new double[] { 1 }, 0, false, 1, null, false,
+				target, () -> {}, new double[] { 1 }, 0, 1, null, false,
 				viewer.getOptionValues().getAccumulateProjectorFactory(), new CacheControl.Dummy() );
 		progressWriter.setProgress( 0 );
 		for ( int timepoint = minTimepointIndex; timepoint <= maxTimepointIndex; ++timepoint )
 		{
 			renderState.setCurrentTimepoint( timepoint );
 			renderer.requestRepaint();
-			renderer.paint( new bdv.viewer.state.ViewerState( new SynchronizedViewerState( renderState ) ) );
+			renderer.paint( renderState );
 
-			if ( Prefs.showScaleBarInMovie() && scalebar != null )
+			final BufferedImage bi = target.renderResult.getBufferedImage();
+			final Graphics2D g2 = bi.createGraphics();
+			if ( Prefs.showScaleBarInMovie() )
 			{
-				final Graphics2D g2 = target.bi.createGraphics();
+				g2.setRenderingHint( RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON );
 				g2.setClip( 0, 0, width, height );
 				scalebar.setViewerState( renderState );
 				scalebar.paint( g2 );
 			}
 
-			final Graphics2D g2 = target.bi.createGraphics();
 			g2.setClip( 0, 0, width, height );
 			g2.setRenderingHint( RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON );
 			g2.setRenderingHint( RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON );
 			viewer.overlay.setViewerState( renderState );
 			viewer.overlay.paint( g2 );
 
-			ImageIO.write( target.bi, "png", new File( String.format( "%s/img-%03d.png", dir, timepoint ) ) );
+			ImageIO.write( bi, "png", new File( String.format( "%s/img-%03d.png", dir, timepoint ) ) );
 			progressWriter.setProgress( ( double ) ( timepoint - minTimepointIndex + 1 ) / ( maxTimepointIndex - minTimepointIndex + 1 ) );
 		}
 	}
