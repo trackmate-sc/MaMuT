@@ -3,5 +3,7 @@
 .classpath
 .project
 .gitignore
+.idea/
+*.iml
 samples/
 
