@@ -25,6 +25,7 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -45,6 +46,7 @@ import fiji.plugin.trackmate.Logger;
 import fiji.plugin.trackmate.Model;
 import fiji.plugin.trackmate.Spot;
 import fiji.plugin.trackmate.SpotCollection;
+import mpicbg.spim.data.sequence.TimePoint;
 import net.imglib2.RealInterval;
 import net.imglib2.RealLocalizable;
 import net.imglib2.RealPoint;
@@ -97,6 +99,8 @@ public class TGMMImporter2 implements OutputAlgorithm< Model >, Benchmark
 
 	private final List< AffineTransform3D > transforms;
 
+	private final List< TimePoint > timepoints;
+
 	private final Logger logger;
 
 	private long processingTime;
@@ -111,11 +115,12 @@ public class TGMMImporter2 implements OutputAlgorithm< Model >, Benchmark
 	 * CONSTRUCTORS
 	 */
 
-	public TGMMImporter2( final File file, final List< AffineTransform3D > transforms, final Pattern framePattern, final Logger logger, final RealInterval interval, final int tFrom, final int tTo )
+	public TGMMImporter2( final File file, final List< AffineTransform3D > transforms, final List< TimePoint > timepoints, final Pattern framePattern, final Logger logger, final RealInterval interval, final int tFrom, final int tTo )
 	{
 		this.file = file;
 		this.framePattern = framePattern;
 		this.transforms = transforms;
+		this.timepoints = timepoints;
 		this.logger = logger;
 		this.interval = interval;
 		this.tFrom = tFrom;
@@ -170,7 +175,8 @@ public class TGMMImporter2 implements OutputAlgorithm< Model >, Benchmark
 		 */
 
 		final File[] xmlFiles = file.listFiles( xmlFilter );
-
+		Arrays.sort(xmlFiles);
+		
 		/*
 		 * Extract frame information from filename. It is not stored elsewhere
 		 * so we have to rely on a specific pattern to get it. Note that it is
@@ -194,7 +200,7 @@ public class TGMMImporter2 implements OutputAlgorithm< Model >, Benchmark
 			try
 			{
 				final int frame = Integer.parseInt( strFrame );
-				frames[ frame ] = i;
+				frames[ i ] = frame;
 			}
 			catch ( final NumberFormatException nfe )
 			{
@@ -221,6 +227,8 @@ public class TGMMImporter2 implements OutputAlgorithm< Model >, Benchmark
 
 			Map< Integer, Spot > previousSpotID = null;
 			Map< Integer, Spot > currentSpotID;
+			AffineTransform3D transform = transforms.get( 0 );
+			int timepointIndex;
 
 			for ( int t = 0; t < frames.length; t++ )
 			{
@@ -229,10 +237,27 @@ public class TGMMImporter2 implements OutputAlgorithm< Model >, Benchmark
 					continue;
 				}
 
-				logger.log( "Processing frame " + t + ". " );
-				final AffineTransform3D transform = transforms.get( frames[ t ] );
+				logger.log( "Processing frame " + frames[ t ] + ". " );
+				timepointIndex = -1;
+				
+				for ( int ii = 0; ii < timepoints.size(); ii++ )
+				{
+					if ( timepoints.get( ii ).getId() == frames[ t ] )
+					{
+						transform = transforms.get( ii );
+						timepointIndex = ii;
+						break;
+					}
+				}
+				
+				if ( timepointIndex < 0 )
+				{
+					errorMessage = BASE_ERROR_MSG + "Unable to find frame " + frames[ t ] + " in " + xmlFile + ".\n";
+					return false;
+				}
+				
 
-				xmlFile = xmlFiles[ frames[ t ] ];
+				xmlFile = xmlFiles[ t ];
 				final Document doc = saxBuilder.build( xmlFile );
 				final Element root = doc.getRootElement();
 				final List< Element > detectionEls = root.getChildren( XML_DETECTION_NAME );
@@ -430,7 +455,7 @@ public class TGMMImporter2 implements OutputAlgorithm< Model >, Benchmark
 				 * Finished inspecting a frame. Store it in the spot collection.
 				 */
 
-				sc.put( t, spots );
+				sc.put( timepointIndex, spots );
 				previousSpotID = currentSpotID;
 				logger.log( "Found " + spots.size() + " spots.\n" );
 				logger.setProgress( ( double ) t / frames.length );
