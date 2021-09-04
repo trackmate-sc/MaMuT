@@ -60,18 +60,9 @@ public class SourceSettings extends Settings
 	 * <p>
 	 * This instantiates and sets the following fields:
 	 * <ul>
-	 * <li>{@link #nTimepoints}
 	 * <li>{@link #sources}
 	 * <li>{@link #cache}
-	 * <li>{@link #setupAssignments}
-	 * <ul>
-	 *
-	 * @param dataFile
-	 *            the file that points to the xml master file of the image data.
-	 *
-	 * @throws SpimDataException
-	 *             if the xml master file cannot be read or is incorrectly
-	 *             formatted.
+	 * </ul>
 	 */
 	public SourceSettings( final String imageFolder, final String imageFileName )
 	{

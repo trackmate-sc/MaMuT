@@ -32,13 +32,12 @@ import org.scijava.plugin.Plugin;
 
 import fiji.plugin.trackmate.Dimension;
 import fiji.plugin.trackmate.features.spot.SpotAnalyzer;
-import fiji.plugin.trackmate.features.spot.SpotAnalyzerFactory;
 import net.imagej.ImgPlus;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 
 /**
- * A dummy {@link SpotAnalyzerFactory}, made to simply register the spot
+ * A dummy {@code SpotAnalyzerFactory}, made to simply register the spot
  * features that will be assigned by
  * {@link fiji.plugin.mamut.feature.track.CellDivisionTimeAnalyzer}.
  *

@@ -55,7 +55,6 @@ import javax.swing.event.ChangeListener;
 
 import bdv.cache.CacheControl;
 import bdv.export.ProgressWriter;
-import bdv.tools.RecordMovieDialog;
 import bdv.util.Prefs;
 import bdv.viewer.SynchronizedViewerState;
 import bdv.viewer.ViewerState;
@@ -67,7 +66,7 @@ import net.imglib2.ui.PainterThread;
 import net.imglib2.ui.RenderTarget;
 
 /**
- * Adapted from BDV {@link RecordMovieDialog} to also record the MaMuT overlay.
+ * Adapted from BDV {@code RecordMovieDialog} to also record the MaMuT overlay.
  *
  * @author Jean-Yves Tinevez
  *

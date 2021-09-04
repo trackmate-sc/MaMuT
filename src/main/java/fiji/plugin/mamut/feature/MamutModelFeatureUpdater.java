@@ -8,10 +8,8 @@ import fiji.plugin.mamut.SourceSettings;
 import fiji.plugin.trackmate.Model;
 import fiji.plugin.trackmate.ModelChangeEvent;
 import fiji.plugin.trackmate.ModelChangeListener;
-import fiji.plugin.trackmate.Settings;
 import fiji.plugin.trackmate.Spot;
 import fiji.plugin.trackmate.features.EdgeFeatureCalculator;
-import fiji.plugin.trackmate.features.ModelFeatureUpdater;
 import fiji.plugin.trackmate.features.TrackFeatureCalculator;
 import net.imglib2.algorithm.MultiThreaded;
 
@@ -32,14 +30,14 @@ public class MamutModelFeatureUpdater implements ModelChangeListener, MultiThrea
 	private int numThreads;
 
 	/**
-	 * Constructs and activate a {@link ModelFeatureUpdater}. The new instance
+	 * Constructs and activate a {@code ModelFeatureUpdater}. The new instance
 	 * is registered to listen to model changes, and update its feature.
 	 * 
 	 * @param model
 	 *            the model to listen to.
 	 * @param settings
-	 *            the {@link Settings} the model is built against. Required to
-	 *            access the raw data.
+	 *            the {@link SourceSettings} the model is built against.
+	 *            Required to access the raw data.
 	 */
 	public MamutModelFeatureUpdater( final Model model, final SourceSettings settings )
 	{
