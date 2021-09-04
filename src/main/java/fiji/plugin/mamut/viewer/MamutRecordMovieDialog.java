@@ -21,10 +21,6 @@
  */
 package fiji.plugin.mamut.viewer;
 
-import bdv.viewer.BasicViewerState;
-import bdv.viewer.OverlayRenderer;
-import bdv.viewer.render.RenderTarget;
-import bdv.viewer.render.awt.BufferedImageRenderResult;
 import java.awt.BorderLayout;
 import java.awt.Frame;
 import java.awt.Graphics;
@@ -60,10 +56,13 @@ import javax.swing.event.ChangeListener;
 import bdv.cache.CacheControl;
 import bdv.export.ProgressWriter;
 import bdv.util.Prefs;
-import bdv.viewer.SynchronizedViewerState;
+import bdv.viewer.BasicViewerState;
+import bdv.viewer.OverlayRenderer;
 import bdv.viewer.ViewerState;
 import bdv.viewer.overlay.ScaleBarOverlayRenderer;
 import bdv.viewer.render.MultiResolutionRenderer;
+import bdv.viewer.render.RenderTarget;
+import bdv.viewer.render.awt.BufferedImageRenderResult;
 import net.imglib2.realtransform.AffineTransform3D;
 
 /**
@@ -254,7 +253,6 @@ public class MamutRecordMovieDialog extends JDialog implements OverlayRenderer
 		setDefaultCloseOperation( WindowConstants.HIDE_ON_CLOSE );
 	}
 
-	@SuppressWarnings( "deprecation" )
 	public void recordMovie( final int width, final int height, final int minTimepointIndex, final int maxTimepointIndex, final File dir ) throws IOException
 	{
 		final ViewerState renderState = new BasicViewerState( viewer.state().snapshot() );

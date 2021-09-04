@@ -21,9 +21,6 @@
  */
 package fiji.plugin.mamut.viewer;
 
-import bdv.viewer.OverlayRenderer;
-import bdv.viewer.render.RenderTarget;
-import bdv.viewer.render.awt.BufferedImageRenderResult;
 import java.awt.BorderLayout;
 import java.awt.Frame;
 import java.awt.Graphics;
@@ -60,10 +57,12 @@ import javax.swing.event.ChangeListener;
 import bdv.cache.CacheControl;
 import bdv.export.ProgressWriter;
 import bdv.util.Prefs;
-import bdv.viewer.SynchronizedViewerState;
+import bdv.viewer.OverlayRenderer;
 import bdv.viewer.ViewerState;
 import bdv.viewer.overlay.ScaleBarOverlayRenderer;
 import bdv.viewer.render.MultiResolutionRenderer;
+import bdv.viewer.render.RenderTarget;
+import bdv.viewer.render.awt.BufferedImageRenderResult;
 import fiji.plugin.trackmate.gui.displaysettings.DisplaySettings;
 import net.imglib2.Cursor;
 import net.imglib2.display.screenimage.awt.ARGBScreenImage;
@@ -281,7 +280,6 @@ public class MamutRecordMaxProjectionDialog extends JDialog implements OverlayRe
 	 * @param stepSize
 	 *            in multiples of width of a source voxel.
 	 */
-	@SuppressWarnings( "deprecation" )
 	public void recordMovie( final int width, final int height, final int minTimepointIndex, final int maxTimepointIndex, final double stepSize, final int numSteps, final File dir ) throws IOException
 	{
 		final ViewerState renderState = viewer.state();
