@@ -58,7 +58,7 @@ import net.imglib2.FinalRealInterval;
 import net.imglib2.RealInterval;
 import net.imglib2.realtransform.AffineTransform3D;
 
-public class ImportTGMMAnnotationPlugin_ implements PlugIn
+public class ImportTGMMAnnotationPlugin implements PlugIn
 {
 
 	private static final Font BIG_FONT = new Font( "Arial", Font.BOLD, 16 );
