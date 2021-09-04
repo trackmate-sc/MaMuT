@@ -10,10 +10,10 @@
 	</parent>
 
 	<groupId>sc.fiji</groupId>
-	<artifactId>MaMuT_</artifactId>
+	<artifactId>MaMuT</artifactId>
 	<version>7.0.1-SNAPSHOT</version>
 
-	<name>plugins/MaMuT_.jar</name>
+	<name>MaMuT</name>
 	<description>Fiji plugin for the annotation of massive, multi-view data.</description>
 	<url>https://imagej.net/MaMuT</url>
 	<inceptionYear>2012</inceptionYear>
