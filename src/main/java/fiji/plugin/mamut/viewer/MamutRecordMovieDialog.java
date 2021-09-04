@@ -21,10 +21,6 @@
  */
 package fiji.plugin.mamut.viewer;
 
-import bdv.viewer.BasicViewerState;
-import bdv.viewer.OverlayRenderer;
-import bdv.viewer.render.RenderTarget;
-import bdv.viewer.render.awt.BufferedImageRenderResult;
 import java.awt.BorderLayout;
 import java.awt.Frame;
 import java.awt.Graphics;
@@ -59,16 +55,18 @@ import javax.swing.event.ChangeListener;
 
 import bdv.cache.CacheControl;
 import bdv.export.ProgressWriter;
-import bdv.tools.RecordMovieDialog;
 import bdv.util.Prefs;
-import bdv.viewer.SynchronizedViewerState;
+import bdv.viewer.BasicViewerState;
+import bdv.viewer.OverlayRenderer;
 import bdv.viewer.ViewerState;
 import bdv.viewer.overlay.ScaleBarOverlayRenderer;
 import bdv.viewer.render.MultiResolutionRenderer;
+import bdv.viewer.render.RenderTarget;
+import bdv.viewer.render.awt.BufferedImageRenderResult;
 import net.imglib2.realtransform.AffineTransform3D;
 
 /**
- * Adapted from BDV {@link RecordMovieDialog} to also record the MaMuT overlay.
+ * Adapted from BDV {@code RecordMovieDialog} to also record the MaMuT overlay.
  *
  * @author Jean-Yves Tinevez
  *

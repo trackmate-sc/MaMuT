@@ -22,41 +22,84 @@
 package fiji.plugin.mamut;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
+import bdv.BigDataViewer;
+import bdv.ViewerImgLoader;
 import bdv.cache.CacheControl;
+import bdv.spimdata.SpimDataMinimal;
+import bdv.spimdata.WrapBasicImgLoader;
+import bdv.spimdata.XmlIoSpimDataMinimal;
+import bdv.tools.brightness.ConverterSetup;
 import bdv.viewer.SourceAndConverter;
+import fiji.plugin.mamut.providers.MamutSpotAnalyzerProvider;
 import fiji.plugin.trackmate.Settings;
-import ij.ImagePlus;
+import fiji.plugin.trackmate.features.spot.SpotAnalyzerFactoryBase;
+import fiji.plugin.trackmate.providers.EdgeAnalyzerProvider;
+import fiji.plugin.trackmate.providers.SpotAnalyzerProvider;
+import fiji.plugin.trackmate.providers.TrackAnalyzerProvider;
+import mpicbg.spim.data.SpimDataException;
+import mpicbg.spim.data.generic.sequence.AbstractSequenceDescription;
+import mpicbg.spim.data.sequence.TimePoint;
 import net.imglib2.RandomAccessibleInterval;
 
-public class SourceSettings extends Settings {
+public class SourceSettings extends Settings
+{
 
-	private List<SourceAndConverter<?>> sources;
+	private final List< SourceAndConverter< ? > > sources;
 
-	private CacheControl cache;
+	private final CacheControl cache;
 
-	@Override
-	public void setFrom(final ImagePlus imp) {
-		throw new UnsupportedOperationException("Cannot use ImagePlus with SourceSettings.");
-	}
+	private final ArrayList< ConverterSetup > converterSetups;
 
-	public void setFrom( final List< SourceAndConverter< ? >> sources, final File file, final int numTimePoints, final CacheControl cache )
+	private final List< SpotAnalyzerFactoryBase< ? > > mamutSpotAnalyzerFactories;
+
+	/**
+	 * Loads and prepares the image sources from the specified files.
+	 * <p>
+	 * This instantiates and sets the following fields:
+	 * <ul>
+	 * <li>{@link #sources}
+	 * <li>{@link #cache}
+	 * </ul>
+	 */
+	public SourceSettings( final String imageFolder, final String imageFileName )
 	{
-		this.sources = sources;
-		this.cache = cache;
+		this.imageFileName = imageFileName;
+		this.imageFolder = imageFolder;
+		this.sources = new ArrayList<>();
+		this.converterSetups = new ArrayList<>();
+		this.mamutSpotAnalyzerFactories = new ArrayList<>();
 
-		// File info
-		this.imageFileName = file.getName();
-		this.imageFolder = file.getParent();
+		final File bdvFile = new File( imageFolder, imageFileName );
+		AbstractSequenceDescription< ?, ?, ? > seq = null;
+		try
+		{
+			SpimDataMinimal spimData;
+			spimData = new XmlIoSpimDataMinimal().load( bdvFile.getAbsolutePath() );
+			if ( WrapBasicImgLoader.wrapImgLoaderIfNecessary( spimData ) )
+				System.err.println( "WARNING:\n"
+						+ "Opening <SpimData> dataset that is not suited for suited for interactive browsing.\n"
+						+ "Consider resaving as HDF5 for better performance." );
+
+			seq = spimData.getSequenceDescription();
+			BigDataViewer.initSetups( spimData, converterSetups, sources );
+		}
+		catch ( final SpimDataException e )
+		{
+			e.printStackTrace();
+		}
+		this.cache = ( ( ViewerImgLoader ) seq.getImgLoader() ).getCacheControl();
+		final List< TimePoint > timepoints = seq.getTimePoints().getTimePointsOrdered();
+		this.nframes = timepoints.size();
 
 		// Image size
-		final SourceAndConverter<?> firstSource = sources.get(0);
-		final RandomAccessibleInterval<?> firstStack = firstSource.getSpimSource().getSource(0, 0);
-		this.width = (int) firstStack.dimension(0);
-		this.height = (int) firstStack.dimension(1);
-		this.nslices = (int) firstStack.dimension(2);
-		this.nframes = numTimePoints;
+		final SourceAndConverter< ? > firstSource = sources.get( 0 );
+		final RandomAccessibleInterval< ? > firstStack = firstSource.getSpimSource().getSource( 0, 0 );
+		this.width = ( int ) firstStack.dimension( 0 );
+		this.height = ( int ) firstStack.dimension( 1 );
+		this.nslices = ( int ) firstStack.dimension( 2 );
 		this.dx = 1f;
 		this.dy = 1f;
 		this.dz = 1f;
@@ -70,12 +113,86 @@ public class SourceSettings extends Settings {
 		this.roi = null;
 	}
 
-	public List<SourceAndConverter<?>> getSources() {
+	@Override
+	public void addAllAnalyzers()
+	{
+		clearSpotAnalyzerFactories();
+
+		// Analyzers specific to MaMuT.
+		final MamutSpotAnalyzerProvider mamutSpotAnalyzerProvider = new MamutSpotAnalyzerProvider( sources.size() );
+		final List< String > mamutSpotAnalyzerKeys = mamutSpotAnalyzerProvider.getKeys();
+		for ( final String key : mamutSpotAnalyzerKeys )
+			addSpotAnalyzerFactory( mamutSpotAnalyzerProvider.getFactory( key ) );
+
+		// TrackMate analyzers.
+		final SpotAnalyzerProvider spotAnalyzerProvider = new SpotAnalyzerProvider( sources.size() );
+		final List< String > spotAnalyzerKeys = spotAnalyzerProvider.getKeys();
+		for ( final String key : spotAnalyzerKeys )
+			addSpotAnalyzerFactory( spotAnalyzerProvider.getFactory( key ) );
+
+		clearEdgeAnalyzers();
+		final EdgeAnalyzerProvider edgeAnalyzerProvider = new EdgeAnalyzerProvider();
+		final List< String > edgeAnalyzerKeys = edgeAnalyzerProvider.getKeys();
+		for ( final String key : edgeAnalyzerKeys )
+			addEdgeAnalyzer( edgeAnalyzerProvider.getFactory( key ) );
+
+		clearTrackAnalyzers();
+		final TrackAnalyzerProvider trackAnalyzerProvider = new TrackAnalyzerProvider();
+		final List< String > trackAnalyzerKeys = trackAnalyzerProvider.getKeys();
+		for ( final String key : trackAnalyzerKeys )
+			addTrackAnalyzer( trackAnalyzerProvider.getFactory( key ) );
+	}
+
+	public List< SourceAndConverter< ? > > getSources()
+	{
 		return sources;
 	}
 
 	public CacheControl getCacheControl()
 	{
 		return cache;
+	}
+
+	public ArrayList< ConverterSetup > getConverterSetups()
+	{
+		return converterSetups;
+	}
+
+	@Override
+	public String toStringFeatureAnalyzersInfo()
+	{
+		final StringBuilder str = new StringBuilder();
+
+		if ( mamutSpotAnalyzerFactories.isEmpty() )
+		{
+			str.append( "No spot feature analyzers.\n" );
+		}
+		else
+		{
+			str.append( "Mamut spot feature analyzers:\n" );
+			prettyPrintFeatureAnalyzer( mamutSpotAnalyzerFactories, str );
+		}
+
+		if ( edgeAnalyzers.isEmpty() )
+		{
+			str.append( "No edge feature analyzers.\n" );
+		}
+		else
+		{
+			str.append( "Edge feature analyzers:\n" );
+			prettyPrintFeatureAnalyzer( edgeAnalyzers, str );
+		}
+
+		if ( trackAnalyzers.isEmpty() )
+		{
+			str.append( "No track feature analyzers.\n" );
+		}
+		else
+		{
+			str.append( "Track feature analyzers:\n" );
+			prettyPrintFeatureAnalyzer( trackAnalyzers, str );
+		}
+
+		return str.toString();
 	}
 }

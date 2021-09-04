@@ -32,8 +32,8 @@ import javax.imageio.ImageIO;
 import bdv.util.Affine3DHelpers;
 import bdv.viewer.Source;
 import bdv.viewer.SourceAndConverter;
+import fiji.plugin.mamut.SourceSettings;
 import fiji.plugin.mamut.feature.spot.SpotSourceIdAnalyzerFactory;
-import fiji.plugin.trackmate.Settings;
 import fiji.plugin.trackmate.Spot;
 import fiji.plugin.trackmate.visualization.trackscheme.SpotImageUpdater;
 import net.imglib2.Interval;
@@ -54,16 +54,22 @@ import net.imglib2.util.Intervals;
 import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
 
-public class SourceSpotImageUpdater<T extends RealType<T>> extends SpotImageUpdater {
+public class SourceSpotImageUpdater< T extends RealType< T > > extends SpotImageUpdater
+{
 
 	/** How much extra we capture around spot radius. */
 	private static final double RADIUS_FACTOR = 1.1;
-	private final List<SourceAndConverter<T>> sources;
+
+	private final List< SourceAndConverter< T > > sources;
 	private final ThreadGroup threadGroup;
 
-	public SourceSpotImageUpdater(final Settings settings, final List<SourceAndConverter<T>> sources) {
+	@SuppressWarnings( "unchecked" )
+	public SourceSpotImageUpdater( final SourceSettings settings )
+	{
 		super(settings);
-		this.sources = sources;
+		@SuppressWarnings( "rawtypes" )
+		final List s = settings.getSources();
+		this.sources = s;
 		this.threadGroup = new ThreadGroup("Source spot image grabber threads");
 	}
 

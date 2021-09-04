@@ -21,26 +21,30 @@
  */
 package fiji.plugin.mamut.gui;
 
-import static fiji.plugin.trackmate.gui.TrackMateWizard.FONT;
-import static fiji.plugin.trackmate.gui.TrackMateWizard.SMALL_FONT;
+import static fiji.plugin.trackmate.gui.Fonts.FONT;
+import static fiji.plugin.trackmate.gui.Fonts.SMALL_FONT;
 
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.Image;
-import java.awt.event.ActionEvent;
+import java.awt.Insets;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 
-import javax.swing.GroupLayout;
-import javax.swing.GroupLayout.Alignment;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JTextField;
 import javax.swing.JTextPane;
-import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
@@ -52,36 +56,17 @@ import javax.swing.text.StyleContext;
 
 import fiji.plugin.mamut.MaMuT;
 import fiji.plugin.trackmate.Logger;
-import fiji.plugin.trackmate.gui.panels.ActionListenablePanel;
-import fiji.plugin.trackmate.gui.panels.components.JNumericTextField;
+import fiji.plugin.trackmate.util.ModelTools;
+import ij.IJ;
 
-public class AnnotationPanel extends ActionListenablePanel
+public class AnnotationPanel extends JPanel
 {
-
-	/*
-	 * PUBLIC EVENTS
-	 */
-
-	public ActionEvent SEMI_AUTO_TRACKING_BUTTON_PRESSED = new ActionEvent( this, 0, "SemiAutoTrackingButtonPushed" );
-
-	public ActionEvent SELECT_TRACK_BUTTON_PRESSED = new ActionEvent( this, 1, "SelectTrackButtonPushed" );
-
-	public ActionEvent SELECT_TRACK_UPWARD_BUTTON_PRESSED = new ActionEvent( this, 2, "SelectTrackUpwardButtonPushed" );
-
-	public ActionEvent SELECT_TRACK_DOWNWARD_BUTTON_PRESSED = new ActionEvent( this, 3, "SelectTrackDownwardButtonPushed" );
-
-	/*
-	 * FIELDS
-	 */
 
 	private static final long serialVersionUID = 1L;
 
 	private final static ImageIcon SELECT_TRACK_ICON = new ImageIcon( MaMuT.class.getResource( "arrow_updown.png" ) );
-
 	private final static ImageIcon SELECT_TRACK_ICON_UPWARDS = new ImageIcon( MaMuT.class.getResource( "arrow_up.png" ) );
-
 	private final static ImageIcon SELECT_TRACK_ICON_DOWNWARDS = new ImageIcon( MaMuT.class.getResource( "arrow_down.png" ) );
-
 	private final static ImageIcon SEMIAUTO_TRACKING_ICON;
 	static
 	{
@@ -101,62 +86,217 @@ public class AnnotationPanel extends ActionListenablePanel
 
 	private final Logger logger;
 
-	private final MamutGUIModel guiModel;
+	private final JFormattedTextField ftfDistanceTolerance;
 
-	private final JNumericTextField jNFDistanceTolerance;
+	private final JFormattedTextField ftfQualityThreshold;
 
-	private final JNumericTextField jNFQualityThreshold;
+	private final JFormattedTextField ftfTimeStep;
 
-	private final JNumericTextField jTimeStep;
+	private final JFormattedTextField ftfNFrames;
 
-	private JPanel stepWisePanel;
-
-	private JLabel lblJumpToEvery;
-
-	private JLabel lblFrames;
-
-	private final JNumericTextField jNFNFrames;
-
-	public AnnotationPanel()
+	public AnnotationPanel( final MaMuT mamut )
 	{
-		this( new MamutGUIModel() );
-	}
-
-	public AnnotationPanel( final MamutGUIModel guiModel )
-	{
-
-		this.guiModel = guiModel;
 
 		/*
 		 * Listeners
 		 */
 
-		final ActionListener al = new ActionListener()
-		{
-			@Override
-			public void actionPerformed( final ActionEvent e )
-			{
-				updateParamsFromTextFields();
-			}
-		};
+		final ActionListener al = e -> updateParamsFromTextFields( mamut.getGuimodel() );
 		final FocusListener fl = new FocusListener()
 		{
 			@Override
-			public void focusLost( final FocusEvent arg0 )
+			public void focusLost( final FocusEvent e )
 			{
-				updateParamsFromTextFields();
+				updateParamsFromTextFields( mamut.getGuimodel() );
 			}
 
 			@Override
-			public void focusGained( final FocusEvent arg0 )
-			{}
+			public void focusGained( final FocusEvent e )
+			{
+				SwingUtilities.invokeLater( () -> {
+					final JTextField source = ( JTextField ) e.getSource();
+					source.selectAll();
+				} );
+			}
 		};
+
+		final GridBagLayout gridBagLayout = new GridBagLayout();
+		gridBagLayout.columnWeights = new double[] { 1.0 };
+		gridBagLayout.rowWeights = new double[] { 0.0, 0.0, 0.0, 1.0 };
+		setLayout( gridBagLayout );
+
+		/*
+		 * Step-wise panel.
+		 */
+
+		final JPanel stepWisePanel = new JPanel();
+		stepWisePanel.setBorder( new LineBorder( new Color( 252, 117, 0 ) ) );
+		stepWisePanel.setLayout( new BoxLayout( stepWisePanel, BoxLayout.X_AXIS ) );
+		final GridBagConstraints gbcStepWisePanel = new GridBagConstraints();
+		gbcStepWisePanel.fill = GridBagConstraints.BOTH;
+		gbcStepWisePanel.insets = new Insets( 5, 5, 5, 5 );
+		gbcStepWisePanel.gridx = 0;
+		gbcStepWisePanel.gridy = 0;
+		add( stepWisePanel, gbcStepWisePanel );
+
+		final String jumpTimeToolTip = "<html>"
+				+ "Determines the interval of the timepoints accessible <br>"
+				+ "when stepwise browsing in time. For instance, with a <br>"
+				+ "value of 5, you will be taken to timepoints 0, 5, 10, etc.."
+				+ "</html>";
+
+		final JLabel lblJumpToEvery = new JLabel( "Stepwise time browsing " );
+		lblJumpToEvery.setFont( SMALL_FONT.deriveFont( Font.BOLD ) );
+		lblJumpToEvery.setToolTipText( jumpTimeToolTip );
+		stepWisePanel.add( lblJumpToEvery );
+		stepWisePanel.add( Box.createHorizontalGlue() );
+
+		ftfTimeStep = new JFormattedTextField( Integer.valueOf( mamut.getGuimodel().timeStep ) );
+		ftfTimeStep.setMaximumSize( new Dimension( 160, 2147483647 ) );
+		ftfTimeStep.setFont( SMALL_FONT );
+		ftfTimeStep.setColumns( 3 );
+		ftfTimeStep.setHorizontalAlignment( SwingConstants.CENTER );
+		ftfTimeStep.addActionListener( al );
+		ftfTimeStep.addFocusListener( fl );
+		ftfTimeStep.setToolTipText( jumpTimeToolTip );
+		stepWisePanel.add( ftfTimeStep );
+		stepWisePanel.add( Box.createHorizontalGlue() );
+
+		final JLabel lblFrames = new JLabel( "frames" );
+		lblFrames.setFont( SMALL_FONT );
+		lblFrames.setToolTipText( jumpTimeToolTip );
+		stepWisePanel.add( lblFrames );
+
+		/*
+		 * Panel with selection buttons.
+		 */
+
+		final JPanel panelButtons = new JPanel();
+		panelButtons.setBorder( new LineBorder( new Color( 252, 117, 0 ), 1, false ) );
+		final GridBagLayout gblPanelButtons = new GridBagLayout();
+		gblPanelButtons.columnWeights = new double[] { 0.0, 1.0 };
+		panelButtons.setLayout( gblPanelButtons );
+
+		final GridBagConstraints gbcPanelButtons = new GridBagConstraints();
+		gbcPanelButtons.fill = GridBagConstraints.BOTH;
+		gbcPanelButtons.insets = new Insets( 5, 5, 5, 5 );
+		gbcPanelButtons.gridx = 0;
+		gbcPanelButtons.gridy = 2;
+		add( panelButtons, gbcPanelButtons );
+
+		final JLabel lblSelectionTools = new JLabel( "Selection tools" );
+		lblSelectionTools.setFont( FONT.deriveFont( Font.BOLD ) );
+		final GridBagConstraints gbcLblSelectionTools = new GridBagConstraints();
+		gbcLblSelectionTools.fill = GridBagConstraints.BOTH;
+		gbcLblSelectionTools.insets = new Insets( 0, 0, 5, 0 );
+		gbcLblSelectionTools.gridwidth = 2;
+		gbcLblSelectionTools.gridx = 0;
+		gbcLblSelectionTools.gridy = 0;
+		panelButtons.add( lblSelectionTools, gbcLblSelectionTools );
+
+		final JLabel lblSelectTrack = new JLabel( "Select track" );
+		lblSelectTrack.setFont( SMALL_FONT );
+		lblSelectTrack.setToolTipText( "Select the whole tracks selected spots belong to." );
+		final GridBagConstraints gbcLblSelectTrack = new GridBagConstraints();
+		gbcLblSelectTrack.fill = GridBagConstraints.BOTH;
+		gbcLblSelectTrack.insets = new Insets( 0, 0, 5, 0 );
+		gbcLblSelectTrack.gridx = 1;
+		gbcLblSelectTrack.gridy = 1;
+		panelButtons.add( lblSelectTrack, gbcLblSelectTrack );
+
+		final JButton buttonSelectTrack = new JButton( SELECT_TRACK_ICON );
+		final GridBagConstraints gbcButtonSelectTrack = new GridBagConstraints();
+		gbcButtonSelectTrack.fill = GridBagConstraints.BOTH;
+		gbcButtonSelectTrack.insets = new Insets( 0, 5, 5, 5 );
+		gbcButtonSelectTrack.gridx = 0;
+		gbcButtonSelectTrack.gridy = 1;
+		panelButtons.add( buttonSelectTrack, gbcButtonSelectTrack );
+
+		final JLabel lblSelectTrackUpward = new JLabel( "Select track upward" );
+		lblSelectTrackUpward.setFont( SMALL_FONT );
+		lblSelectTrackUpward.setToolTipText( "<html>" +
+				"Select the whole tracks selected spots <br>" +
+				"belong to, backward in time.</html>" );
+		final GridBagConstraints gbcLblSelectTrackUpward = new GridBagConstraints();
+		gbcLblSelectTrackUpward.fill = GridBagConstraints.BOTH;
+		gbcLblSelectTrackUpward.insets = new Insets( 0, 0, 5, 0 );
+		gbcLblSelectTrackUpward.gridx = 1;
+		gbcLblSelectTrackUpward.gridy = 2;
+		panelButtons.add( lblSelectTrackUpward, gbcLblSelectTrackUpward );
+
+		final JButton buttonSelectTrackUp = new JButton( SELECT_TRACK_ICON_UPWARDS );
+		final GridBagConstraints gbcButtonSelectTrackUp = new GridBagConstraints();
+		gbcButtonSelectTrackUp.fill = GridBagConstraints.BOTH;
+		gbcButtonSelectTrackUp.insets = new Insets( 0, 5, 5, 5 );
+		gbcButtonSelectTrackUp.gridx = 0;
+		gbcButtonSelectTrackUp.gridy = 2;
+		panelButtons.add( buttonSelectTrackUp, gbcButtonSelectTrackUp );
+
+		final JLabel lblSelectTrackDown = new JLabel( "Select track downward" );
+		lblSelectTrackDown.setFont( SMALL_FONT );
+		lblSelectTrackDown.setToolTipText( "<html>" +
+				"Select the whole tracks selected spots <br>" +
+				"belong to, forward in time.</html>" );
+		final GridBagConstraints gbcLblSelectTrackDown = new GridBagConstraints();
+		gbcLblSelectTrackDown.insets = new Insets( 0, 0, 5, 0 );
+		gbcLblSelectTrackDown.fill = GridBagConstraints.BOTH;
+		gbcLblSelectTrackDown.gridx = 1;
+		gbcLblSelectTrackDown.gridy = 3;
+		panelButtons.add( lblSelectTrackDown, gbcLblSelectTrackDown );
+
+		final JButton buttonSelectTrackDown = new JButton( SELECT_TRACK_ICON_DOWNWARDS );
+		final GridBagConstraints gbcButtonSelectTrackDown = new GridBagConstraints();
+		gbcButtonSelectTrackDown.fill = GridBagConstraints.BOTH;
+		gbcButtonSelectTrackDown.insets = new Insets( 0, 5, 5, 5 );
+		gbcButtonSelectTrackDown.gridx = 0;
+		gbcButtonSelectTrackDown.gridy = 3;
+		panelButtons.add( buttonSelectTrackDown, gbcButtonSelectTrackDown );
+
+		/*
+		 * Semi-auto-tracking panel.
+		 */
 
 		final JPanel panelSemiAutoParams = new JPanel();
 		panelSemiAutoParams.setBorder( new LineBorder( new Color( 252, 117, 0 ), 1, false ) );
+		final GridBagLayout gblPanelSemiAutoParams = new GridBagLayout();
+		gblPanelSemiAutoParams.columnWeights = new double[] { 0.0, 0.0, 1.0, Double.MIN_VALUE };
+		gblPanelSemiAutoParams.rowWeights = new double[] { 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE };
+		panelSemiAutoParams.setLayout( gblPanelSemiAutoParams );
+
+		final GridBagConstraints gbcPanelSemiAutoParams = new GridBagConstraints();
+		gbcPanelSemiAutoParams.fill = GridBagConstraints.BOTH;
+		gbcPanelSemiAutoParams.insets = new Insets( 5, 5, 5, 5 );
+		gbcPanelSemiAutoParams.gridx = 0;
+		gbcPanelSemiAutoParams.gridy = 1;
+		add( panelSemiAutoParams, gbcPanelSemiAutoParams );
+
+		final JLabel labelSemiAutoTracking = new JLabel( "Semi-automatic tracking" );
+		labelSemiAutoTracking.setToolTipText( "Launch semi-automatic tracking on selected spots." );
+		labelSemiAutoTracking.setFont( SMALL_FONT );
+		final GridBagConstraints gbcLabelSemiAutoTracking = new GridBagConstraints();
+		gbcLabelSemiAutoTracking.fill = GridBagConstraints.BOTH;
+		gbcLabelSemiAutoTracking.insets = new Insets( 0, 0, 5, 0 );
+		gbcLabelSemiAutoTracking.gridwidth = 2;
+		gbcLabelSemiAutoTracking.gridx = 1;
+		gbcLabelSemiAutoTracking.gridy = 1;
+		panelSemiAutoParams.add( labelSemiAutoTracking, gbcLabelSemiAutoTracking );
 
 		final JLabel lblSemiAutoTracking = new JLabel( "Semi-automatic tracking" );
 		lblSemiAutoTracking.setFont( FONT.deriveFont( Font.BOLD ) );
+		final GridBagConstraints gbcLblSemiAutoTracking = new GridBagConstraints();
+		gbcLblSemiAutoTracking.fill = GridBagConstraints.BOTH;
+		gbcLblSemiAutoTracking.insets = new Insets( 0, 0, 5, 0 );
+		gbcLblSemiAutoTracking.gridwidth = 3;
+		gbcLblSemiAutoTracking.gridx = 0;
+		gbcLblSemiAutoTracking.gridy = 0;
+		panelSemiAutoParams.add( lblSemiAutoTracking, gbcLblSemiAutoTracking );
+
+		final JButton buttonSemiAutoTracking = new JButton( SEMIAUTO_TRACKING_ICON );
+		final GridBagConstraints gbcButtonSemiAutoTracking = new GridBagConstraints();
+		gbcButtonSemiAutoTracking.insets = new Insets( 5, 5, 5, 5 );
+		gbcButtonSemiAutoTracking.gridx = 0;
+		gbcButtonSemiAutoTracking.gridy = 1;
+		panelSemiAutoParams.add( buttonSemiAutoTracking, gbcButtonSemiAutoTracking );
 
 		final JLabel lblQualityThreshold = new JLabel( "Quality threshold" );
 		lblQualityThreshold.setToolTipText( "<html>" +
@@ -164,261 +304,97 @@ public class AnnotationPanel extends ActionListenablePanel
 				"found spots must have to be considered for linking. <br>" +
 				"The higher, the more stringent.</html>" );
 		lblQualityThreshold.setFont( SMALL_FONT );
+		final GridBagConstraints gbcLblQualityThreshold = new GridBagConstraints();
+		gbcLblQualityThreshold.fill = GridBagConstraints.BOTH;
+		gbcLblQualityThreshold.insets = new Insets( 0, 5, 5, 5 );
+		gbcLblQualityThreshold.gridwidth = 2;
+		gbcLblQualityThreshold.gridx = 0;
+		gbcLblQualityThreshold.gridy = 2;
+		panelSemiAutoParams.add( lblQualityThreshold, gbcLblQualityThreshold );
 
-		jNFQualityThreshold = new JNumericTextField( guiModel.qualityThreshold );
-		jNFQualityThreshold.setFormat( "%.1f" );
-		jNFQualityThreshold.setHorizontalAlignment( SwingConstants.CENTER );
-		jNFQualityThreshold.setFont( SMALL_FONT );
-		jNFQualityThreshold.addActionListener( al );
-		jNFQualityThreshold.addFocusListener( fl );
+		ftfQualityThreshold = new JFormattedTextField( Double.valueOf( mamut.getGuimodel().qualityThreshold ) );
+		ftfQualityThreshold.setMaximumSize( new Dimension( 160, 2147483647 ) );
+		ftfQualityThreshold.setColumns( 8 );
+		ftfQualityThreshold.setHorizontalAlignment( SwingConstants.CENTER );
+		ftfQualityThreshold.setFont( SMALL_FONT );
+		ftfQualityThreshold.addActionListener( al );
+		ftfQualityThreshold.addFocusListener( fl );
+		final GridBagConstraints gbcFtfQualityThreshold = new GridBagConstraints();
+		gbcFtfQualityThreshold.insets = new Insets( 0, 0, 5, 0 );
+		gbcFtfQualityThreshold.gridx = 2;
+		gbcFtfQualityThreshold.gridy = 2;
+		panelSemiAutoParams.add( ftfQualityThreshold, gbcFtfQualityThreshold );
 
 		final JLabel lblDistanceTolerance = new JLabel( "Distance tolerance" );
 		lblDistanceTolerance.setToolTipText( "<html>" +
 				"The maximal distance above which found spots are rejected, <br>" +
 				"expressed in units of the initial spot radius.</html>" );
 		lblDistanceTolerance.setFont( SMALL_FONT );
+		final GridBagConstraints gbcLblDistanceTolerance = new GridBagConstraints();
+		gbcLblDistanceTolerance.fill = GridBagConstraints.BOTH;
+		gbcLblDistanceTolerance.insets = new Insets( 0, 5, 5, 5 );
+		gbcLblDistanceTolerance.gridwidth = 2;
+		gbcLblDistanceTolerance.gridx = 0;
+		gbcLblDistanceTolerance.gridy = 3;
+		panelSemiAutoParams.add( lblDistanceTolerance, gbcLblDistanceTolerance );
 
-		jNFDistanceTolerance = new JNumericTextField( guiModel.distanceTolerance );
-		jNFDistanceTolerance.setFormat( "%.1f" );
-		jNFDistanceTolerance.setHorizontalAlignment( SwingConstants.CENTER );
-		jNFDistanceTolerance.setFont( SMALL_FONT );
-		jNFDistanceTolerance.addActionListener( al );
-		jNFDistanceTolerance.addFocusListener( fl );
+		ftfDistanceTolerance = new JFormattedTextField( Double.valueOf( mamut.getGuimodel().distanceTolerance ) );
+		ftfDistanceTolerance.setMaximumSize( new Dimension( 160, 2147483647 ) );
+		ftfDistanceTolerance.setColumns( 8 );
+		ftfDistanceTolerance.setHorizontalAlignment( SwingConstants.CENTER );
+		ftfDistanceTolerance.setFont( SMALL_FONT );
+		ftfDistanceTolerance.addActionListener( al );
+		ftfDistanceTolerance.addFocusListener( fl );
+		final GridBagConstraints gbcFtfDistanceTolerance = new GridBagConstraints();
+		gbcFtfDistanceTolerance.insets = new Insets( 0, 0, 5, 0 );
+		gbcFtfDistanceTolerance.gridx = 2;
+		gbcFtfDistanceTolerance.gridy = 3;
+		panelSemiAutoParams.add( ftfDistanceTolerance, gbcFtfDistanceTolerance );
 
 		final JLabel lblNFrames = new JLabel( "Max nFrames" );
 		lblNFrames.setToolTipText( "<html>How many frames to process at max. <br/>Make it 0 or negative for no limit.</html>" );
 		lblNFrames.setFont( SMALL_FONT );
+		final GridBagConstraints gbcLblNFrames = new GridBagConstraints();
+		gbcLblNFrames.anchor = GridBagConstraints.WEST;
+		gbcLblNFrames.fill = GridBagConstraints.VERTICAL;
+		gbcLblNFrames.insets = new Insets( 0, 5, 5, 5 );
+		gbcLblNFrames.gridwidth = 2;
+		gbcLblNFrames.gridx = 0;
+		gbcLblNFrames.gridy = 4;
+		panelSemiAutoParams.add( lblNFrames, gbcLblNFrames );
 
-		jNFNFrames = new JNumericTextField( ( double ) guiModel.maxNFrames );
-		jNFNFrames.setFormat( "%.0f" );
-		jNFNFrames.setHorizontalAlignment( SwingConstants.CENTER );
-		jNFNFrames.setFont( SMALL_FONT );
-		jNFNFrames.addActionListener( al );
-		jNFNFrames.addFocusListener( fl );
+		ftfNFrames = new JFormattedTextField( Integer.valueOf( mamut.getGuimodel().maxNFrames ) );
+		ftfNFrames.setMaximumSize( new Dimension( 160, 2147483647 ) );
+		ftfNFrames.setColumns( 8 );
+		ftfNFrames.setHorizontalAlignment( SwingConstants.CENTER );
+		ftfNFrames.setFont( SMALL_FONT );
+		ftfNFrames.addActionListener( al );
+		ftfNFrames.addFocusListener( fl );
+		final GridBagConstraints gbcFtfNFrames = new GridBagConstraints();
+		gbcFtfNFrames.insets = new Insets( 0, 0, 5, 0 );
+		gbcFtfNFrames.gridx = 2;
+		gbcFtfNFrames.gridy = 4;
+		panelSemiAutoParams.add( ftfNFrames, gbcFtfNFrames );
 
-		final JButton buttonSemiAutoTracking = new JButton( SEMIAUTO_TRACKING_ICON );
-		buttonSemiAutoTracking.addActionListener( new ActionListener()
-		{
-			@Override
-			public void actionPerformed( final ActionEvent arg0 )
-			{
-				fireAction( SEMI_AUTO_TRACKING_BUTTON_PRESSED );
-			}
-		} );
-
-		final JLabel labelSemiAutoTracking = new JLabel( "Semi-automatic tracking" );
-		labelSemiAutoTracking.setToolTipText( "Launch semi-automatic tracking on selected spots." );
-		labelSemiAutoTracking.setFont( SMALL_FONT );
+		/*
+		 * Logger panel.
+		 */
 
 		final JScrollPane scrollPane = new JScrollPane();
 		scrollPane.setHorizontalScrollBarPolicy( ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER );
 		scrollPane.setVerticalScrollBarPolicy( ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS );
-
-		final JPanel panelButtons = new JPanel();
-		panelButtons.setBorder( new LineBorder( new Color( 252, 117, 0 ), 1, false ) );
-		panelButtons.setLayout( null );
-
-		final JLabel lblSelectionTools = new JLabel( "Selection tools" );
-		lblSelectionTools.setFont( FONT.deriveFont( Font.BOLD ) );
-		lblSelectionTools.setBounds( 9, 6, 172, 14 );
-		panelButtons.add( lblSelectionTools );
-
-		final JButton buttonSelectTrack = new JButton( SELECT_TRACK_ICON );
-		buttonSelectTrack.setBounds( 9, 23, 33, 23 );
-		buttonSelectTrack.addActionListener( new ActionListener()
-		{
-			@Override
-			public void actionPerformed( final ActionEvent e )
-			{
-				fireAction( SELECT_TRACK_BUTTON_PRESSED );
-			}
-		} );
-		panelButtons.add( buttonSelectTrack );
-
-		final JLabel lblSelectTrack = new JLabel( "Select track" );
-		lblSelectTrack.setBounds( 52, 23, 129, 23 );
-		lblSelectTrack.setFont( SMALL_FONT );
-		lblSelectTrack.setToolTipText( "Select the whole tracks selected spots belong to." );
-		panelButtons.add( lblSelectTrack );
-
-		final JButton buttonSelectTrackUp = new JButton( SELECT_TRACK_ICON_UPWARDS );
-		buttonSelectTrackUp.setBounds( 9, 48, 33, 23 );
-		buttonSelectTrackUp.addActionListener( new ActionListener()
-		{
-			@Override
-			public void actionPerformed( final ActionEvent e )
-			{
-				fireAction( SELECT_TRACK_UPWARD_BUTTON_PRESSED );
-			}
-		} );
-		panelButtons.add( buttonSelectTrackUp );
-
-		final JLabel lblSelectTrackUpward = new JLabel( "Select track upward" );
-		lblSelectTrackUpward.setBounds( 52, 48, 129, 23 );
-		lblSelectTrackUpward.setFont( SMALL_FONT );
-		lblSelectTrackUpward.setToolTipText( "<html>" +
-				"Select the whole tracks selected spots <br>" +
-				"belong to, backward in time.</html>" );
-		panelButtons.add( lblSelectTrackUpward );
-
-		final JButton buttonSelectTrackDown = new JButton( SELECT_TRACK_ICON_DOWNWARDS );
-		buttonSelectTrackDown.setBounds( 9, 73, 33, 23 );
-		buttonSelectTrackDown.addActionListener( new ActionListener()
-		{
-			@Override
-			public void actionPerformed( final ActionEvent e )
-			{
-				fireAction( SELECT_TRACK_DOWNWARD_BUTTON_PRESSED );
-			}
-		} );
-		panelButtons.add( buttonSelectTrackDown );
-
-		final JLabel lblSelectTrackDown = new JLabel( "Select track downward" );
-		lblSelectTrackDown.setBounds( 52, 73, 129, 23 );
-		lblSelectTrackDown.setFont( SMALL_FONT );
-		lblSelectTrackDown.setToolTipText( "<html>" +
-				"Select the whole tracks selected spots <br>" +
-				"belong to, forward in time.</html>" );
-		panelButtons.add( lblSelectTrackDown );
-
-		{
-			final String toolTip = "<html>Determines the interval of the timepoints accessible <br>" + "when stepwise browsing in time. For instance, with a <br>" + "value of 5, you will be taken to timepoints 0, 5, 10, etc.." + "</html>";
-
-			stepWisePanel = new JPanel();
-			stepWisePanel.setBorder( new LineBorder( new Color( 252, 117, 0 ) ) );
-
-			lblJumpToEvery = new JLabel( "Stepwise time browsing " );
-			lblJumpToEvery.setFont( SMALL_FONT.deriveFont( Font.BOLD ) );
-			lblJumpToEvery.setToolTipText( toolTip );
-
-			jTimeStep = new JNumericTextField( ( double ) guiModel.timeStep );
-			jTimeStep.setFormat( "%.0f" );
-			jTimeStep.setFont( SMALL_FONT );
-			jTimeStep.setColumns( 3 );
-			jTimeStep.setHorizontalAlignment( SwingConstants.CENTER );
-			jTimeStep.addActionListener( al );
-			jTimeStep.addFocusListener( fl );
-			jTimeStep.setToolTipText( toolTip );
-
-			lblFrames = new JLabel( "frames" );
-			lblFrames.setFont( SMALL_FONT );
-			lblFrames.setToolTipText( toolTip );
-		}
-		final GroupLayout groupLayout = new GroupLayout( this );
-		groupLayout.setHorizontalGroup(
-				groupLayout.createParallelGroup( Alignment.LEADING )
-						.addGroup( groupLayout.createSequentialGroup()
-								.addContainerGap()
-								.addGroup( groupLayout.createParallelGroup( Alignment.LEADING )
-										.addComponent( panelButtons, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 288, Short.MAX_VALUE )
-										.addComponent( scrollPane, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 288, Short.MAX_VALUE )
-										.addComponent( stepWisePanel, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 288, Short.MAX_VALUE )
-										.addComponent( panelSemiAutoParams, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 288, Short.MAX_VALUE ) )
-								.addContainerGap() )
-				);
-		groupLayout.setVerticalGroup(
-				groupLayout.createParallelGroup( Alignment.LEADING )
-						.addGroup( groupLayout.createSequentialGroup()
-								.addGap( 11 )
-								.addComponent( stepWisePanel, GroupLayout.PREFERRED_SIZE, 30, GroupLayout.PREFERRED_SIZE )
-								.addPreferredGap( ComponentPlacement.RELATED )
-								.addComponent( panelSemiAutoParams, GroupLayout.PREFERRED_SIZE, 121, GroupLayout.PREFERRED_SIZE )
-								.addPreferredGap( ComponentPlacement.RELATED )
-								.addComponent( panelButtons, GroupLayout.PREFERRED_SIZE, 105, GroupLayout.PREFERRED_SIZE )
-								.addPreferredGap( ComponentPlacement.RELATED )
-								.addComponent( scrollPane, GroupLayout.DEFAULT_SIZE, 209, Short.MAX_VALUE )
-								.addContainerGap() )
-				);
-
-		final GroupLayout gl_panelSemiAutoParams = new GroupLayout( panelSemiAutoParams );
-		gl_panelSemiAutoParams.setHorizontalGroup(
-				gl_panelSemiAutoParams.createParallelGroup( Alignment.LEADING )
-						.addGroup( gl_panelSemiAutoParams.createSequentialGroup()
-								.addGap( 5 )
-								.addGroup( gl_panelSemiAutoParams.createParallelGroup( Alignment.LEADING )
-										.addComponent( lblSemiAutoTracking, GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE )
-										.addGroup( gl_panelSemiAutoParams.createSequentialGroup()
-												.addComponent( buttonSemiAutoTracking, GroupLayout.PREFERRED_SIZE, 33, GroupLayout.PREFERRED_SIZE )
-												.addGap( 10 )
-												.addComponent( labelSemiAutoTracking, GroupLayout.DEFAULT_SIZE, 232, Short.MAX_VALUE ) ) )
-								.addContainerGap() )
-						.addGroup( gl_panelSemiAutoParams.createSequentialGroup()
-								.addContainerGap()
-								.addGroup( gl_panelSemiAutoParams.createParallelGroup( Alignment.TRAILING )
-										.addGroup( gl_panelSemiAutoParams.createSequentialGroup()
-												.addComponent( lblQualityThreshold, GroupLayout.DEFAULT_SIZE, 119, Short.MAX_VALUE )
-												.addGap( 12 )
-												.addComponent( jNFQualityThreshold, GroupLayout.PREFERRED_SIZE, 49, GroupLayout.PREFERRED_SIZE ) )
-										.addGroup( gl_panelSemiAutoParams.createSequentialGroup()
-												.addGroup( gl_panelSemiAutoParams.createParallelGroup( Alignment.TRAILING )
-														.addComponent( lblNFrames, Alignment.LEADING, GroupLayout.PREFERRED_SIZE, 119, GroupLayout.PREFERRED_SIZE )
-														.addComponent( lblDistanceTolerance, GroupLayout.DEFAULT_SIZE, 119, Short.MAX_VALUE ) )
-												.addGap( 12 )
-												.addGroup( gl_panelSemiAutoParams.createParallelGroup( Alignment.LEADING )
-														.addComponent( jNFNFrames, GroupLayout.PREFERRED_SIZE, 49, GroupLayout.PREFERRED_SIZE )
-														.addComponent( jNFDistanceTolerance, GroupLayout.PREFERRED_SIZE, 49, GroupLayout.PREFERRED_SIZE ) ) ) )
-								.addGap( 100 ) )
-				);
-		gl_panelSemiAutoParams.setVerticalGroup(
-				gl_panelSemiAutoParams.createParallelGroup( Alignment.LEADING )
-						.addGroup( gl_panelSemiAutoParams.createSequentialGroup()
-								.addGap( 5 )
-								.addComponent( lblSemiAutoTracking, GroupLayout.PREFERRED_SIZE, 16, GroupLayout.PREFERRED_SIZE )
-								.addGap( 9 )
-								.addGroup( gl_panelSemiAutoParams.createParallelGroup( Alignment.LEADING )
-										.addComponent( buttonSemiAutoTracking, GroupLayout.PREFERRED_SIZE, 23, GroupLayout.PREFERRED_SIZE )
-										.addComponent( labelSemiAutoTracking, GroupLayout.PREFERRED_SIZE, 23, GroupLayout.PREFERRED_SIZE ) )
-								.addPreferredGap( ComponentPlacement.RELATED )
-								.addGroup( gl_panelSemiAutoParams.createParallelGroup( Alignment.LEADING )
-										.addGroup( gl_panelSemiAutoParams.createSequentialGroup()
-												.addGap( 2 )
-												.addComponent( lblQualityThreshold, GroupLayout.PREFERRED_SIZE, 16, GroupLayout.PREFERRED_SIZE ) )
-										.addComponent( jNFQualityThreshold, GroupLayout.PREFERRED_SIZE, 18, GroupLayout.PREFERRED_SIZE ) )
-								.addGap( 2 )
-								.addGroup( gl_panelSemiAutoParams.createParallelGroup( Alignment.LEADING )
-										.addGroup( gl_panelSemiAutoParams.createSequentialGroup()
-												.addGap( 2 )
-												.addComponent( lblDistanceTolerance, GroupLayout.PREFERRED_SIZE, 16, GroupLayout.PREFERRED_SIZE ) )
-										.addComponent( jNFDistanceTolerance, GroupLayout.PREFERRED_SIZE, 18, GroupLayout.PREFERRED_SIZE ) )
-								.addGap( 2 )
-								.addGroup( gl_panelSemiAutoParams.createParallelGroup( Alignment.BASELINE )
-										.addComponent( lblNFrames, GroupLayout.PREFERRED_SIZE, 16, GroupLayout.PREFERRED_SIZE )
-										.addComponent( jNFNFrames, GroupLayout.PREFERRED_SIZE, 18, GroupLayout.PREFERRED_SIZE ) )
-								.addContainerGap() )
-				);
-		panelSemiAutoParams.setLayout( gl_panelSemiAutoParams );
-		final GroupLayout gl_stepWisePanel = new GroupLayout( stepWisePanel );
-		gl_stepWisePanel.setHorizontalGroup(
-				gl_stepWisePanel.createParallelGroup( Alignment.LEADING )
-						.addGroup( gl_stepWisePanel.createSequentialGroup()
-								.addGap( 5 )
-								.addComponent( lblJumpToEvery, GroupLayout.DEFAULT_SIZE, 120, Short.MAX_VALUE )
-								.addGap( 16 )
-								.addComponent( jTimeStep, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE )
-								.addGap( 20 )
-								.addComponent( lblFrames, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE )
-								.addGap( 68 ) )
-				);
-		gl_stepWisePanel.setVerticalGroup(
-				gl_stepWisePanel.createParallelGroup( Alignment.LEADING )
-						.addGroup( gl_stepWisePanel.createSequentialGroup()
-								.addGap( 6 )
-								.addGroup( gl_stepWisePanel.createParallelGroup( Alignment.BASELINE )
-										.addComponent( lblJumpToEvery )
-										.addComponent( jTimeStep, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE )
-										.addComponent( lblFrames ) )
-								.addGap( 7 ) )
-				);
-		gl_stepWisePanel.setAutoCreateContainerGaps( true );
-		gl_stepWisePanel.setAutoCreateGaps( true );
-		stepWisePanel.setLayout( gl_stepWisePanel );
 
 		final JTextPane textPane = new JTextPane();
 		scrollPane.setViewportView( textPane );
 		textPane.setFont( SMALL_FONT );
 		textPane.setEditable( false );
 		textPane.setBackground( this.getBackground() );
-		setLayout( groupLayout );
+		final GridBagConstraints gbcScrollPane = new GridBagConstraints();
+		gbcScrollPane.insets = new Insets( 5, 5, 5, 5 );
+		gbcScrollPane.fill = GridBagConstraints.BOTH;
+		gbcScrollPane.gridx = 0;
+		gbcScrollPane.gridy = 3;
+		add( scrollPane, gbcScrollPane );
 
 		logger = new Logger()
 		{
@@ -457,8 +433,15 @@ public class AnnotationPanel extends ActionListenablePanel
 
 			@Override
 			public void setProgress( final double val )
-			{}
+			{
+				IJ.showProgress( val );
+			}
 		};
+
+		buttonSelectTrack.addActionListener( e -> ModelTools.selectTrack( mamut.getSelectionModel() ) );
+		buttonSelectTrackUp.addActionListener( e -> ModelTools.selectTrackUpward( mamut.getSelectionModel() ) );
+		buttonSelectTrackDown.addActionListener( e -> ModelTools.selectTrackDownward( mamut.getSelectionModel() ) );
+		buttonSemiAutoTracking.addActionListener( e -> mamut.semiAutoDetectSpot() );
 	}
 
 	/**
@@ -471,11 +454,11 @@ public class AnnotationPanel extends ActionListenablePanel
 		return logger;
 	}
 
-	private void updateParamsFromTextFields()
+	private void updateParamsFromTextFields( final MamutGUIModel guiModel )
 	{
-		guiModel.distanceTolerance = jNFDistanceTolerance.getValue();
-		guiModel.qualityThreshold = jNFQualityThreshold.getValue();
-		guiModel.maxNFrames = ( int ) jNFNFrames.getValue();
-		guiModel.timeStep = ( int ) jTimeStep.getValue();
+		guiModel.distanceTolerance = ( ( Number ) ftfDistanceTolerance.getValue() ).doubleValue();
+		guiModel.qualityThreshold = ( ( Number ) ftfQualityThreshold.getValue() ).doubleValue();
+		guiModel.maxNFrames = ( ( Number ) ftfNFrames.getValue() ).intValue();
+		guiModel.timeStep = ( ( Number ) ftfTimeStep.getValue() ).intValue();
 	}
 }

@@ -21,18 +21,22 @@
  */
 package fiji.plugin.mamut.action;
 
-import fiji.plugin.mamut.MaMuT;
-import fiji.plugin.mamut.SourceSettings;
-import fiji.plugin.trackmate.Logger;
-import fiji.plugin.trackmate.TrackMate;
-import fiji.plugin.trackmate.action.TrackMateAction;
-import ij.gui.GenericDialog;
-
+import java.awt.Frame;
 import java.util.Arrays;
 
 import javax.swing.ImageIcon;
 
 import org.scijava.plugin.Plugin;
+
+import fiji.plugin.mamut.MaMuT;
+import fiji.plugin.mamut.SourceSettings;
+import fiji.plugin.trackmate.Logger;
+import fiji.plugin.trackmate.SelectionModel;
+import fiji.plugin.trackmate.TrackMate;
+import fiji.plugin.trackmate.action.TrackMateAction;
+import fiji.plugin.trackmate.gui.Icons;
+import fiji.plugin.trackmate.gui.displaysettings.DisplaySettings;
+import ij.gui.GenericDialog;
 
 @Plugin( type = MamutActionFactory.class )
 public class MamutExtractStackActionFactory implements MamutActionFactory
@@ -53,7 +57,7 @@ public class MamutExtractStackActionFactory implements MamutActionFactory
 	@Override
 	public ImageIcon getIcon()
 	{
-		return MamutExtractTrackStackAction.ICON;
+		return Icons.MAGNIFIER_ICON;
 	}
 
 	@Override
@@ -102,11 +106,13 @@ public class MamutExtractStackActionFactory implements MamutActionFactory
 			// Return dummy action.
 			return new TrackMateAction()
 			{
+
+				@Override
+				public void execute( final TrackMate trackmate, final SelectionModel selectionModel, final DisplaySettings displaySettings, final Frame parent )
+				{}
+
 				@Override
 				public void setLogger( final Logger logger )
-				{}
-				@Override
-				public void execute( final TrackMate trackmate )
 				{}
 			};
 		}

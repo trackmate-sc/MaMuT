@@ -21,12 +21,6 @@
  */
 package fiji.plugin.mamut.viewer;
 
-import bdv.TransformEventHandler;
-import bdv.ui.BdvDefaultCards;
-import bdv.ui.CardPanel;
-import bdv.ui.splitpanel.SplitPanel;
-import bdv.util.AWTUtils;
-import bdv.viewer.ConverterSetups;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -35,9 +29,7 @@ import java.awt.event.KeyListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.swing.JComponent;
 import javax.swing.JFrame;
@@ -49,10 +41,16 @@ import org.scijava.ui.behaviour.util.Behaviours;
 import org.scijava.ui.behaviour.util.InputActionBindings;
 import org.scijava.ui.behaviour.util.TriggerBehaviourBindings;
 
+import bdv.TransformEventHandler;
 import bdv.cache.CacheControl;
 import bdv.tools.VisibilityAndGroupingDialog;
 import bdv.tools.bookmarks.Bookmarks;
 import bdv.tools.bookmarks.BookmarksEditor;
+import bdv.ui.BdvDefaultCards;
+import bdv.ui.CardPanel;
+import bdv.ui.splitpanel.SplitPanel;
+import bdv.util.AWTUtils;
+import bdv.viewer.ConverterSetups;
 import bdv.viewer.SourceAndConverter;
 import bdv.viewer.ViewerOptions;
 import bdv.viewer.animate.MessageOverlayAnimator;
@@ -62,8 +60,7 @@ import fiji.plugin.trackmate.Logger;
 import fiji.plugin.trackmate.Model;
 import fiji.plugin.trackmate.SelectionModel;
 import fiji.plugin.trackmate.Spot;
-import fiji.plugin.trackmate.visualization.FeatureColorGenerator;
-import fiji.plugin.trackmate.visualization.TrackColorGenerator;
+import fiji.plugin.trackmate.gui.displaysettings.DisplaySettings;
 import fiji.plugin.trackmate.visualization.TrackMateModelView;
 import ij.IJ;
 
@@ -73,16 +70,16 @@ import ij.IJ;
  *
  * @author Tobias Pietzsch &lt;tobias.pietzsch@gmail.com&gt;
  */
+@SuppressWarnings( "deprecation" )
 public class MamutViewer extends JFrame implements TrackMateModelView
 {
 	private static final long serialVersionUID = 1L;
 
+	public static final String KEY = "MaMuT Viewer";
+
 	private static final long DEFAULT_TEXT_DISPLAY_DURATION = 3000;
-
 	private static final double DEFAULT_FADEINTIME = 0;
-
 	private static final double DEFAULT_FADEOUTTIME = 0.5;
-
 	private static final Font DEFAULT_FONT = new Font( "SansSerif", Font.PLAIN, 14 );
 
 	/** The logger instance that echoes message on this view. */
@@ -91,16 +88,6 @@ public class MamutViewer extends JFrame implements TrackMateModelView
 	private final Model model;
 
 	private final SelectionModel selectionModel;
-
-	/**
-	 * A map of String/Object that configures the look and feel of the display.
-	 */
-	protected Map< String, Object > displaySettings = new HashMap<>();
-
-	/** The mapping from spot to a color. */
-	FeatureColorGenerator< Spot > spotColorProvider;
-
-	TrackColorGenerator trackColorProvider;
 
 	protected final MamutViewerPanel viewerPanel;
 
@@ -121,6 +108,8 @@ public class MamutViewer extends JFrame implements TrackMateModelView
 	private final MamutRecordMaxProjectionDialog recordMaxProjectionMovieDialog;
 
 	private final BookmarksEditor bookmarkEditor;
+
+	private final DisplaySettings ds;
 
 	/**
 	 *
@@ -144,12 +133,20 @@ public class MamutViewer extends JFrame implements TrackMateModelView
 	 *            optional parameters. See
 	 *            {@link bdv.viewer.ViewerPanel#getOptionValues()}.
 	 */
-	public MamutViewer( final int width, final int height, final List< SourceAndConverter< ? > > sources, final int numTimePoints, final CacheControl cache,
-			final Model model, final SelectionModel selectionModel,
+	public MamutViewer(
+			final int width,
+			final int height,
+			final List< SourceAndConverter< ? > > sources,
+			final int numTimePoints,
+			final CacheControl cache,
+			final Model model,
+			final SelectionModel selectionModel,
+			final DisplaySettings ds,
 			final ViewerOptions optional,
 			final Bookmarks bookmarks )
 	{
 		super( "MaMut Viewer", AWTUtils.getSuitableGraphicsConfiguration( AWTUtils.RGB_COLOR_MODEL ) );
+		this.ds = ds;
 		final MessageOverlayAnimator msgOverlay = new MessageOverlayAnimator( DEFAULT_TEXT_DISPLAY_DURATION, DEFAULT_FADEINTIME, DEFAULT_FADEOUTTIME, DEFAULT_FONT );
 		viewerPanel = new MamutViewerPanel( sources, numTimePoints, cache, optional.width( width ).height( height ).msgOverlay( msgOverlay ) );
 
@@ -205,7 +202,7 @@ public class MamutViewer extends JFrame implements TrackMateModelView
 		recordMovieDialog.setLocationRelativeTo( this );
 		viewerPanel.getDisplay().addOverlayRenderer( recordMovieDialog );
 
-		this.recordMaxProjectionMovieDialog = new MamutRecordMaxProjectionDialog( this, this, new ProgressWriterLogger( logger ) );
+		this.recordMaxProjectionMovieDialog = new MamutRecordMaxProjectionDialog( this, this, ds, new ProgressWriterLogger( logger ) );
 		recordMaxProjectionMovieDialog.setLocationRelativeTo( this );
 		viewerPanel.getDisplay().addOverlayRenderer( recordMaxProjectionMovieDialog );
 
@@ -250,7 +247,7 @@ public class MamutViewer extends JFrame implements TrackMateModelView
 	@Override
 	public void render()
 	{
-		viewerPanel.overlay = new MamutOverlay( model, selectionModel, this );
+		viewerPanel.overlay = new MamutOverlay( model, selectionModel, this, ds );
 	}
 
 	@Override
@@ -272,43 +269,6 @@ public class MamutViewer extends JFrame implements TrackMateModelView
 	}
 
 	@Override
-	public Map< String, Object > getDisplaySettings()
-	{
-		return displaySettings;
-	}
-
-	@SuppressWarnings( "unchecked" )
-	@Override
-	public void setDisplaySettings( final String key, final Object value )
-	{
-		if ( key.equals( KEY_SPOT_COLORING ) )
-		{
-			if ( null != spotColorProvider )
-				spotColorProvider.terminate();
-
-			spotColorProvider = ( FeatureColorGenerator< Spot > ) value;
-			spotColorProvider.activate();
-		}
-		else if ( key.equals( KEY_TRACK_COLORING ) )
-		{
-			if ( null != trackColorProvider )
-				trackColorProvider.terminate();
-
-			trackColorProvider = ( TrackColorGenerator ) value;
-			trackColorProvider.activate();
-		}
-
-		displaySettings.put( key, value );
-		refresh();
-	}
-
-	@Override
-	public Object getDisplaySettings( final String key )
-	{
-		return displaySettings.get( key );
-	}
-
-	@Override
 	public Model getModel()
 	{
 		return model;
@@ -322,7 +282,7 @@ public class MamutViewer extends JFrame implements TrackMateModelView
 	@Override
 	public String getKey()
 	{
-		return MamutViewerFactory.KEY;
+		return KEY;
 	}
 
 	public VisibilityAndGroupingDialog getVisibilityAndGroupingDialog()

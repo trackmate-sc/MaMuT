@@ -21,13 +21,14 @@
  */
 package fiji.plugin.mamut.action;
 
-import fiji.plugin.mamut.MaMuT;
-import fiji.plugin.trackmate.action.MergeFileAction;
-import fiji.plugin.trackmate.action.TrackMateAction;
-
 import javax.swing.ImageIcon;
 
 import org.scijava.plugin.Plugin;
+
+import fiji.plugin.mamut.MaMuT;
+import fiji.plugin.trackmate.action.MergeFileAction;
+import fiji.plugin.trackmate.action.TrackMateAction;
+import fiji.plugin.trackmate.gui.Icons;
 
 @Plugin( type = MamutActionFactory.class )
 public class MamutMergeFileActionFactory implements MamutActionFactory
@@ -44,7 +45,7 @@ public class MamutMergeFileActionFactory implements MamutActionFactory
 	@Override
 	public ImageIcon getIcon()
 	{
-		return MergeFileAction.ICON;
+		return Icons.MERGE_ICON;
 	}
 
 	@Override
@@ -62,7 +63,7 @@ public class MamutMergeFileActionFactory implements MamutActionFactory
 	@Override
 	public TrackMateAction create( final MaMuT mamut )
 	{
-		return new MergeFileAction( mamut.getGUI() );
+		return new MergeFileAction();
 	}
 
 }

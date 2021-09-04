@@ -21,21 +21,21 @@
  */
 package fiji.plugin.mamut;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+
 import fiji.plugin.trackmate.Model;
 import fiji.plugin.trackmate.SelectionModel;
 import fiji.plugin.trackmate.Spot;
 import fiji.plugin.trackmate.features.track.TrackIndexAnalyzer;
+import fiji.plugin.trackmate.gui.displaysettings.DisplaySettingsIO;
 import fiji.plugin.trackmate.io.TmXmlWriter;
-import fiji.plugin.trackmate.visualization.PerTrackFeatureColorGenerator;
-import fiji.plugin.trackmate.visualization.SpotColorGenerator;
 import fiji.plugin.trackmate.visualization.TrackMateModelView;
 import fiji.plugin.trackmate.visualization.ViewFactory;
+import fiji.plugin.trackmate.visualization.hyperstack.HyperStackDisplayerFactory;
 import fiji.plugin.trackmate.visualization.trackscheme.TrackSchemeFactory;
 import ij.ImageJ;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 
 public class CreateLargeModelExample
 {
@@ -69,10 +69,10 @@ public class CreateLargeModelExample
 		end = System.currentTimeMillis();
 		System.out.println( "Saving done in " + ( end - start ) / 1000 + " s." );
 
-//		start = System.currentTimeMillis();
-//		view(new HyperStackDisplayerFactory());
-//		end = System.currentTimeMillis();
-//		System.out.println( "Rendering in the main viewer done in " + ( end - start ) / 1000 + " s." );
+		start = System.currentTimeMillis();
+		view( new HyperStackDisplayerFactory() );
+		end = System.currentTimeMillis();
+		System.out.println( "Rendering in the main viewer done in " + ( end - start ) / 1000 + " s." );
 
 		start = System.currentTimeMillis();
 		view( new TrackSchemeFactory() );
@@ -136,22 +136,12 @@ public class CreateLargeModelExample
 		ImageJ.main( null );
 
 		final SelectionModel sm = new SelectionModel( model );
-		final TrackMateModelView view = factory.create( model, null, sm );
+		final TrackMateModelView view = factory.create( model, null, sm, DisplaySettingsIO.readUserDefault() );
 
 		final TrackIndexAnalyzer ta = new TrackIndexAnalyzer();
 		ta.process( model.getTrackModel().trackIDs( true ), model );
 
-		final SpotColorGenerator scg = new SpotColorGenerator( model );
-		scg.setFeature( Spot.QUALITY );
-		view.setDisplaySettings( TrackMateModelView.KEY_SPOT_COLORING, scg );
-		final PerTrackFeatureColorGenerator tcg = new PerTrackFeatureColorGenerator( model, TrackIndexAnalyzer.TRACK_INDEX );
-		view.setDisplaySettings( TrackMateModelView.KEY_TRACK_COLORING, tcg );
-
-		view.setDisplaySettings( TrackMateModelView.KEY_TRACK_DISPLAY_MODE,
-				TrackMateModelView.TRACK_DISPLAY_MODE_LOCAL );
-
 		view.render();
-
 	}
 
 	private void addBranch( final Spot start, final double vx, final double vy, final int iteration )

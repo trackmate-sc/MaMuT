@@ -11,7 +11,7 @@
 
 	<groupId>sc.fiji</groupId>
 	<artifactId>MaMuT_</artifactId>
-	<version>0.30.1-SNAPSHOT</version>
+	<version>7.0.0-SNAPSHOT</version>
 
 	<name>plugins/MaMuT_.jar</name>
 	<description>Fiji plugin for the annotation of massive, multi-view data.</description>
@@ -139,11 +139,8 @@
 		<!-- Fiji dependencies -->
 		<dependency>
 			<groupId>sc.fiji</groupId>
-			<artifactId>3D_Viewer</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>sc.fiji</groupId>
-			<artifactId>TrackMate_</artifactId>
+			<artifactId>TrackMate</artifactId>
+			<version>7.0.4</version>
 		</dependency>
 
 		<!-- ImageJ dependencies -->
@@ -178,16 +175,6 @@
 		<dependency>
 			<groupId>org.scijava</groupId>
 			<artifactId>scijava-common</artifactId>
-		</dependency>
-
-		<!-- Java 3D dependencies -->
-		<dependency>
-			<groupId>org.scijava</groupId>
-			<artifactId>j3dcore</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.scijava</groupId>
-			<artifactId>j3dutils</artifactId>
 		</dependency>
 
 		<!-- Third party dependencies -->

@@ -21,62 +21,38 @@
  */
 package fiji.plugin.mamut.providers;
 
-import fiji.plugin.mamut.feature.spot.CellDivisionTimeAnalyzerSpotFactory;
-import fiji.plugin.mamut.feature.spot.SpotSourceIdAnalyzerFactory;
-import fiji.plugin.trackmate.features.manual.ManualSpotColorAnalyzerFactory;
-import fiji.plugin.trackmate.features.spot.SpotAnalyzerFactory;
-import fiji.plugin.trackmate.providers.SpotAnalyzerProvider;
-
-import java.util.ArrayList;
-import java.util.List;
+import fiji.plugin.mamut.feature.spot.MamutSpotAnalyzerFactory;
+import fiji.plugin.trackmate.providers.AbstractProvider;
 
 /**
  * A provider for the spot analyzer factories for MaMuT only.
  */
 @SuppressWarnings( "rawtypes" )
-public class MamutSpotAnalyzerProvider extends SpotAnalyzerProvider
+public class MamutSpotAnalyzerProvider extends AbstractProvider< MamutSpotAnalyzerFactory >
 {
-	private static final List< String > KEYS;
 
-	static
+	private final int nChannels;
+
+	public MamutSpotAnalyzerProvider( final int nChannels )
 	{
-		KEYS = new ArrayList<>( 3 );
-		KEYS.add( SpotSourceIdAnalyzerFactory.KEY );
-		KEYS.add( CellDivisionTimeAnalyzerSpotFactory.KEY );
-		KEYS.add( ManualSpotColorAnalyzerFactory.KEY );
-	}
-
-	private final SpotSourceIdAnalyzerFactory spotSourceIdAnalyzerFactory;
-
-	private final CellDivisionTimeAnalyzerSpotFactory cellDivisionTimeAnalyzerSpotFactory;
-
-	public MamutSpotAnalyzerProvider()
-	{
-		super();
-		this.spotSourceIdAnalyzerFactory = new SpotSourceIdAnalyzerFactory();
-		this.cellDivisionTimeAnalyzerSpotFactory = new CellDivisionTimeAnalyzerSpotFactory();
+		super( MamutSpotAnalyzerFactory.class );
+		this.nChannels = nChannels;
 	}
 
 	@Override
-	public List< String > getKeys()
+	public MamutSpotAnalyzerFactory getFactory( final String key )
 	{
-		return KEYS;
+		final MamutSpotAnalyzerFactory factory = super.getFactory( key );
+		if ( factory == null )
+			return null;
+
+		factory.setNChannels( nChannels );
+		return factory;
 	}
 
-	@Override
-	public SpotAnalyzerFactory getFactory( final String key )
+	public static void main( final String[] args )
 	{
-		if ( key.equals( SpotSourceIdAnalyzerFactory.KEY ) )
-		{
-			return spotSourceIdAnalyzerFactory;
-		}
-		else if ( key.equals( CellDivisionTimeAnalyzerSpotFactory.KEY ) )
-		{
-			return cellDivisionTimeAnalyzerSpotFactory;
-		}
-		else
-		{
-			return super.getFactory( key );
-		}
+		final MamutSpotAnalyzerProvider provider = new MamutSpotAnalyzerProvider( 2 );
+		System.out.println( provider.echo() );
 	}
 }

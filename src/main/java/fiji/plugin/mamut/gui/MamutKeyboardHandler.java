@@ -150,6 +150,7 @@ public class MamutKeyboardHandler
 		return map;
 	}
 
+	@SuppressWarnings( "deprecation" )
 	protected void installKeyboardActions()
 	{
 		final InputTriggerConfig inputTriggerConfig = BigDataViewer.getInputTriggerConfig( ViewerOptions.options() );

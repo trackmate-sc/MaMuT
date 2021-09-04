@@ -28,10 +28,10 @@ import java.util.Map;
 
 import javax.swing.ImageIcon;
 
+import org.scijava.plugin.Plugin;
+
 import fiji.plugin.trackmate.Dimension;
-import fiji.plugin.trackmate.Model;
 import fiji.plugin.trackmate.features.spot.SpotAnalyzer;
-import fiji.plugin.trackmate.features.spot.SpotAnalyzerFactory;
 import net.imagej.ImgPlus;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
@@ -45,7 +45,8 @@ import net.imglib2.type.numeric.RealType;
  *            the type of the pixels. Must extend {@link RealType} and
  *            {@link NativeType}.
  */
-public class SpotSourceIdAnalyzerFactory< T extends RealType< T > & NativeType< T >> implements SpotAnalyzerFactory< T >
+@Plugin( type = MamutSpotAnalyzerFactory.class )
+public class SpotSourceIdAnalyzerFactory< T extends RealType< T > & NativeType< T > > implements MamutSpotAnalyzerFactory< T >
 {
 
 	/** The name of the spot source id feature. */
@@ -53,15 +54,10 @@ public class SpotSourceIdAnalyzerFactory< T extends RealType< T > & NativeType< 
 
 	/** Additional spot features used in MaMuT. */
 	public final static List< String > FEATURES = new ArrayList<>();
-
 	public final static Map< String, String > FEATURE_NAMES = new HashMap<>();
-
 	public final static Map< String, String > FEATURE_SHORT_NAMES = new HashMap<>();
-
 	public final static Map< String, Dimension > FEATURE_DIMENSIONS = new HashMap<>();
-
 	public static final Map< String, Boolean > IS_INT = new HashMap<>();
-
 	public static final String KEY = "Spot Source ID";
 
 	static
@@ -103,37 +99,11 @@ public class SpotSourceIdAnalyzerFactory< T extends RealType< T > & NativeType< 
 		return FEATURE_DIMENSIONS;
 	}
 
-	protected final SpotAnalyzer< T > dummyAnalyzer = new SpotAnalyzer< T >()
-	{
-		@Override
-		public boolean checkInput()
-		{
-			return true;
-		}
-
-		@Override
-		public boolean process()
-		{
-			return true;
-		}
-
-		@Override
-		public String getErrorMessage()
-		{
-			return "";
-		}
-
-		@Override
-		public long getProcessingTime()
-		{
-			return 0;
-		}
-	};
 
 	@Override
-	public SpotAnalyzer< T > getAnalyzer( final Model model, final ImgPlus< T > img, final int frame, final int channel )
+	public SpotAnalyzer< T > getAnalyzer( final ImgPlus< T > img, final int frame, final int channel )
 	{
-		return dummyAnalyzer;
+		return SpotAnalyzer.dummyAnalyzer();
 	}
 
 	@Override
