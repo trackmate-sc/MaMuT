@@ -98,8 +98,8 @@
 		<url>https://github.com/fiji/MaMuT/issues</url>
 	</issueManagement>
 	<ciManagement>
-		<system>Travis CI</system>
-		<url>https://travis-ci.org/fiji/MaMuT</url>
+		<system>GitHub Actions</system>
+		<url>https://github.com/fiji/MaMuT/actions</url>
 	</ciManagement>
 
 	<properties>
@@ -107,8 +107,11 @@
 		<license.licenseName>gpl_v3</license.licenseName>
 		<license.copyrightOwners>MaMuT development team.</license.copyrightOwners>
 
+		<bigdataviewer-core.version>10.2.0</bigdataviewer-core.version>
+		<bigdataviewer-vistools.version>1.0.0-beta-28</bigdataviewer-vistools.version>
+
 		<!-- NB: Deploy releases to the SciJava Maven repository. -->
-		<releaseProfiles>deploy-to-scijava</releaseProfiles>
+		<releaseProfiles>sign,deploy-to-scijava</releaseProfiles>
 	</properties>
 
 	<repositories>
@@ -166,10 +169,6 @@
 		<dependency>
 			<groupId>net.imglib2</groupId>
 			<artifactId>imglib2-realtransform</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>net.imglib2</groupId>
-			<artifactId>imglib2-ui</artifactId>
 		</dependency>
 
 		<!-- SciJava dependencies -->

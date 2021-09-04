@@ -2,18 +2,18 @@
  * #%L
  * Fiji plugin for the annotation of massive, multi-view data.
  * %%
- * Copyright (C) 2012 - 2016 MaMuT development team.
+ * Copyright (C) 2012 - 2021 MaMuT development team.
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- *
+ * 
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- *
+ * 
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -37,14 +37,20 @@ import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 
 import org.scijava.ui.behaviour.MouseAndKeyHandler;
+import org.scijava.ui.behaviour.util.Behaviours;
 import org.scijava.ui.behaviour.util.InputActionBindings;
 import org.scijava.ui.behaviour.util.TriggerBehaviourBindings;
 
-import bdv.BehaviourTransformEventHandler;
+import bdv.TransformEventHandler;
 import bdv.cache.CacheControl;
 import bdv.tools.VisibilityAndGroupingDialog;
 import bdv.tools.bookmarks.Bookmarks;
 import bdv.tools.bookmarks.BookmarksEditor;
+import bdv.ui.BdvDefaultCards;
+import bdv.ui.CardPanel;
+import bdv.ui.splitpanel.SplitPanel;
+import bdv.util.AWTUtils;
+import bdv.viewer.ConverterSetups;
 import bdv.viewer.SourceAndConverter;
 import bdv.viewer.ViewerOptions;
 import bdv.viewer.animate.MessageOverlayAnimator;
@@ -57,8 +63,6 @@ import fiji.plugin.trackmate.Spot;
 import fiji.plugin.trackmate.gui.displaysettings.DisplaySettings;
 import fiji.plugin.trackmate.visualization.TrackMateModelView;
 import ij.IJ;
-import net.imglib2.ui.TransformEventHandler;
-import net.imglib2.ui.util.GuiUtil;
 
 /**
  * A {@link JFrame} containing a {@link MamutViewerPanel} and associated
@@ -86,6 +90,12 @@ public class MamutViewer extends JFrame implements TrackMateModelView
 	private final SelectionModel selectionModel;
 
 	protected final MamutViewerPanel viewerPanel;
+
+	private final CardPanel cards;
+
+	private final SplitPanel splitPanel;
+
+	private final ConverterSetups setups;
 
 	private final InputActionBindings keybindings;
 
@@ -135,22 +145,30 @@ public class MamutViewer extends JFrame implements TrackMateModelView
 			final ViewerOptions optional,
 			final Bookmarks bookmarks )
 	{
-		super( "MaMut Viewer", GuiUtil.getSuitableGraphicsConfiguration( GuiUtil.RGB_COLOR_MODEL ) );
+		super( "MaMut Viewer", AWTUtils.getSuitableGraphicsConfiguration( AWTUtils.RGB_COLOR_MODEL ) );
 		this.ds = ds;
 		final MessageOverlayAnimator msgOverlay = new MessageOverlayAnimator( DEFAULT_TEXT_DISPLAY_DURATION, DEFAULT_FADEINTIME, DEFAULT_FADEOUTTIME, DEFAULT_FONT );
 		viewerPanel = new MamutViewerPanel( sources, numTimePoints, cache, optional.width( width ).height( height ).msgOverlay( msgOverlay ) );
+
+		setups = new ConverterSetups( viewerPanel.state() );
+		setups.listeners().add( s -> viewerPanel.requestRepaint() );
+
 		keybindings = new InputActionBindings();
+		triggerbindings = new TriggerBehaviourBindings();
+
+		cards = new CardPanel();
+		BdvDefaultCards.setup( cards, viewerPanel, setups );
+		splitPanel = new SplitPanel( viewerPanel, cards );
 
 		this.model = model;
 		this.selectionModel = selectionModel;
 		this.logger = new MamutViewerLogger();
-		this.triggerbindings = new TriggerBehaviourBindings();
 		this.bookmarkEditor = new BookmarksEditor( viewerPanel, keybindings, bookmarks );
 		bookmarkEditor.setInputMapsToBlock( Arrays.asList( "all" ) );
 
 		getRootPane().setDoubleBuffered( true );
 		setPreferredSize( new Dimension( width, height ) );
-		add( viewerPanel, BorderLayout.CENTER );
+		add( splitPanel, BorderLayout.CENTER );
 		pack();
 		setDefaultCloseOperation( WindowConstants.DISPOSE_ON_CLOSE );
 		addWindowListener( new WindowAdapter()
@@ -168,11 +186,15 @@ public class MamutViewer extends JFrame implements TrackMateModelView
 		final MouseAndKeyHandler mouseAndKeyHandler = new MouseAndKeyHandler();
 		mouseAndKeyHandler.setInputMap( triggerbindings.getConcatenatedInputTriggerMap() );
 		mouseAndKeyHandler.setBehaviourMap( triggerbindings.getConcatenatedBehaviourMap() );
+		mouseAndKeyHandler.setKeypressManager( optional.values.getKeyPressedManager(), viewerPanel.getDisplay() );
 		viewerPanel.getDisplay().addHandler( mouseAndKeyHandler );
 
-		final TransformEventHandler< ? > tfHandler = viewerPanel.getDisplay().getTransformEventHandler();
-		if ( tfHandler instanceof BehaviourTransformEventHandler )
-			( ( BehaviourTransformEventHandler< ? > ) tfHandler ).install( triggerbindings );
+
+		final Behaviours transformBehaviours = new Behaviours( optional.values.getInputTriggerConfig(), "bdv" );
+		transformBehaviours.install( triggerbindings, "transform" );
+
+		final TransformEventHandler tfHandler = viewerPanel.getTransformEventHandler();
+		tfHandler.install( transformBehaviours );
 
 		this.visibilityAndGroupingDialog = new VisibilityAndGroupingDialog( this, viewerPanel.getVisibilityAndGrouping() );
 
@@ -199,6 +221,11 @@ public class MamutViewer extends JFrame implements TrackMateModelView
 	public MamutViewerPanel getViewerPanel()
 	{
 		return viewerPanel;
+	}
+
+	public ConverterSetups getConverterSetups()
+	{
+		return setups;
 	}
 
 	public InputActionBindings getKeybindings()
