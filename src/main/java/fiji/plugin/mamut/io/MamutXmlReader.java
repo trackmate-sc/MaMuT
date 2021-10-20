@@ -148,7 +148,6 @@ public class MamutXmlReader extends TmXmlReader
 		}
 
 		final SourceSettings settings = new SourceSettings( folder, filename );
-		settings.imp = null;
 
 		// Detector
 		getDetectorSettings( settingsElement, settings, new DetectorProvider() );

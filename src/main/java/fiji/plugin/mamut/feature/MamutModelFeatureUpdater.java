@@ -63,9 +63,11 @@ public class MamutModelFeatureUpdater implements ModelChangeListener, MultiThrea
 	public MamutModelFeatureUpdater( final Model model, final SourceSettings settings )
 	{
 		this.model = model;
+		// don't log feature computation for updates.
+		final boolean doLogIt = false;
 		this.mamutSpotFeatureCalculator = new MamutSpotFeatureCalculator( settings );
-		this.edgeFeatureCalculator = new EdgeFeatureCalculator( model, settings );
-		this.trackFeatureCalculator = new TrackFeatureCalculator( model, settings );
+		this.edgeFeatureCalculator = new EdgeFeatureCalculator( model, settings, doLogIt );
+		this.trackFeatureCalculator = new TrackFeatureCalculator( model, settings, doLogIt );
 		model.addModelChangeListener( this );
 		setNumThreads();
 	}
