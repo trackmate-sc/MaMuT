@@ -88,7 +88,7 @@
 	</mailingLists>
 
 	<scm>
-		<connection>scm:git:git://github.com/fiji/MaMuT</connection>
+		<connection>scm:git:https://github.com/fiji/MaMuT</connection>
 		<developerConnection>scm:git:git@github.com:fiji/MaMuT</developerConnection>
 		<tag>HEAD</tag>
 		<url>https://github.com/fiji/MaMuT</url>
