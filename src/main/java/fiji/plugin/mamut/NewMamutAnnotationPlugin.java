@@ -44,6 +44,7 @@ import fiji.plugin.trackmate.io.IOUtils;
 import ij.IJ;
 import ij.ImageJ;
 import ij.plugin.PlugIn;
+import mpicbg.spim.data.sequence.VoxelDimensions;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.histogram.DiscreteFrequencyDistribution;
 import net.imglib2.histogram.Histogram1d;
@@ -92,14 +93,30 @@ public class NewMamutAnnotationPlugin implements PlugIn
 				file = proposeBdvXmlFileToOpen();
 			}
 			file = IOUtils.askForFileForLoading( file, "Open a hdf5/xml file", IJ.getInstance(), logger );
-			if ( null == file ) { return; }
+			if ( null == file )
+				return;
 		}
+
 
 		final Model model = new Model();
 		model.setLogger( logger );
 		final SourceSettings settings = new SourceSettings( file.getParent(), file.getName() );
 		settings.addAllAnalyzers();
 		final MaMuT mamut = new MaMuT( model, settings, DisplaySettingsIO.readUserDefault() );
+
+		/*
+		 * Initialize spatial units.
+		 */
+
+		if ( !settings.getSources().isEmpty() )
+		{
+			final SourceAndConverter< ? > sac = settings.getSources().get( 0 );
+			if ( sac != null && sac.getSpimSource() != null )
+			{
+				final VoxelDimensions vdim = sac.getSpimSource().getVoxelDimensions();
+				model.setPhysicalUnits( vdim.unit(), "frame" );
+			}
+		}
 
 		/*
 		 * Initialize default settings.
@@ -219,7 +236,8 @@ public class NewMamutAnnotationPlugin implements PlugIn
 //				"/Users/tinevez/Desktop/Data/Mamut/parhyale/BDV130418A325_NoTempReg.xml"
 //				"/Users/tinevez/Desktop/MaMuT_demo_dataset/MaMuT_Parhyale_demo.xml" );
 //				"D:/Projects/JYTinevez/Mastodon/Tutorial/datasethdf5.xml" );
-				"D:/Projects/JYTinevez/MaMuT/Mastodon-dataset/MaMuT_Parhyale_demo.xml" );
+//				"D:/Projects/JYTinevez/MaMuT/Mastodon-dataset/MaMuT_Parhyale_demo.xml" );
+				"C:/Users/tinevez/Desktop/ImageBDV.xml" );
 //		plugin.run( "/Users/tinevez/Desktop/Celegans.xml" );
 	}
 
