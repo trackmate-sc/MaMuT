@@ -744,7 +744,7 @@ public class MaMuT implements ModelChangeListener
 	public void save()
 	{
 		final Logger lLogger = Logger.IJ_LOGGER;
-		final File proposed = IOUtils.askForFileForSaving( mamutFile, IJ.getInstance(), lLogger );
+		final File proposed = IOUtils.askForFileForSaving( mamutFile, IJ.getInstance() );
 		if ( null == proposed )
 		{
 			lLogger.log( "Saving canceled.\n" );
