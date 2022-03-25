@@ -103,24 +103,6 @@ public class LoadMamutAnnotationPlugin implements PlugIn
 		final SourceSettings settings = reader.readSourceSettings();
 
 		/*
-		 * Check that the image source location from settings object can be
-		 * found.
-		 */
-
-		File imageFile = new File( settings.imageFolder, settings.imageFileName );
-		if ( !imageFile.exists() )
-		{
-			// Then try relative path
-			imageFile = new File( mamutFile.getParent(), settings.imageFileName );
-			if ( !imageFile.exists() )
-			{
-				model.getLogger().error( "Cannot find the image data file: " + settings.imageFileName
-						+ " in " + settings.imageFolder + " nor in " + mamutFile.getParent() );
-				return;
-			}
-		}
-
-		/*
 		 * Display settings.
 		 */
 
@@ -166,8 +148,9 @@ public class LoadMamutAnnotationPlugin implements PlugIn
 		ImageJ.main( args );
 
 		final LoadMamutAnnotationPlugin plugin = new LoadMamutAnnotationPlugin();
-		plugin.run( "D:/Projects/JYTinevez/MaMuT/Mastodon-dataset/MaMuT_Parhyale_demo-mamut.xml" );
-//		plugin.run( "/Users/tinevez/Desktop/Data/Mamut/parhyale/BDV130418A325_NoTempReg-mamut_JY2.xml" );
+//		plugin.run( "D:/Projects/JYTinevez/MaMuT/Mastodon-dataset/MaMuT_Parhyale_demo-mamut.xml" );
+		plugin.run( "/Users/tinevez/Projects/JYTinevez/MaMuT/Mastodon-dataset/MaMuT_Parhyale_demo-mamut.xml" );
 //		plugin.run( null );
+//		plugin.run( "/Users/tinevez/Downloads/200926_RT112_DiI_FMS_Lpbs_2dpi-mamut.xml" );
 	}
 }

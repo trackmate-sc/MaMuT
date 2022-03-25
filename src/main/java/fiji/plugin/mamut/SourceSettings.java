@@ -34,6 +34,7 @@ import bdv.spimdata.XmlIoSpimDataMinimal;
 import bdv.tools.brightness.ConverterSetup;
 import bdv.viewer.SourceAndConverter;
 import fiji.plugin.mamut.providers.MamutSpotAnalyzerProvider;
+import fiji.plugin.mamut.util.DummySpimData;
 import fiji.plugin.trackmate.Settings;
 import fiji.plugin.trackmate.features.spot.SpotAnalyzerFactoryBase;
 import fiji.plugin.trackmate.providers.EdgeAnalyzerProvider;
@@ -72,12 +73,25 @@ public class SourceSettings extends Settings
 		this.converterSetups = new ArrayList<>();
 		this.mamutSpotAnalyzerFactories = new ArrayList<>();
 
+
 		final File bdvFile = new File( imageFolder, imageFileName );
 		AbstractSequenceDescription< ?, ?, ? > seq = null;
 		try
 		{
 			SpimDataMinimal spimData;
-			spimData = new XmlIoSpimDataMinimal().load( bdvFile.getAbsolutePath() );
+			if ( imageFolder == null )
+			{
+				/*
+				 * We could not find an image, we create a dummy BDV data source
+				 * instead.
+				 */
+				spimData = DummySpimData.tryCreate( imageFileName );
+			}
+			else
+			{
+				spimData = new XmlIoSpimDataMinimal().load( bdvFile.getAbsolutePath() );
+			}
+
 			if ( WrapBasicImgLoader.wrapImgLoaderIfNecessary( spimData ) )
 				System.err.println( "WARNING:\n"
 						+ "Opening <SpimData> dataset that is not suited for suited for interactive browsing.\n"

@@ -21,6 +21,8 @@
  */
 package fiji.plugin.mamut.io;
 
+import static fiji.plugin.trackmate.io.IOUtils.readDoubleAttribute;
+import static fiji.plugin.trackmate.io.IOUtils.readIntAttribute;
 import static fiji.plugin.trackmate.io.TmXmlKeys.ANALYSER_ELEMENT_KEY;
 import static fiji.plugin.trackmate.io.TmXmlKeys.ANALYSER_KEY_ATTRIBUTE;
 import static fiji.plugin.trackmate.io.TmXmlKeys.ANALYZER_COLLECTION_ELEMENT_KEY;
@@ -35,6 +37,13 @@ import static fiji.plugin.trackmate.io.TmXmlKeys.GUI_VIEW_ELEMENT_KEY;
 import static fiji.plugin.trackmate.io.TmXmlKeys.IMAGE_ELEMENT_KEY;
 import static fiji.plugin.trackmate.io.TmXmlKeys.IMAGE_FILENAME_ATTRIBUTE_NAME;
 import static fiji.plugin.trackmate.io.TmXmlKeys.IMAGE_FOLDER_ATTRIBUTE_NAME;
+import static fiji.plugin.trackmate.io.TmXmlKeys.IMAGE_HEIGHT_ATTRIBUTE_NAME;
+import static fiji.plugin.trackmate.io.TmXmlKeys.IMAGE_NFRAMES_ATTRIBUTE_NAME;
+import static fiji.plugin.trackmate.io.TmXmlKeys.IMAGE_NSLICES_ATTRIBUTE_NAME;
+import static fiji.plugin.trackmate.io.TmXmlKeys.IMAGE_PIXEL_HEIGHT_ATTRIBUTE_NAME;
+import static fiji.plugin.trackmate.io.TmXmlKeys.IMAGE_PIXEL_WIDTH_ATTRIBUTE_NAME;
+import static fiji.plugin.trackmate.io.TmXmlKeys.IMAGE_VOXEL_DEPTH_ATTRIBUTE_NAME;
+import static fiji.plugin.trackmate.io.TmXmlKeys.IMAGE_WIDTH_ATTRIBUTE_NAME;
 import static fiji.plugin.trackmate.io.TmXmlKeys.SETTINGS_ELEMENT_KEY;
 import static fiji.plugin.trackmate.io.TmXmlKeys.SPOT_ANALYSERS_ELEMENT_KEY;
 import static fiji.plugin.trackmate.io.TmXmlKeys.TRACK_ANALYSERS_ELEMENT_KEY;
@@ -119,7 +128,7 @@ public class MamutXmlReader extends TmXmlReader
 		 */
 
 		final Element imageInfoElement = settingsElement.getChild( IMAGE_ELEMENT_KEY );
-		final String filename = imageInfoElement.getAttributeValue( IMAGE_FILENAME_ATTRIBUTE_NAME );
+		String filename = imageInfoElement.getAttributeValue( IMAGE_FILENAME_ATTRIBUTE_NAME );
 		String folder = imageInfoElement.getAttributeValue( IMAGE_FOLDER_ATTRIBUTE_NAME );
 		if ( null == filename || filename.isEmpty() )
 		{
@@ -141,9 +150,22 @@ public class MamutXmlReader extends TmXmlReader
 			imageFile = new File( folder, filename );
 			if ( !imageFile.exists() || !imageFile.canRead() )
 			{
-				logger.error( "Cannot read image file: " + imageFile + ".\n" );
+				logger.error( "Cannot read image file: " + imageFile + ". Using an empty placeholder.\n" );
 				ok = false;
-				return null;
+
+				final double scalex = readDoubleAttribute( imageInfoElement, IMAGE_PIXEL_WIDTH_ATTRIBUTE_NAME, logger );
+				final double scaley = readDoubleAttribute( imageInfoElement, IMAGE_PIXEL_HEIGHT_ATTRIBUTE_NAME, logger );
+				final double scalez = readDoubleAttribute( imageInfoElement, IMAGE_VOXEL_DEPTH_ATTRIBUTE_NAME, logger );
+				final int sizex = readIntAttribute( imageInfoElement, IMAGE_WIDTH_ATTRIBUTE_NAME, logger, 512 );
+				final int sizey = readIntAttribute( imageInfoElement, IMAGE_HEIGHT_ATTRIBUTE_NAME, logger, 512 );
+				final int sizez = readIntAttribute( imageInfoElement, IMAGE_NSLICES_ATTRIBUTE_NAME, logger, 1 );
+				final int ntimepoints = readIntAttribute( imageInfoElement, IMAGE_NFRAMES_ATTRIBUTE_NAME, logger, 1 );;
+				filename = String.format( "x=%d y=%d z=%d sx=%f sy=%f sz=%f t=%d.dummy",
+						sizex, sizey, sizez,
+						scalex, scaley, scalez,
+						ntimepoints );
+				// This will signal we need to create a dummy BDV.
+				folder = null;
 			}
 		}
 
@@ -425,14 +447,23 @@ public class MamutXmlReader extends TmXmlReader
 		final Element guiel = root.getChild( GUI_STATE_ELEMENT_KEY );
 		if ( null != guiel )
 		{
-			// brightness & color settings
-			if ( guiel.getChild( "SetupAssignments" ) != null )
+			try
 			{
-				setupAssignments.restoreFromXml( guiel );
+				// brightness & color settings
+				if ( guiel.getChild( "SetupAssignments" ) != null )
+				{
+					setupAssignments.restoreFromXml( guiel );
+				}
+				else
+				{
+					logger.error( "Could not find SetupAssignments element.\n" );
+					ok = false;
+				}
 			}
-			else
+			catch ( final IllegalArgumentException e )
 			{
-				logger.error( "Could not find SetupAssignments element.\n" );
+				logger.error( "Saved SetupAssignments do not match current image.\n" );
+				ok = false;
 			}
 		}
 		else
