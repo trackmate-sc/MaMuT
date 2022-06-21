@@ -120,11 +120,7 @@ public class SourceSettings extends Settings
 		this.dt = 1f;
 
 		// Crop cube
-		this.xstart = 0;
-		this.xend = width - 1;
-		this.ystart = 0;
-		this.yend = height - 1;
-		this.roi = null;
+		this.setRoi( null );
 	}
 
 	@Override
