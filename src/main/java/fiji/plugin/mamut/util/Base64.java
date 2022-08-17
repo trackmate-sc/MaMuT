@@ -41,7 +41,7 @@ import java.io.IOException;
  * <code>byte[] myByteArray = Base64.decode( encoded );</code>
  * 
  * <p>
- * The <tt>options</tt> parameter, which appears in a few places, is used to
+ * The {@code options} parameter, which appears in a few places, is used to
  * pass several pieces of information to the encoder. In the "higher level"
  * methods such as encodeBytes( bytes, options ) the options parameter can be
  * used to indicate such things as first gzipping the bytes before encoding
@@ -163,10 +163,10 @@ import java.io.IOException;
  * everything is more consolidated and cleaner. The code now detects when data
  * that's being decoded is gzip-compressed and will decompress it automatically.
  * Generally things are cleaner. You'll probably have to change some method
- * calls that you were making to support the new options format (<tt>int</tt>s
+ * calls that you were making to support the new options format ({@code int}s
  * that you "OR" together).</li>
  * <li>v1.5.1 - Fixed bug when decompressing and decoding to a byte[] using
- * <tt>decode( String s, boolean gzipCompressed )</tt>. Added the ability to
+ * {@code decode( String s, boolean gzipCompressed )}. Added the ability to
  * "suspend" encoding in the Output Stream so you can turn on and off the
  * encoding if you need to embed base64 data in an otherwise "normal" stream
  * (like an XML file).</li>
@@ -1389,7 +1389,7 @@ public class Base64
 
 	/**
 	 * Attempts to decode Base64 data and deserialize a Java Object within.
-	 * Returns <tt>null</tt> if there was an error.
+	 * Returns {@code null} if there was an error.
 	 * 
 	 * @param encodedObject
 	 *            The Base64 data to decode
@@ -1408,7 +1408,7 @@ public class Base64
 
 	/**
 	 * Attempts to decode Base64 data and deserialize a Java Object within.
-	 * Returns <tt>null</tt> if there was an error. If <tt>loader</tt> is not
+	 * Returns {@code null} if there was an error. If {@code loader} is not
 	 * null, it will be the class loader used when deserializing.
 	 * 
 	 * @param encodedObject
@@ -1625,7 +1625,7 @@ public class Base64
 	} // end encodeFromFile
 
 	/**
-	 * Reads <tt>infile</tt> and encodes it to <tt>outfile</tt>.
+	 * Reads {@code infile} and encodes it to {@code outfile}.
 	 * 
 	 * @param infile
 	 *            Input file
@@ -1650,7 +1650,7 @@ public class Base64
 	} // end encodeFileToFile
 
 	/**
-	 * Reads <tt>infile</tt> and decodes it to <tt>outfile</tt>.
+	 * Reads {@code infile} and decodes it to {@code outfile}.
 	 * 
 	 * @param infile
 	 *            Input file
@@ -1677,7 +1677,7 @@ public class Base64
 
 	/**
 	 * A {@link Base64.InputStream} will read data from another
-	 * <tt>java.io.InputStream</tt>, given in the constructor, and encode/decode
+	 * {@code java.io.InputStream}, given in the constructor, and encode/decode
 	 * to/from Base64 notation on the fly.
 	 * 
 	 * @see Base64
@@ -1710,7 +1710,7 @@ public class Base64
 		 * Constructs a {@link Base64.InputStream} in DECODE mode.
 		 * 
 		 * @param in
-		 *            the <tt>java.io.InputStream</tt> from which to read data.
+		 *            the {@code java.io.InputStream} from which to read data.
 		 * @since 1.3
 		 */
 		public InputStream( final java.io.InputStream in )
@@ -1734,7 +1734,7 @@ public class Base64
 		 * 
 		 * 
 		 * @param in
-		 *            the <tt>java.io.InputStream</tt> from which to read data.
+		 *            the {@code java.io.InputStream} from which to read data.
 		 * @param options
 		 *            Specified options
 		 * @see Base64#ENCODE
@@ -1922,7 +1922,7 @@ public class Base64
 
 	/**
 	 * A {@link Base64.OutputStream} will write data to another
-	 * <tt>java.io.OutputStream</tt>, given in the constructor, and
+	 * {@code java.io.OutputStream}, given in the constructor, and
 	 * encode/decode to/from Base64 notation on the fly.
 	 * 
 	 * @see Base64
@@ -1956,7 +1956,7 @@ public class Base64
 		 * Constructs a {@link Base64.OutputStream} in ENCODE mode.
 		 * 
 		 * @param out
-		 *            the <tt>java.io.OutputStream</tt> to which data will be
+		 *            the {@code java.io.OutputStream} to which data will be
 		 *            written.
 		 * @since 1.3
 		 */
@@ -1980,7 +1980,7 @@ public class Base64
 		 * Example: <code>new Base64.OutputStream( out, Base64.ENCODE )</code>
 		 * 
 		 * @param out
-		 *            the <tt>java.io.OutputStream</tt> to which data will be
+		 *            the {@code java.io.OutputStream} to which data will be
 		 *            written.
 		 * @param options
 		 *            Specified options.
