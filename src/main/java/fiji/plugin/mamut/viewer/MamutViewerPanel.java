@@ -77,14 +77,12 @@ public class MamutViewerPanel extends ViewerPanel
 
 		// Translate view so that the target spot is in the middle of the
 		// JFrame.
-		final double dx = display.getWidth() / 2 - ( t.get( 0, 0 ) * spotCoords[ 0 ] + t.get( 0, 1 ) * spotCoords[ 1 ] + t.get( 0, 2 ) * spotCoords[ 2 ] );
-		final double dy = display.getHeight() / 2 - ( t.get( 1, 0 ) * spotCoords[ 0 ] + t.get( 1, 1 ) * spotCoords[ 1 ] + t.get( 1, 2 ) * spotCoords[ 2 ] );
+		final double dx = getDisplay().getWidth() / 2 - ( t.get( 0, 0 ) * spotCoords[ 0 ] + t.get( 0, 1 ) * spotCoords[ 1 ] + t.get( 0, 2 ) * spotCoords[ 2 ] );
+		final double dy = getDisplay().getHeight() / 2 - ( t.get( 1, 0 ) * spotCoords[ 0 ] + t.get( 1, 1 ) * spotCoords[ 1 ] + t.get( 1, 2 ) * spotCoords[ 2 ] );
 		final double dz = -( t.get( 2, 0 ) * spotCoords[ 0 ] + t.get( 2, 1 ) * spotCoords[ 1 ] + t.get( 2, 2 ) * spotCoords[ 2 ] );
 
 		// But use an animator to do this smoothly.
 		final double[] target = new double[] { dx, dy, dz };
-		currentAnimator = new TranslationAnimator( t, target, 300 );
-		currentAnimator.setTime( System.currentTimeMillis() );
-		requestRepaint();
+		setTransformAnimator( new TranslationAnimator( t, target, 300 ) );
 	}
 }
