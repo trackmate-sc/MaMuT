@@ -107,6 +107,9 @@
 		<license.licenseName>gpl_v3</license.licenseName>
 		<license.copyrightOwners>MaMuT development team.</license.copyrightOwners>
 
+		<bigdataviewer-core.version>10.4.3</bigdataviewer-core.version>
+		<bigdataviewer-vistools.version>1.0.0-beta-30</bigdataviewer-vistools.version>
+
 		<!-- NB: Deploy releases to the SciJava Maven repository. -->
 		<releaseProfiles>sign,deploy-to-scijava</releaseProfiles>
 	</properties>
