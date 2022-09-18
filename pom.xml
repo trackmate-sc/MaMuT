@@ -11,7 +11,7 @@
 
 	<groupId>sc.fiji</groupId>
 	<artifactId>MaMuT</artifactId>
-	<version>7.0.7-SNAPSHOT</version>
+	<version>7.1.0</version>
 
 	<name>MaMuT</name>
 	<description>Fiji plugin for the annotation of massive, multi-view data.</description>
@@ -90,7 +90,7 @@
 	<scm>
 		<connection>scm:git:https://github.com/fiji/MaMuT</connection>
 		<developerConnection>scm:git:git@github.com:fiji/MaMuT</developerConnection>
-		<tag>HEAD</tag>
+		<tag>MaMuT-7.1.0</tag>
 		<url>https://github.com/fiji/MaMuT</url>
 	</scm>
 	<issueManagement>
