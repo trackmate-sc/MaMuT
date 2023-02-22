@@ -137,6 +137,7 @@
 		<dependency>
 			<groupId>sc.fiji</groupId>
 			<artifactId>TrackMate</artifactId>
+			<version>7.10.2</version>
 		</dependency>
 
 		<!-- ImageJ dependencies -->
