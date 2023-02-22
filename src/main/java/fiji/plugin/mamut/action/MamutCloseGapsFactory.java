@@ -21,14 +21,20 @@
  */
 package fiji.plugin.mamut.action;
 
+import java.awt.Frame;
+
 import javax.swing.ImageIcon;
 
 import org.scijava.plugin.Plugin;
 
 import fiji.plugin.mamut.MaMuT;
-import fiji.plugin.trackmate.action.CloseGapsByLinearInterpolationAction;
+import fiji.plugin.trackmate.Logger;
+import fiji.plugin.trackmate.SelectionModel;
+import fiji.plugin.trackmate.TrackMate;
 import fiji.plugin.trackmate.action.TrackMateAction;
+import fiji.plugin.trackmate.action.closegaps.CloseGapsByLinearInterpolation;
 import fiji.plugin.trackmate.gui.Icons;
+import fiji.plugin.trackmate.gui.displaysettings.DisplaySettings;
 
 @Plugin( type = MamutActionFactory.class )
 public class MamutCloseGapsFactory implements MamutActionFactory
@@ -37,7 +43,7 @@ public class MamutCloseGapsFactory implements MamutActionFactory
 	@Override
 	public String getInfoText()
 	{
-		return CloseGapsByLinearInterpolationAction.INFO_TEXT;
+		return CloseGapsByLinearInterpolation.INFO_TEXT;
 	}
 
 	@Override
@@ -49,18 +55,38 @@ public class MamutCloseGapsFactory implements MamutActionFactory
 	@Override
 	public String getKey()
 	{
-		return CloseGapsByLinearInterpolationAction.KEY;
+		return CloseGapsByLinearInterpolation.NAME;
 	}
 
 	@Override
 	public String getName()
 	{
-		return CloseGapsByLinearInterpolationAction.NAME;
+		return CloseGapsByLinearInterpolation.NAME;
 	}
 
 	@Override
 	public TrackMateAction create( final MaMuT mamut )
 	{
-		return new CloseGapsByLinearInterpolationAction();
+		return new MaMuTGapClosing();
+	}
+
+	private static final class MaMuTGapClosing implements TrackMateAction
+	{
+
+		private Logger logger = Logger.IJ_LOGGER;
+
+		@Override
+		public void execute( final TrackMate trackmate, final SelectionModel selectionModel, final DisplaySettings displaySettings, final Frame parent )
+		{
+			final CloseGapsByLinearInterpolation gapCloser = new CloseGapsByLinearInterpolation();
+			gapCloser.execute( trackmate, logger );
+		}
+
+		@Override
+		public void setLogger( final Logger logger )
+		{
+			this.logger = logger;
+		}
+
 	}
 }

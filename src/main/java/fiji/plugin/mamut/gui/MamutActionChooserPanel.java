@@ -25,6 +25,7 @@ import static fiji.plugin.trackmate.gui.Fonts.FONT;
 import static fiji.plugin.trackmate.gui.Icons.EXECUTE_ICON;
 
 import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -53,6 +54,9 @@ public class MamutActionChooserPanel extends ModuleChooserPanel< MamutActionFact
 	public MamutActionChooserPanel( final MamutActionProvider actionProvider, final MaMuT mamut, final TrackMate trackmate, final SelectionModel selectionModel, final DisplaySettings displaySettings )
 	{
 		super( actionProvider, "action", CaptureOverlayAction.KEY );
+		final GridBagLayout gridBagLayout = ( GridBagLayout ) getLayout();
+		gridBagLayout.rowWeights = new double[] { 0.0, 0.0, 1.0, 1.0, 0.0 };
+		gridBagLayout.rowHeights = new int[] { 0, 0, 110, 0, 0 };
 
 		final LogPanel logPanel = new LogPanel();
 		final GridBagConstraints gbcLogPanel = new GridBagConstraints();
