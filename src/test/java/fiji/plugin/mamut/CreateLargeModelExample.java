@@ -8,12 +8,12 @@
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -33,15 +33,13 @@ import fiji.plugin.trackmate.gui.displaysettings.DisplaySettingsIO;
 import fiji.plugin.trackmate.io.TmXmlWriter;
 import fiji.plugin.trackmate.visualization.TrackMateModelView;
 import fiji.plugin.trackmate.visualization.ViewFactory;
-import fiji.plugin.trackmate.visualization.hyperstack.HyperStackDisplayerFactory;
-import fiji.plugin.trackmate.visualization.trackscheme.TrackSchemeFactory;
 import ij.ImageJ;
 
 public class CreateLargeModelExample
 {
-	private static final int N_STARTING_CELLS = 50;
+	private static final int N_STARTING_CELLS = 10;
 
-	private static final int N_DIVISIONS = 5; // 14;
+	private static final int N_DIVISIONS = 17;
 
 	private static final int N_FRAMES_PER_DIVISION = 5;
 
@@ -53,31 +51,36 @@ public class CreateLargeModelExample
 
 	public CreateLargeModelExample()
 	{
+		// Print info on the JVM used to run the code.
+		System.out.println( "JVM: " + System.getProperty( "java.vm.name" ) + " " + System.getProperty( "java.vm.version" ) );
+		System.out.println( "Java: " + System.getProperty( "java.version" ) );
+		System.out.println( "OS: " + System.getProperty( "os.name" ) + " " + System.getProperty( "os.version" ) + " " + System.getProperty( "os.arch" ) );
+
 		this.model = new Model();
-		long start = System.currentTimeMillis();
+		final long start = System.currentTimeMillis();
 		run();
-		long end = System.currentTimeMillis();
-		System.out.println( "Model created in " + ( ( end - start ) / 1000 ) + " s." );
+		final long end = System.currentTimeMillis();
+		System.out.println( "Model created in " + ( ( end - start ) / 1000. ) + " s." );
 		System.out.println( "Total number of spots: " + model.getSpots().getNSpots( false ) );
 		final int lastFrame = model.getSpots().keySet().last();
 		System.out.println( "Total number of cells in the last frame: " + model.getSpots().getNSpots( lastFrame, false ) );
 		System.out.println( "Total number of links: " + model.getTrackModel().edgeSet().size() );
-		System.out.println( String.format( "Total memory used by the model: %.1f GB", ( Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory() ) / 1e9d ) );
+		System.out.println( String.format( "Total memory used by the model: %.2f GB", ( Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory() ) / 1e9d ) );
 
-		start = System.currentTimeMillis();
-		save();
-		end = System.currentTimeMillis();
-		System.out.println( "Saving done in " + ( end - start ) / 1000 + " s." );
+//		start = System.currentTimeMillis();
+//		save();
+//		end = System.currentTimeMillis();
+//		System.out.println( "Saving done in " + ( end - start ) / 1000. + " s." );
 
-		start = System.currentTimeMillis();
-		view( new HyperStackDisplayerFactory() );
-		end = System.currentTimeMillis();
-		System.out.println( "Rendering in the main viewer done in " + ( end - start ) / 1000 + " s." );
+//		start = System.currentTimeMillis();
+//		view( new HyperStackDisplayerFactory() );
+//		end = System.currentTimeMillis();
+//		System.out.println( "Rendering in the main viewer done in " + ( end - start ) / 1000. + " s." );
 
-		start = System.currentTimeMillis();
-		view( new TrackSchemeFactory() );
-		end = System.currentTimeMillis();
-		System.out.println( "Rendering in TrackScheme done in " + ( end - start ) / 1000 + " s." );
+//		start = System.currentTimeMillis();
+//		view( new TrackSchemeFactory() );
+//		end = System.currentTimeMillis();
+//		System.out.println( "Rendering in TrackScheme done in " + ( end - start ) / 1000. + " s." );
 	}
 
 	public void save()
