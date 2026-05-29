@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.scijava</groupId>
 		<artifactId>pom-scijava</artifactId>
-		<version>43.0.0</version>
+		<version>44.0.0</version>
 		<relativePath />
 	</parent>
 
@@ -106,10 +106,11 @@
 		<package-name>fiji.plugin.mamut</package-name>
 		<license.licenseName>gpl_v3</license.licenseName>
 		<license.copyrightOwners>MaMuT development team.</license.copyrightOwners>
+		<scijava.jvm.version>8</scijava.jvm.version>
 
 		<!-- NB: Deploy releases to the SciJava Maven repository. -->
 		<releaseProfiles>sign,deploy-to-scijava</releaseProfiles>
-		
+
 		<TrackMate.version>8.0.0</TrackMate.version>
 	</properties>
 
